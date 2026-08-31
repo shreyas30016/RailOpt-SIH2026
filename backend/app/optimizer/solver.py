@@ -8,6 +8,7 @@ from ..models.models import (
     MaintenanceResource, OptimizationRun, ScheduledBlock, ConflictLog, DecisionExplanation, BlockWindow
 )
 from .constraints import RailwayConstraintManager, JobConstraintMeta, TrainConstraintMeta
+from ..services.duration_predictor import duration_predictor
 
 class RailwayBlockOptimizer:
     """
@@ -50,13 +51,25 @@ class RailwayBlockOptimizer:
             tl = tl_dict.get(j.track_line_id)
             res = res_dict.get(j.required_resource_id)
             
+            dept_code = j.department.code if j.department else "ENG"
+            if j.duration_minutes and j.duration_minutes > 0:
+                job_dur = j.duration_minutes
+            else:
+                pred_res = duration_predictor.predict({
+                    "department_code": dept_code,
+                    "urgency": j.urgency,
+                    "duration_minutes": j.duration_minutes,
+                    "requires_power_block": j.requires_power_block
+                }, {"section_length_km": sec.length_km if sec else 15.0})
+                job_dur = pred_res["predictedDuration"]
+
             job_metas.append(JobConstraintMeta(
                 job_id=j.id,
                 job_code=j.job_code,
-                department_code=j.department.code if j.department else "ENG",
+                department_code=dept_code,
                 section_code=sec.code if sec else "UNKNOWN",
                 track_line_code=tl.line_code if tl else f"{sec.code if sec else 'SEC'}_UP",
-                duration_min=j.duration_minutes,
+                duration_min=job_dur,
                 priority=j.priority,
                 urgency=j.urgency,
                 requires_power_block=j.requires_power_block,
@@ -357,7 +370,76 @@ class RailwayBlockOptimizer:
                     })
 
                 else:
-                    reason = f"Deferred due to time window limits or higher priority traffic on track section {j.section_code}."
+                    # Compute specific reason code (post-solve analysis)
+                    window_duration = j.latest_end_min - j.earliest_start_min
+                    if window_duration < j.duration_min:
+                        reason_code = "NO_FEASIBLE_WINDOW"
+                        reason = (
+                            f"Window {window_duration} min < job duration {j.duration_min} min on {j.section_code}. "
+                            f"No feasible slot exists within [{j.earliest_start_min // 60:02d}:{j.earliest_start_min % 60:02d}"
+                            f"–{j.latest_end_min // 60:02d}:{j.latest_end_min % 60:02d}]."
+                        )
+                    else:
+                        # Check if scheduled jobs on same track line blocked this job
+                        same_track_jobs = [
+                            b for b in scheduled_blocks_list if b.get("track_line") == j.track_line_code
+                        ]
+                        if same_track_jobs:
+                            reason_code = "CAPACITY_OVERFLOW"
+                            reason = (
+                                f"Track {j.track_line_code} on {j.section_code} fully occupied by "
+                                f"{len(same_track_jobs)} higher-priority job(s) during the available window."
+                            )
+                        else:
+                            reason_code = "TRAIN_CONFLICT"
+                            reason = (
+                                f"All candidate windows on {j.section_code} overlap protected passenger/express "
+                                f"train movements. No deconflicted slot found for {j.duration_min} min block."
+                            )
+
+                    # Enumerate up to 3 failed candidate windows
+                    failed_windows = []
+                    headway_buf = self.constraint_mgr.headway_margin_minutes
+                    step = max(60, j.duration_min // 2)
+                    probe = j.earliest_start_min
+                    while probe + j.duration_min <= j.latest_end_min and len(failed_windows) < 3:
+                        probe_end = probe + j.duration_min
+                        conflict_trains = [
+                            tr.train_number for tr in trains_db
+                            if not (tr.arrival_minute + headway_buf <= probe or probe_end + headway_buf <= tr.departure_minute)
+                        ]
+                        fail_reason = (
+                            f"Train conflict: {', '.join(conflict_trains[:3])}"
+                            if conflict_trains else
+                            f"Track {j.track_line_code} fully booked by scheduled jobs"
+                        )
+                        failed_windows.append({
+                            "start_str": f"{(probe // 60) % 24:02d}:{probe % 60:02d}",
+                            "end_str": f"{(probe_end // 60) % 24:02d}:{probe_end % 60:02d}",
+                            "duration_min": j.duration_min,
+                            "failure_reason": fail_reason,
+                            "conflicting_trains": conflict_trains[:3],
+                        })
+                        probe += step
+
+                    # Next feasible window heuristic
+                    next_window = None
+                    nw_probe = j.latest_end_min
+                    while nw_probe + j.duration_min <= 1440 and next_window is None:
+                        nw_end = nw_probe + j.duration_min
+                        nw_conflicts = [
+                            tr for tr in trains_db
+                            if not (tr.arrival_minute + headway_buf <= nw_probe or nw_end + headway_buf <= tr.departure_minute)
+                        ]
+                        if not nw_conflicts:
+                            next_window = {
+                                "start_str": f"{(nw_probe // 60) % 24:02d}:{nw_probe % 60:02d}",
+                                "end_str": f"{(nw_end // 60) % 24:02d}:{nw_end % 60:02d}",
+                                "duration_min": j.duration_min,
+                                "description": f"Next feasible slot: {(nw_probe // 60) % 24:02d}:{nw_probe % 60:02d}–{(nw_end // 60) % 24:02d}:{nw_end % 60:02d}",
+                            }
+                        nw_probe += 60
+
                     unscheduled_jobs_list.append({
                         "job_id": j.job_id,
                         "job_code": j.job_code,
@@ -367,7 +449,13 @@ class RailwayBlockOptimizer:
                         "duration_minutes": j.duration_min,
                         "priority": j.priority,
                         "reason": reason,
-                        "suggested_alternative": "Reschedule to subsequent night maintenance lull (01:30 - 05:30) or use afternoon shadow slot."
+                        "reason_code": reason_code,
+                        "failed_candidate_windows": failed_windows,
+                        "next_feasible_window": next_window,
+                        "suggested_alternative": (
+                            next_window["description"] if next_window
+                            else "Reschedule to subsequent night maintenance lull (01:30–05:30) or use afternoon shadow slot."
+                        ),
                     })
                     exp_record = DecisionExplanation(
                         run_id=run_record.id,

@@ -9,17 +9,27 @@ from ..services.train_adapter import train_adapter
 router = APIRouter(prefix="/gantt", tags=["Gantt Timeline"])
 
 @router.get("/timeline")
-def get_gantt_timeline_data(db: Session = Depends(get_db)):
-    latest_run = db.query(OptimizationRun).order_by(OptimizationRun.id.desc()).first()
-    
+def get_gantt_timeline_data(
+    run_id: int = None,
+    db: Session = Depends(get_db)
+):
+    """
+    Return Gantt timeline data for a specific optimization run (or latest if run_id omitted).
+    Includes track-line block assignments, train paths, and corridor windows.
+    """
+    if run_id:
+        run = db.query(OptimizationRun).filter(OptimizationRun.id == run_id).first()
+    else:
+        run = db.query(OptimizationRun).order_by(OptimizationRun.id.desc()).first()
+
     sections = db.query(Section).all()
     track_lines = db.query(TrackLine).all()
     trains = db.query(TrainSchedule).all()
     windows = db.query(BlockWindow).all()
     
     scheduled_blocks = []
-    if latest_run:
-        scheduled_blocks = db.query(ScheduledBlock).filter(ScheduledBlock.run_id == latest_run.id).all()
+    if run:
+        scheduled_blocks = db.query(ScheduledBlock).filter(ScheduledBlock.run_id == run.id).all()
 
     # Tracks / Resources structure
     timeline_tracks = []
@@ -40,6 +50,7 @@ def get_gantt_timeline_data(db: Session = Depends(get_db)):
 
                     tl_blocks.append({
                         "id": sb.id,
+                        "job_id": sb.job_id,
                         "job_code": j.job_code if j else "JOB",
                         "title": j.title if j else "Track Block",
                         "department": sb.department_code,
@@ -50,7 +61,8 @@ def get_gantt_timeline_data(db: Session = Depends(get_db)):
                         "end_time_str": f"{(sb.end_minute // 60) % 24:02d}:{sb.end_minute % 60:02d}",
                         "is_shadow": sb.is_shadow_block,
                         "paired_jobs": paired_codes,
-                        "resource": sb.resource_assigned
+                        "resource": sb.resource_assigned,
+                        "explanation": f"Scheduled {(sb.start_minute // 60) % 24:02d}:{sb.start_minute % 60:02d}–{(sb.end_minute // 60) % 24:02d}:{sb.end_minute % 60:02d} on {sec.code}."
                     })
 
             timeline_tracks.append({

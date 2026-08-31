@@ -1,11 +1,45 @@
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
-from typing import List, Optional
+from typing import List, Optional, Dict, Any
+from pydantic import BaseModel
 from ..database import get_db
 from ..models.models import MaintenanceJob, Department, Section, TrackLine
 from ..schemas.schemas import MaintenanceJobCreate, MaintenanceJobResponse, DepartmentResponse, SectionResponse
+from ..services.duration_predictor import duration_predictor
 
 router = APIRouter(prefix="/maintenance", tags=["Maintenance"])
+
+
+class DurationPredictRequest(BaseModel):
+    department_code: str = "ENG"
+    urgency: str = "MEDIUM"
+    duration_minutes: Optional[int] = None
+    requires_power_block: bool = False
+    resource_type: Optional[str] = "CREW"
+    section_length_km: Optional[float] = 15.0
+    weather_factor: Optional[float] = 1.0
+
+
+@router.post("/predict-duration")
+def predict_maintenance_duration(req: DurationPredictRequest) -> Dict[str, Any]:
+    """
+    AI Preparation Interface: predict maintenance duration using deterministic baseline.
+    modelStatus=DETERMINISTIC_BASELINE — not ML yet. Returns predictedDuration, bounds, confidence.
+    PROTOTYPE_ASSUMPTION: All factors are engineering estimates pending domain validation.
+    """
+    job_data = {
+        "department_code": req.department_code,
+        "urgency": req.urgency,
+        "duration_minutes": req.duration_minutes or 0,
+        "requires_power_block": req.requires_power_block,
+        "resource_type": req.resource_type or "CREW",
+    }
+    context = {
+        "section_length_km": req.section_length_km or 15.0,
+        "weather_factor": req.weather_factor or 1.0,
+    }
+    return duration_predictor.predict(job_data, context)
+
 
 @router.get("/departments", response_model=List[DepartmentResponse])
 def get_departments(db: Session = Depends(get_db)):

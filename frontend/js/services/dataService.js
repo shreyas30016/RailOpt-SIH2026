@@ -123,6 +123,39 @@ class DataService {
         return await this.fetchWithFallback(`${this.apiBase}/api/maintenance/requests?${query}`, normalizedFallback);
     }
 
+    async createMaintenanceRequest(jobData) {
+        try {
+            const res = await fetch(`${this.apiBase}/api/maintenance/requests`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    job_code: jobData.job_code || jobData.id,
+                    title: jobData.title,
+                    department_code: jobData.department_code || jobData.department,
+                    section_code: jobData.section_code || jobData.section,
+                    track_line: jobData.track_line,
+                    duration_minutes: Number(jobData.duration_minutes),
+                    priority: Number(jobData.priority || 3),
+                    urgency: jobData.urgency || "MEDIUM",
+                    requires_power_block: Boolean(jobData.requires_power_block),
+                    requires_traffic_block: Boolean(jobData.requires_traffic_block),
+                    requires_speed_restriction: Boolean(jobData.requires_speed_restriction),
+                    speed_restriction_kmh: Number(jobData.speed_restriction_kmh || 30),
+                    requested_date: jobData.requested_date || new Date().toISOString().split("T")[0],
+                    earliest_start_minute: Number(jobData.earliest_start_minute || 0),
+                    latest_end_minute: Number(jobData.latest_end_minute || 1440),
+                    description: jobData.description || ""
+                })
+            });
+            if (res.ok) {
+                return await res.json();
+            }
+        } catch (err) {
+            console.warn("createMaintenanceRequest API error, continuing with client state:", err);
+        }
+        return jobData;
+    }
+
     // 3. Block Windows & Timetable
     async getBlockWindows() {
         return mockBlockWindows;
@@ -245,8 +278,13 @@ class DataService {
         return await this.fetchWithFallback(`${this.apiBase}/api/optimization/explanation/${jobId}`, fallback);
     }
 
-    // 7. Gantt Timeline Data
-    async getGanttTimelineData() {
+    // 6b. Data Mode Indicator
+    getDataMode() {
+        return { label: "DEMO DATA", color: "amber", isMock: true };
+    }
+
+    // 7. Gantt Timeline Data — accepts optional runId
+    async getGanttTimelineData(runId = null) {
         const sections = [
             { id: 1, code: "NDLS-TKD" },
             { id: 2, code: "TKD-FDB" },
@@ -339,34 +377,79 @@ class DataService {
             }))
         };
 
-        return await this.fetchWithFallback(`${this.apiBase}/api/gantt/timeline`, fallback);
+        const apiUrl = runId
+            ? `${this.apiBase}/api/gantt/timeline?run_id=${runId}`
+            : `${this.apiBase}/api/gantt/timeline`;
+        return await this.fetchWithFallback(apiUrl, fallback);
     }
 
-    // 8. What-If Simulation
+    // 8. What-If Simulation — supports TRAIN_DELAY, MAINTENANCE_OVERRUN, BLOCK_UNAVAILABLE
     async simulateWhatIf(scenarioParams) {
         const payload = {
-            scenario_name: scenarioParams.scenarioName || "Emergency What-If Injection",
-            emergency_job: scenarioParams.emergencyJob,
-            simulated_train_delay_min: scenarioParams.trainDelayMin || 20
+            scenario_name: scenarioParams.scenarioName || "What-If Scenario",
+            emergency_job: scenarioParams.emergencyJob || null,
+            simulated_train_delay_min: scenarioParams.trainDelayMin || 0,
+            delayed_train_number: scenarioParams.delayedTrainNumber || null,
+            blocked_section_code: scenarioParams.blockedSectionCode || null,
+            block_duration_extra_min: scenarioParams.blockDurationExtraMin || 0,
         };
 
         const fallback = {
             scenario_name: payload.scenario_name,
             baseline_run_id: 101,
-            simulated_run: {
-                ...mockOptimizedPlan,
-                scheduled_jobs_count: mockOptimizedPlan.scheduledJobsCount + (scenarioParams.emergencyJob ? 1 : 0),
-                total_maintenance_hours: mockOptimizedPlan.totalMaintenanceHours + (scenarioParams.emergencyJob ? scenarioParams.emergencyJob.duration_minutes / 60 : 0),
-                train_delay_total_min: mockOptimizedPlan.totalTrainDelayMinutes + (scenarioParams.trainDelayMin || 0)
-            },
+            simulated_run: { scheduled_jobs_count: 15, unscheduled_jobs_count: 1, train_delay_total_min: 20 },
+            baseline_blocks: [],
+            new_blocks: [],
+            affected_jobs: [],
+            dropped_jobs: [],
+            gained_jobs: [],
             delta_scheduled_jobs: scenarioParams.emergencyJob ? 1 : 0,
             delta_train_delay_min: scenarioParams.trainDelayMin || 20,
             delta_utilization_pct: 2.6,
+            delta_deferred_jobs: 0,
+            kpi_delta: {
+                scheduled: scenarioParams.emergencyJob ? 1 : 0,
+                train_delay_min: scenarioParams.trainDelayMin || 20,
+                utilization_pct: 2.6,
+                deferred: 0,
+            },
             critical_alerts: mockPlanChange.criticalAlerts,
-            impact_summary: mockPlanChange.impactSummary
+            impact_summary: mockPlanChange.impactSummary,
+            disruptions_applied: {
+                emergency_job: scenarioParams.emergencyJob?.job_code || null,
+                train_delay_min: scenarioParams.trainDelayMin || null,
+                block_unavailable_section: scenarioParams.blockedSectionCode || null,
+                maintenance_overrun_min: scenarioParams.blockDurationExtraMin || null,
+            }
         };
 
         return await this.fetchWithFallback(`${this.apiBase}/api/whatif/simulate`, fallback, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload)
+        });
+    }
+
+    // 9b. AI Preparation: Predict Maintenance Duration
+    async predictMaintenanceDuration(jobData) {
+        const payload = {
+            department_code: jobData.department_code || "ENG",
+            urgency: jobData.urgency || "MEDIUM",
+            duration_minutes: jobData.duration_minutes || null,
+            requires_power_block: jobData.requires_power_block || false,
+            resource_type: jobData.resource_type || "CREW",
+            section_length_km: jobData.section_length_km || 15.0,
+            weather_factor: jobData.weather_factor || 1.0,
+        };
+        const fallback = {
+            predictedDuration: jobData.duration_minutes || 180,
+            lowerBound: Math.floor((jobData.duration_minutes || 180) * 0.8),
+            upperBound: Math.ceil((jobData.duration_minutes || 180) * 1.25),
+            confidence: 0.55,
+            modelStatus: "DETERMINISTIC_BASELINE",
+            reasoning: "Mock fallback — deterministic baseline",
+        };
+        return await this.fetchWithFallback(`${this.apiBase}/api/maintenance/predict-duration`, fallback, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify(payload)

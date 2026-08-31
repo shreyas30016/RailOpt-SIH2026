@@ -1,28 +1,36 @@
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 from ..database import get_db
-from ..models.models import MaintenanceJob, ScheduledBlock, OptimizationRun, Section, Department
+from ..models.models import MaintenanceJob, ScheduledBlock, OptimizationRun, Section, Department, ConflictLog, BlockWindow
 from ..schemas.schemas import DashboardSummary, MaintenanceJobResponse
 from ..services.train_adapter import train_adapter
 
 router = APIRouter(prefix="/dashboard", tags=["Dashboard"])
 
+def _min_to_str(m: int) -> str:
+    return f"{(m // 60) % 24:02d}:{m % 60:02d}"
+
 @router.get("/summary", response_model=DashboardSummary)
 def get_dashboard_summary(db: Session = Depends(get_db)):
+    total_jobs = db.query(MaintenanceJob).count()
     total_pending = db.query(MaintenanceJob).filter(MaintenanceJob.status == "PENDING").count()
+    critical_jobs_count = db.query(MaintenanceJob).filter(
+        MaintenanceJob.urgency.in_(["CRITICAL", "HIGH"])
+    ).count()
     
     latest_run = db.query(OptimizationRun).order_by(OptimizationRun.id.desc()).first()
     
-    total_active_blocks = 0
+    total_active_blocks = db.query(BlockWindow).filter(BlockWindow.is_active == True).count()
     planned_blocks_today = 0
     efficiency = 92.4
     shadow_synergy = 68.5
     punctuality_impact = 1.2
     latest_summary = None
+    upcoming_blocks = []
+    conflicts_list = []
 
     if latest_run:
         planned_blocks_today = latest_run.scheduled_jobs_count
-        total_active_blocks = db.query(ScheduledBlock).filter(ScheduledBlock.run_id == latest_run.id).count()
         efficiency = round(latest_run.block_utilization_pct, 1)
         shadow_synergy = round(latest_run.shadow_block_synergy_pct, 1)
         punctuality_impact = round(max(0.4, (latest_run.train_delay_total_min / 300.0) * 1.5), 1)
@@ -35,6 +43,51 @@ def get_dashboard_summary(db: Session = Depends(get_db)):
             "solver_time_sec": latest_run.solver_time_seconds,
             "timestamp": latest_run.run_timestamp.strftime("%Y-%m-%d %H:%M")
         }
+
+        # Upcoming scheduled blocks from latest optimization run
+        s_blocks = db.query(ScheduledBlock).filter(ScheduledBlock.run_id == latest_run.id).order_by(ScheduledBlock.start_minute.asc()).limit(6).all()
+        for sb in s_blocks:
+            j = sb.job
+            upcoming_blocks.append({
+                "block_id": f"B-{sb.id:02d}",
+                "job_code": j.job_code if j else f"JOB-{sb.job_id}",
+                "job_title": j.title if j else "Track Maintenance",
+                "department_code": sb.department_code,
+                "section_code": sb.section.code if sb.section else "CORRIDOR",
+                "track_line": sb.track_line.line_code if sb.track_line else "MAIN",
+                "start_time_str": _min_to_str(sb.start_minute),
+                "end_time_str": _min_to_str(sb.end_minute),
+                "duration_minutes": sb.duration_minutes,
+                "is_shadow_block": sb.is_shadow_block,
+                "status": "APPROVED" if j and j.status == "APPROVED" else "SCHEDULED"
+            })
+
+        # Resolved/Active conflicts from latest run
+        c_logs = db.query(ConflictLog).filter(ConflictLog.run_id == latest_run.id).limit(6).all()
+        for c in c_logs:
+            conflicts_list.append({
+                "type": c.conflict_type,
+                "severity": c.severity,
+                "description": c.description,
+                "resolution": c.resolution_applied or "Resolved by CP-SAT solver"
+            })
+    else:
+        # Fallback if no run yet: show pending jobs as queue
+        p_jobs = db.query(MaintenanceJob).limit(5).all()
+        for j in p_jobs:
+            upcoming_blocks.append({
+                "block_id": f"REQ-{j.id:02d}",
+                "job_code": j.job_code,
+                "job_title": j.title,
+                "department_code": j.department.code if j.department else "ENG",
+                "section_code": j.section.code if j.section else "CORRIDOR",
+                "track_line": j.track_line.line_code if j.track_line else "MAIN",
+                "start_time_str": _min_to_str(j.earliest_start_minute),
+                "end_time_str": _min_to_str(j.latest_end_minute),
+                "duration_minutes": j.duration_minutes,
+                "is_shadow_block": False,
+                "status": j.status
+            })
 
     # Urgent Queue (Critical & High priority jobs)
     urgent_jobs_db = db.query(MaintenanceJob).filter(
@@ -92,10 +145,15 @@ def get_dashboard_summary(db: Session = Depends(get_db)):
     return DashboardSummary(
         total_active_blocks=total_active_blocks,
         total_pending_requests=total_pending,
+        total_jobs=total_jobs,
+        critical_jobs_count=critical_jobs_count,
         planned_blocks_today=planned_blocks_today,
         efficiency_pct=efficiency,
         shadow_block_synergy_pct=shadow_synergy,
         punctuality_impact_pct=punctuality_impact,
+        conflicts_count=len(conflicts_list),
+        conflicts_list=conflicts_list,
+        upcoming_blocks=upcoming_blocks,
         urgent_queue=urgent_queue,
         department_breakdown=dept_breakdown,
         live_corridor_status=live_status,

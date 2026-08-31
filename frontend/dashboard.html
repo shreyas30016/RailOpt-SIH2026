@@ -126,13 +126,14 @@
             background: #737780;
         }
     </style>
+    <link rel="icon" type="image/png" href="/assets/railopt_logo.png">
 </head>
 <body class="font-body-md text-on-surface bg-background flex flex-col md:flex-row min-h-screen overflow-x-hidden">
 <!-- Standardized SideNavBar (Desktop) -->
 <nav class="hidden md:flex flex-col py-md w-[240px] h-screen fixed left-0 top-0 z-40 bg-primary dark:bg-tertiary">
     <div class="px-md mb-lg">
         <a href="/dashboard" class="flex items-center gap-sm mb-xs cursor-pointer">
-            <img src="/assets/10_indian_railways_official_logo_ad892ab5.png" alt="Indian Railways Official Logo" class="w-9 h-9 rounded-full bg-white p-0.5 shadow-sm object-cover">
+            <img src="/assets/railopt_logo.png" alt="RailOpt Logo" class="w-10 h-10 rounded-full object-contain shrink-0">
             <div>
                 <h1 class="font-headline-sm text-[17px] font-bold text-on-primary uppercase tracking-tight leading-none">RAILOPT</h1>
                 <p class="font-body-sm text-[11px] text-on-primary opacity-80 mt-0.5">Block Planning System</p>
@@ -205,7 +206,7 @@
 <!-- Standardized TopNavBar (Mobile) -->
 <header class="flex md:hidden justify-between items-center px-md w-full fixed top-0 z-50 bg-primary border-b border-outline-variant h-16">
     <div class="flex items-center gap-sm">
-        <img alt="Indian Railways Official Logo" class="w-8 h-8 rounded-full bg-white p-0.5 object-cover" src="/assets/10_indian_railways_official_logo_ad892ab5.png">
+        <img alt="RailOpt Logo" class="w-8 h-8 rounded-full object-contain shrink-0" src="/assets/railopt_logo.png">
         <span class="font-headline-md text-headline-md font-bold text-on-primary tracking-tight uppercase">RAILOPT</span>
     </div>
     <div class="flex items-center gap-sm text-on-primary">
@@ -243,223 +244,165 @@
 <main class="flex-1 md:ml-[240px] mt-16 p-container-margin md:p-lg bg-surface-container-lowest min-h-screen">
 
 <!-- Page Header -->
-<div class="mb-lg">
-<h2 class="font-headline-lg text-headline-lg text-on-surface">Operations Dashboard</h2>
+<div class="mb-lg flex flex-col md:flex-row md:items-center md:justify-between gap-sm">
+    <div>
+        <h2 class="font-headline-lg text-headline-lg text-on-surface">Operations Dashboard</h2>
+        <p class="text-body-sm text-on-surface-variant font-data-mono">Corridor Operations &amp; Multi-Department Block Overview</p>
+    </div>
+    <div class="flex items-center gap-sm">
+        <button id="btn-quick-generate-plan" class="px-4 py-2 rounded-lg bg-primary-container text-on-primary font-bold text-label-md hover:bg-opacity-90 transition-all flex items-center gap-1.5 shadow-sm">
+            <span class="material-symbols-outlined text-[18px]">bolt</span>
+            <span>Run Block Optimization</span>
+        </button>
+    </div>
 </div>
-<!-- Bento Grid Layout -->
+
+<!-- Bento Grid Layout: 4 Main KPI Cards -->
 <div class="grid grid-cols-1 md:grid-cols-4 gap-md mb-lg">
-<!-- Metric 1 -->
-<div class="bg-surface-container-lowest border border-outline-variant border-opacity-50 rounded-lg p-md shadow-[0_4px_6px_rgba(0,0,0,0.02)]">
-<div class="flex justify-between items-start mb-sm">
-<span class="font-label-md text-label-md text-on-surface-variant uppercase">Maintenance Requests</span>
-<span class="material-symbols-outlined text-outline text-[20px]" data-icon="assignment">assignment</span>
+    <!-- Metric 1: Maintenance Requests -->
+    <div id="card-kpi-requests" class="bg-surface-container-lowest border border-outline-variant border-opacity-50 rounded-lg p-md shadow-[0_4px_6px_rgba(0,0,0,0.02)] cursor-pointer hover:bg-surface-container-low transition-colors" title="Click to view all maintenance requests">
+        <div class="flex justify-between items-start mb-sm">
+            <span class="font-label-md text-label-md text-on-surface-variant uppercase">Maintenance Requests</span>
+            <span class="material-symbols-outlined text-outline text-[20px]" data-icon="assignment">assignment</span>
+        </div>
+        <div class="flex items-end gap-sm">
+            <span id="kpi-requests-value" class="font-headline-lg text-[32px] font-bold text-primary">--</span>
+        </div>
+        <div id="kpi-requests-sub" class="mt-2 flex items-center gap-1 text-[12px] text-surface-tint font-medium">
+            <span class="material-symbols-outlined text-[14px]">pending_actions</span>
+            <span>Loading requests...</span>
+        </div>
+    </div>
+
+    <!-- Metric 2: Critical Jobs -->
+    <div id="card-kpi-critical" class="bg-surface-container-lowest border border-outline-variant border-opacity-50 rounded-lg p-md shadow-[0_4px_6px_rgba(0,0,0,0.02)] relative overflow-hidden cursor-pointer hover:bg-surface-container-low transition-colors" title="Click to view critical maintenance jobs">
+        <div class="absolute top-0 left-0 w-1 h-full bg-error"></div>
+        <div class="flex justify-between items-start mb-sm pl-2">
+            <span class="font-label-md text-label-md text-on-surface-variant uppercase">Critical Jobs</span>
+            <span class="material-symbols-outlined text-error opacity-70 text-[20px]" data-icon="warning">warning</span>
+        </div>
+        <div class="flex items-end gap-sm pl-2">
+            <span id="kpi-critical-value" class="font-headline-lg text-[32px] font-bold text-error">--</span>
+        </div>
+        <div id="kpi-critical-sub" class="mt-2 pl-2 text-[12px] text-error font-medium">
+            <span>Requires attention</span>
+        </div>
+    </div>
+
+    <!-- Metric 3: Planned Blocks -->
+    <div id="card-kpi-blocks" class="bg-surface-container-lowest border border-outline-variant border-opacity-50 rounded-lg p-md shadow-[0_4px_6px_rgba(0,0,0,0.02)] cursor-pointer hover:bg-surface-container-low transition-colors" title="Click to view block planning timeline">
+        <div class="flex justify-between items-start mb-sm">
+            <span class="font-label-md text-label-md text-on-surface-variant uppercase">Planned Blocks</span>
+            <span class="material-symbols-outlined text-outline text-[20px]" data-icon="event_available">event_available</span>
+        </div>
+        <div class="flex items-end gap-sm">
+            <span id="kpi-blocks-value" class="font-headline-lg text-[32px] font-bold text-primary">--</span>
+        </div>
+        <div id="kpi-blocks-sub" class="mt-2 text-[12px] text-on-surface-variant font-medium">
+            <span>Next 24 hrs schedule</span>
+        </div>
+    </div>
+
+    <!-- Metric 4: Plan Efficiency -->
+    <div id="card-kpi-conflicts" class="bg-surface-container-lowest border border-outline-variant border-opacity-50 rounded-lg p-md shadow-[0_4px_6px_rgba(0,0,0,0.02)] relative overflow-hidden cursor-pointer hover:bg-surface-container-low transition-colors" title="Click to view plan logic and constraints">
+        <div class="absolute top-0 left-0 w-1 h-full bg-surface-tint"></div>
+        <div class="flex justify-between items-start mb-sm pl-2">
+            <span class="font-label-md text-label-md text-on-surface-variant uppercase">Plan Efficiency</span>
+            <span class="material-symbols-outlined text-surface-tint text-[20px]" data-icon="speed">speed</span>
+        </div>
+        <div class="flex items-end gap-sm pl-2">
+            <span id="kpi-conflicts-value" class="font-headline-lg text-[32px] font-bold text-primary">--</span>
+        </div>
+        <div id="kpi-conflicts-sub" class="mt-2 pl-2 text-[12px] text-surface-tint font-medium">
+            <span>CP-SAT Solver metric</span>
+        </div>
+    </div>
 </div>
-<div class="flex items-end gap-sm">
-<span class="font-headline-lg text-[32px] font-bold text-primary">12</span>
-</div>
-<div class="mt-2 flex items-center gap-1 text-[12px] text-surface-tint font-medium">
-<span class="material-symbols-outlined text-[14px]" data-icon="arrow_upward">arrow_upward</span>
-<span class="">3 new</span>
-</div>
-</div>
-<!-- Metric 2 -->
-<div class="bg-surface-container-lowest border border-outline-variant border-opacity-50 rounded-lg p-md shadow-[0_4px_6px_rgba(0,0,0,0.02)] relative overflow-hidden">
-<div class="absolute top-0 left-0 w-1 h-full bg-error"></div>
-<div class="flex justify-between items-start mb-sm pl-2">
-<span class="font-label-md text-label-md text-on-surface-variant uppercase">Critical Jobs</span>
-<span class="material-symbols-outlined text-error opacity-70 text-[20px]" data-icon="warning">warning</span>
-</div>
-<div class="flex items-end gap-sm pl-2">
-<span class="font-headline-lg text-[32px] font-bold text-error">3</span>
-</div>
-<div class="mt-2 pl-2 text-[12px] text-error font-medium">
-<span class="">Requires attention</span>
-</div>
-</div>
-<!-- Metric 3 -->
-<div class="bg-surface-container-lowest border border-outline-variant border-opacity-50 rounded-lg p-md shadow-[0_4px_6px_rgba(0,0,0,0.02)]">
-<div class="flex justify-between items-start mb-sm">
-<span class="font-label-md text-label-md text-on-surface-variant uppercase">Available Blocks</span>
-<span class="material-symbols-outlined text-outline text-[20px]" data-icon="event_available">event_available</span>
-</div>
-<div class="flex items-end gap-sm">
-<span class="font-headline-lg text-[32px] font-bold text-primary">5</span>
-</div>
-<div class="mt-2 text-[12px] text-on-surface-variant">
-<span class="">Next 24 hrs</span>
-</div>
-</div>
-<!-- Metric 4 -->
-<div class="bg-surface-container-lowest border border-outline-variant border-opacity-50 rounded-lg p-md shadow-[0_4px_6px_rgba(0,0,0,0.02)] relative overflow-hidden">
-<div class="absolute top-0 left-0 w-1 h-full bg-error-container"></div>
-<div class="flex justify-between items-start mb-sm pl-2">
-<span class="font-label-md text-label-md text-on-surface-variant uppercase">Conflicts</span>
-<span class="material-symbols-outlined text-error opacity-70 text-[20px]" data-icon="gavel">gavel</span>
-</div>
-<div class="flex items-end gap-sm pl-2">
-<span class="font-headline-lg text-[32px] font-bold text-error">2</span>
-</div>
-<div class="mt-2 pl-2 text-[12px] text-error font-medium">
-<span class="">Need resolution</span>
-</div>
-</div>
-<!-- Metric 5 (Optional Extra for 5-col layout if needed, hiding on small, showing as 4 cols wide on top otherwise) -->
-<div class="hidden"></div>
-</div>
-<!-- Secondary Grid (Charts & Lists) -->
+
+<!-- Secondary Grid: Charts & Lists -->
 <div class="grid grid-cols-1 lg:grid-cols-3 gap-md mb-lg">
-<!-- Pie Chart Card -->
-<div class="bg-surface-container-lowest border border-outline-variant border-opacity-50 rounded-lg p-md col-span-1 shadow-[0_4px_6px_rgba(0,0,0,0.02)]">
-<h3 class="font-headline-sm text-headline-sm text-on-surface mb-lg">Maintenance Requests by Department</h3>
-<div class="flex flex-col items-center justify-center py-sm">
-<!-- CSS Mock Pie Chart -->
-<div class="relative w-32 h-32 rounded-full mb-md" style="background: conic-gradient(#003366 0% 50%, #3a5f94 50% 83%, #a7c8ff 83% 100%);">
-<div class="absolute inset-2 bg-surface-container-lowest rounded-full flex items-center justify-center flex-col">
-<span class="font-headline-md font-bold text-primary">12</span>
-<span class="text-[10px] text-on-surface-variant uppercase">Total</span>
+    <!-- Pie Chart Card: Maintenance Requests by Department -->
+    <div class="bg-surface-container-lowest border border-outline-variant border-opacity-50 rounded-lg p-md col-span-1 shadow-[0_4px_6px_rgba(0,0,0,0.02)] flex flex-col">
+        <h3 class="font-headline-sm text-headline-sm text-on-surface mb-md">Maintenance Requests by Department</h3>
+        <div class="flex flex-col items-center justify-center py-sm flex-1">
+            <!-- Dynamic CSS Conic Pie Chart -->
+            <div id="dept-pie-circle" class="relative w-32 h-32 rounded-full mb-md transition-all duration-300 shadow-inner" style="background: conic-gradient(#003366 0% 50%, #3a5f94 50% 83%, #a7c8ff 83% 100%);">
+                <div class="absolute inset-2 bg-surface-container-lowest rounded-full flex items-center justify-center flex-col">
+                    <span id="dept-pie-total" class="font-headline-md font-bold text-primary">--</span>
+                    <span class="text-[10px] text-on-surface-variant uppercase tracking-wider font-semibold">Total</span>
+                </div>
+            </div>
+            <!-- Dynamic Legend -->
+            <div id="dept-legend-container" class="w-full flex flex-col gap-sm">
+                <!-- Rendered dynamically by JS -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Upcoming Blocks Table -->
+    <div class="bg-surface-container-lowest border border-outline-variant border-opacity-50 rounded-lg p-0 col-span-1 lg:col-span-2 shadow-[0_4px_6px_rgba(0,0,0,0.02)] flex flex-col">
+        <div class="p-md border-b border-outline-variant border-opacity-50 flex justify-between items-center">
+            <div>
+                <h3 class="font-headline-sm text-headline-sm text-on-surface">Upcoming Blocks (Next 24 hrs)</h3>
+                <p class="text-[11px] text-on-surface-variant font-data-mono mt-0.5">Click any block to view mathematical solver reasoning</p>
+            </div>
+            <button id="btn-view-all-blocks" class="text-surface-tint text-label-md font-label-md hover:underline font-bold cursor-pointer">View All</button>
+        </div>
+        <div class="flex-1 overflow-x-auto dense-scroll">
+            <table class="w-full text-left border-collapse">
+                <thead>
+                    <tr class="bg-[#F8FAFC] border-b border-outline-variant border-opacity-50">
+                        <th class="font-label-md text-[11px] text-on-surface-variant uppercase p-[table-cell-padding] tracking-wider whitespace-nowrap">Block / Job ID</th>
+                        <th class="font-label-md text-[11px] text-on-surface-variant uppercase p-[table-cell-padding] tracking-wider whitespace-nowrap">Section &amp; Track</th>
+                        <th class="font-label-md text-[11px] text-on-surface-variant uppercase p-[table-cell-padding] tracking-wider whitespace-nowrap text-right">Start Time</th>
+                        <th class="font-label-md text-[11px] text-on-surface-variant uppercase p-[table-cell-padding] tracking-wider whitespace-nowrap text-right">End Time</th>
+                        <th class="font-label-md text-[11px] text-on-surface-variant uppercase p-[table-cell-padding] tracking-wider whitespace-nowrap text-right">Duration</th>
+                        <th class="font-label-md text-[11px] text-on-surface-variant uppercase p-[table-cell-padding] tracking-wider whitespace-nowrap text-center">Status</th>
+                    </tr>
+                </thead>
+                <tbody id="upcoming-blocks-tbody" class="text-data-mono text-on-surface">
+                    <!-- Populated dynamically by JS -->
+                </tbody>
+            </table>
+        </div>
+    </div>
 </div>
-</div>
-<!-- Legend -->
-<div class="w-full flex flex-col gap-sm">
-<div class="flex justify-between items-center text-body-sm">
-<div class="flex items-center gap-2">
-<span class="w-2 h-2 rounded-full bg-primary-container"></span>
-<span class="">Engineering</span>
-</div>
-<span class="font-data-mono font-medium">6 (50%)</span>
-</div>
-<div class="flex justify-between items-center text-body-sm">
-<div class="flex items-center gap-2">
-<span class="w-2 h-2 rounded-full bg-surface-tint"></span>
-<span class="">S&amp;T</span>
-</div>
-<span class="font-data-mono font-medium">4 (33%)</span>
-</div>
-<div class="flex justify-between items-center text-body-sm">
-<div class="flex items-center gap-2">
-<span class="w-2 h-2 rounded-full bg-primary-fixed-dim"></span>
-<span class="">Traction (TRD)</span>
-</div>
-<span class="font-data-mono font-medium">2 (17%)</span>
-</div>
-</div>
-</div>
-</div>
-<!-- Upcoming Blocks Table -->
-<div class="bg-surface-container-lowest border border-outline-variant border-opacity-50 rounded-lg p-0 col-span-1 lg:col-span-2 shadow-[0_4px_6px_rgba(0,0,0,0.02)] flex flex-col">
-<div class="p-md border-b border-outline-variant border-opacity-50 flex justify-between items-center">
-<h3 class="font-headline-sm text-headline-sm text-on-surface">Upcoming Blocks (Next 24 hrs)</h3>
-<button class="text-surface-tint text-label-md font-label-md hover:underline">View All</button>
-</div>
-<div class="flex-1 overflow-x-auto dense-scroll">
-<table class="w-full text-left border-collapse">
-<thead>
-<tr class="bg-[#F8FAFC] border-b border-outline-variant border-opacity-50">
-<th class="font-label-md text-[11px] text-on-surface-variant uppercase p-[table-cell-padding] tracking-wider whitespace-nowrap">Block ID</th>
-<th class="font-label-md text-[11px] text-on-surface-variant uppercase p-[table-cell-padding] tracking-wider whitespace-nowrap">Section</th>
-<th class="font-label-md text-[11px] text-on-surface-variant uppercase p-[table-cell-padding] tracking-wider whitespace-nowrap text-right">Start Time</th>
-<th class="font-label-md text-[11px] text-on-surface-variant uppercase p-[table-cell-padding] tracking-wider whitespace-nowrap text-right">End Time</th>
-<th class="font-label-md text-[11px] text-on-surface-variant uppercase p-[table-cell-padding] tracking-wider whitespace-nowrap text-right">Duration</th>
-<th class="font-label-md text-[11px] text-on-surface-variant uppercase p-[table-cell-padding] tracking-wider whitespace-nowrap text-center">Status</th>
-</tr>
-</thead>
-<tbody class="text-data-mono text-on-surface">
-<tr class="border-b border-outline-variant border-opacity-30 hover:bg-surface transition-colors">
-<td class="p-[table-cell-padding] font-medium text-primary">B-01</td>
-<td class="p-[table-cell-padding]">NDLS - GZB</td>
-<td class="p-[table-cell-padding] text-right">22:30</td>
-<td class="p-[table-cell-padding] text-right">01:30</td>
-<td class="p-[table-cell-padding] text-right text-on-surface-variant">03:00</td>
-<td class="p-[table-cell-padding] text-center">
-<span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium bg-[#DEF7EC] text-[#03543F]">Approved</span>
-</td>
-</tr>
-<tr class="border-b border-outline-variant border-opacity-30 hover:bg-surface transition-colors">
-<td class="p-[table-cell-padding] font-medium text-primary">B-02</td>
-<td class="p-[table-cell-padding]">GZB - MTC</td>
-<td class="p-[table-cell-padding] text-right">01:45</td>
-<td class="p-[table-cell-padding] text-right">04:45</td>
-<td class="p-[table-cell-padding] text-right text-on-surface-variant">03:00</td>
-<td class="p-[table-cell-padding] text-center">
-<span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium bg-[#E1EFFE] text-[#1E429F]">Tentative</span>
-</td>
-</tr>
-<tr class="border-b border-outline-variant border-opacity-30 hover:bg-surface transition-colors">
-<td class="p-[table-cell-padding] font-medium text-primary">B-03</td>
-<td class="p-[table-cell-padding]">MTC - TDL</td>
-<td class="p-[table-cell-padding] text-right">23:15</td>
-<td class="p-[table-cell-padding] text-right">02:15</td>
-<td class="p-[table-cell-padding] text-right text-on-surface-variant">03:00</td>
-<td class="p-[table-cell-padding] text-center">
-<span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium bg-[#F3F4F6] text-[#374151]">Available</span>
-</td>
-</tr>
-<tr class="border-b border-outline-variant border-opacity-30 hover:bg-surface transition-colors">
-<td class="p-[table-cell-padding] font-medium text-primary">B-04</td>
-<td class="p-[table-cell-padding]">NDLS - GZB</td>
-<td class="p-[table-cell-padding] text-right">03:00</td>
-<td class="p-[table-cell-padding] text-right">06:00</td>
-<td class="p-[table-cell-padding] text-right text-on-surface-variant">03:00</td>
-<td class="p-[table-cell-padding] text-center">
-<span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium bg-[#F3F4F6] text-[#374151]">Available</span>
-</td>
-</tr>
-<tr class="hover:bg-surface transition-colors">
-<td class="p-[table-cell-padding] font-medium text-primary">B-05</td>
-<td class="p-[table-cell-padding]">GZB - MTC</td>
-<td class="p-[table-cell-padding] text-right">02:00</td>
-<td class="p-[table-cell-padding] text-right">05:00</td>
-<td class="p-[table-cell-padding] text-right text-on-surface-variant">03:00</td>
-<td class="p-[table-cell-padding] text-center">
-<span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium bg-[#F3F4F6] text-[#374151]">Available</span>
-</td>
-</tr>
-</tbody>
-</table>
-</div>
-</div>
-</div>
-<!-- Bottom Grid (Conflicts) -->
+
+<!-- Bottom Grid: Conflicts & AI Status -->
 <div class="grid grid-cols-1 md:grid-cols-2 gap-md">
-<!-- Conflicts Overview List -->
-<div class="bg-surface-container-lowest border border-outline-variant border-opacity-50 rounded-lg p-md shadow-[0_4px_6px_rgba(0,0,0,0.02)]">
-<div class="flex justify-between items-center mb-md">
-<h3 class="font-headline-sm text-headline-sm text-on-surface">Conflicts Overview</h3>
-<button class="text-surface-tint text-label-md font-label-md hover:underline">View All</button>
-</div>
-<div class="mb-sm">
-<span class="font-headline-md text-error font-bold">2 Conflicts</span>
-</div>
-<div class="flex flex-col gap-sm">
-<!-- Conflict Item 1 -->
-<div class="bg-error-container bg-opacity-20 border border-error-container rounded p-sm flex items-start gap-sm">
-<span class="material-symbols-outlined text-error mt-0.5 text-[18px]" data-icon="error">error</span>
-<div class="flex-1">
-<h4 class="font-label-md text-on-surface">B-01 vs Train 12302</h4>
-<p class="font-body-sm text-on-surface-variant mt-1 text-[11px]">Overlaps with scheduled movement</p>
-</div>
-<button class="text-surface-tint text-[12px] font-medium hover:underline">Resolve</button>
-</div>
-<!-- Conflict Item 2 -->
-<div class="bg-surface-variant border border-outline-variant border-opacity-50 rounded p-sm flex items-start gap-sm">
-<span class="material-symbols-outlined text-outline mt-0.5 text-[18px]" data-icon="warning">warning</span>
-<div class="flex-1">
-<h4 class="font-label-md text-on-surface">B-02 vs Maintenance Job J-07</h4>
-<p class="font-body-sm text-on-surface-variant mt-1 text-[11px]">Resource conflict (Track Machine)</p>
-</div>
-<button class="text-surface-tint text-[12px] font-medium hover:underline">Resolve</button>
-</div>
-</div>
-</div>
-<!-- Contextual Image / Illustration -->
-<div class="hidden md:flex bg-surface-container-lowest border border-outline-variant border-opacity-50 rounded-lg p-0 shadow-[0_4px_6px_rgba(0,0,0,0.02)] overflow-hidden items-center justify-center bg-surface relative">
-<div class="absolute inset-0 bg-gradient-to-t from-primary to-transparent opacity-60 z-10"></div>
-<img alt="Railway Operations" class="w-full h-full object-cover z-0" data-alt="A cinematic, wide-angle shot of a modern railway junction at dusk. The tracks curve elegantly into the distance under complex overhead catenary wires. Warm, golden hour light reflects off the steel rails, contrasting with the cool, deep blues of the encroaching evening sky. A high-speed train is slightly blurred in the background, conveying motion and punctuality. The overall mood is industrial, precise, and technologically advanced, fitting for an AI operations dashboard." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBUAAOTnrDJtf0uZPS8TcxOQn6AmsMDCpGIl5RE-6iN9FTYdW8Bckkd-TSlagz_546afID_5Rpw-SwsqPU-xj_kauVwVn5Fk6QfXIyPLaxkil3XfDsmJsY4JtGDTZdBbjyaz7ENLblUO5SS5RTJDBTOMRUEuNOiMH4y3xV5OtUFMBjDPVkFwZ40IGF4qJg3EITU1xF2Zbf2I176T8xwg_AHUoOjZvhAgtQnPgmGtFUyGbSy5yawqwfg">
-<div class="absolute bottom-md left-md right-md z-20 text-on-primary">
-<h4 class="font-headline-sm font-bold mb-1 shadow-sm">AI Optimization Active</h4>
-<p class="font-body-sm opacity-90 text-[11px]">System continuously analyzing track availability and train schedules to propose conflict-free maintenance blocks.</p>
-</div>
-</div>
+    <!-- Conflicts Overview List -->
+    <div class="bg-surface-container-lowest border border-outline-variant border-opacity-50 rounded-lg p-md shadow-[0_4px_6px_rgba(0,0,0,0.02)]">
+        <div class="flex justify-between items-center mb-md">
+            <div>
+                <h3 class="font-headline-sm text-headline-sm text-on-surface">Solver Deconfliction Overview</h3>
+                <p class="text-[11px] text-on-surface-variant font-data-mono">Automatic conflict prevention logs</p>
+            </div>
+            <button id="btn-view-all-conflicts" class="text-surface-tint text-label-md font-label-md hover:underline font-bold cursor-pointer">View Rules &amp; Logic</button>
+        </div>
+        <div class="mb-sm">
+            <span id="conflicts-count-badge" class="font-headline-md text-error font-bold">--</span>
+        </div>
+        <div id="conflicts-list-container" class="flex flex-col gap-sm">
+            <!-- Populated dynamically by JS -->
+        </div>
+    </div>
+
+    <!-- Contextual Action Banner -->
+    <div id="ai-optimization-banner" class="cursor-pointer bg-surface-container-lowest border border-outline-variant border-opacity-50 rounded-lg p-0 shadow-[0_4px_6px_rgba(0,0,0,0.02)] overflow-hidden flex items-center justify-center bg-surface relative hover:shadow-lg transition-shadow">
+        <div class="absolute inset-0 bg-gradient-to-t from-primary to-transparent opacity-80 z-10"></div>
+        <img alt="Railway Operations" class="w-full h-full object-cover z-0" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBUAAOTnrDJtf0uZPS8TcxOQn6AmsMDCpGIl5RE-6iN9FTYdW8Bckkd-TSlagz_546afID_5Rpw-SwsqPU-xj_kauVwVn5Fk6QfXIyPLaxkil3XfDsmJsY4JtGDTZdBbjyaz7ENLblUO5SS5RTJDBTOMRUEuNOiMH4y3xV5OtUFMBjDPVkFwZ40IGF4qJg3EITU1xF2Zbf2I176T8xwg_AHUoOjZvhAgtQnPgmGtFUyGbSy5yawqwfg">
+        <div class="absolute bottom-md left-md right-md z-20 text-on-primary">
+            <div class="flex items-center gap-2 mb-1">
+                <span class="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse"></span>
+                <h4 class="font-headline-sm font-bold shadow-sm">Mathematical CP-SAT Optimizer Ready</h4>
+            </div>
+            <p class="font-body-sm opacity-90 text-[12px] mb-2">Analyzing multi-department possession requests against live train movement constraints on Delhi–Agra corridor.</p>
+            <button id="btn-banner-generate-plan" class="px-3.5 py-1.5 rounded-lg bg-surface-tint text-on-primary font-bold text-[12px] hover:bg-opacity-90 flex items-center gap-1.5 shadow">
+                <span class="material-symbols-outlined text-[16px]">play_arrow</span>
+                Generate Optimal Plan
+            </button>
+        </div>
+    </div>
 </div>
 </main>
 

@@ -231,9 +231,65 @@ def get_latest_optimization(db: Session = Depends(get_db)):
     }
 
 @router.get("/explanation/{job_code}")
-def get_decision_explanation(job_code: str, db: Session = Depends(get_db)):
+def get_decision_explanation(
+    job_code: str,
+    run_id: Optional[int] = None,
+    db: Session = Depends(get_db)
+):
+    """
+    Return explanation tree for why a job was scheduled or deferred.
+    Includes hard constraint checks, priority reason, shadow block info, and deferred reason codes.
+    """
     explainer = DecisionExplainer(db)
-    return explainer.explain_job_decision(job_code)
+    return explainer.explain_job_decision(job_code, run_id=run_id)
+
+
+@router.get("/run/{run_id}")
+def get_optimization_run_by_id(run_id: int, db: Session = Depends(get_db)):
+    """Fetch a specific optimization run result by run_id."""
+    run = db.query(OptimizationRun).filter(OptimizationRun.id == run_id).first()
+    if not run:
+        raise HTTPException(status_code=404, detail=f"Optimization run {run_id} not found")
+
+    scheduled_blocks_db = db.query(ScheduledBlock).filter(ScheduledBlock.run_id == run_id).all()
+    import json as _json
+    scheduled_blocks = []
+    for sb in scheduled_blocks_db:
+        j = sb.job
+        try:
+            paired_codes = _json.loads(sb.paired_job_codes_json) if sb.paired_job_codes_json else []
+        except Exception:
+            paired_codes = []
+        scheduled_blocks.append({
+            "id": sb.id,
+            "job_id": sb.job_id,
+            "job_code": j.job_code if j else "JOB",
+            "title": j.title if j else "Track Block",
+            "department_code": sb.department_code,
+            "section_code": sb.section.code if sb.section else "SEC",
+            "track_line": sb.track_line.line_code if sb.track_line else "UP_MAIN",
+            "start_minute": sb.start_minute,
+            "end_minute": sb.end_minute,
+            "start_time_str": f"{(sb.start_minute // 60) % 24:02d}:{sb.start_minute % 60:02d}",
+            "end_time_str": f"{(sb.end_minute // 60) % 24:02d}:{sb.end_minute % 60:02d}",
+            "duration_minutes": sb.duration_minutes,
+            "is_shadow_block": sb.is_shadow_block,
+            "paired_job_codes": paired_codes,
+            "resource_assigned": sb.resource_assigned,
+        })
+
+    return {
+        "run_id": run.id,
+        "status": run.status,
+        "timestamp": run.run_timestamp.strftime("%Y-%m-%d %H:%M:%S"),
+        "scheduled_jobs_count": run.scheduled_jobs_count,
+        "unscheduled_jobs_count": run.unscheduled_jobs_count,
+        "train_delay_total_min": run.train_delay_total_min,
+        "block_utilization_pct": run.block_utilization_pct,
+        "shadow_block_synergy_pct": run.shadow_block_synergy_pct,
+        "scheduled_blocks": scheduled_blocks,
+    }
+
 
 @router.get("/rules")
 def get_railway_rules():

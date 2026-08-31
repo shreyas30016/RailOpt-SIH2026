@@ -128,6 +128,9 @@ class UnscheduledJobDetail(BaseModel):
     duration_minutes: int
     priority: int
     reason: str
+    reason_code: Optional[str] = None          # e.g. NO_FEASIBLE_WINDOW, TRAIN_CONFLICT
+    failed_candidate_windows: List[Dict[str, Any]] = []
+    next_feasible_window: Optional[Dict[str, Any]] = None
     suggested_alternative: Optional[str] = None
 
 class OptimizationResponse(BaseModel):
@@ -160,21 +163,34 @@ class WhatIfRequest(BaseModel):
 class WhatIfComparisonResponse(BaseModel):
     scenario_name: str
     baseline_run_id: int
-    simulated_run: OptimizationResponse
+    simulated_run: Dict[str, Any]          # relaxed type: full optimizer output
+    baseline_blocks: List[Dict[str, Any]] = []
+    new_blocks: List[Dict[str, Any]] = []
+    affected_jobs: List[str] = []
+    dropped_jobs: List[str] = []
+    gained_jobs: List[str] = []
     delta_scheduled_jobs: int
     delta_train_delay_min: int
     delta_utilization_pct: float
+    delta_deferred_jobs: int = 0
+    kpi_delta: Dict[str, Any] = {}
     critical_alerts: List[str]
     impact_summary: str
+    disruptions_applied: Optional[Dict[str, Any]] = None
 
 # Dashboard Summary Schema
 class DashboardSummary(BaseModel):
     total_active_blocks: int
     total_pending_requests: int
+    total_jobs: int = 0
+    critical_jobs_count: int = 0
     planned_blocks_today: int
     efficiency_pct: float
     shadow_block_synergy_pct: float
     punctuality_impact_pct: float
+    conflicts_count: int = 0
+    conflicts_list: List[Dict[str, Any]] = []
+    upcoming_blocks: List[Dict[str, Any]] = []
     urgent_queue: List[MaintenanceJobResponse]
     department_breakdown: Dict[str, int]
     live_corridor_status: List[Dict[str, Any]]
