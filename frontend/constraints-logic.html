@@ -1,7 +1,7 @@
 <!DOCTYPE html><html lang="en"><head>
 <meta charset="utf-8">
 <meta content="width=device-width, initial-scale=1.0" name="viewport">
-<title>RAILOPT - Plan Explanation &amp; Logic</title>
+<title>Plan Logic & Constraints | RAILOPT</title>
 <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
 <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap" rel="stylesheet">
@@ -110,92 +110,121 @@
         }
     </style>
 </head>
-<body class="font-body-md text-on-background bg-background h-screen overflow-hidden flex flex-col">
-<!-- TopNavBar -->
-<header class="bg-primary text-on-primary flex justify-between items-center px-lg w-full fixed top-0 z-50 border-b border-outline-variant h-16">
-<div class="flex items-center gap-md">
-<div class="w-8 h-8 shrink-0 flex items-center justify-center"><img src="https://lh3.googleusercontent.com/aida-public/AB6AXuAsBkV1EB3sdA1w9rmrxuZcCE0N8QEumD4ptyz2W_zu6PmYInV4-AvANnFFWC0zJVXDa-d0oxAzQpnDZFSwn00dK1WOvqVwVaR1D-KiMK254eYrGYfCV-AisIa0HcjN5aifuigIlJuJ-VnU82Q_Rp_FNWJpe68J3nQbPteH7bTJ-zMguITOzmBOqFaXRZzgkXUI5iIrrrw1T_d-uni16hYqKTfMS8xVlnl3mRoyBXXNe2UECyvinyOI" alt="Indian Railways Official Logo" class="w-full h-full object-contain"></div>
-<span class="font-headline-md text-headline-md font-bold text-on-primary tracking-tight">RAILOPT</span>
-<span class="font-body-sm text-body-sm opacity-80 border-l border-on-primary/30 pl-sm ml-sm">AI-Powered Block Planning System</span>
-</div>
-<div class="flex items-center gap-lg">
-<div class="font-data-mono text-data-mono opacity-90">15 May 2024 | 10:30:25</div>
-<div class="flex items-center gap-md">
-<button class="hover:bg-primary-container p-sm rounded-full transition-colors duration-200 flex items-center justify-center">
-<span class="material-symbols-outlined">notifications</span>
-</button>
-<button class="hover:bg-primary-container p-sm rounded-full transition-colors duration-200 flex items-center justify-center">
-<span class="material-symbols-outlined">settings</span>
-</button>
-<button class="hover:bg-primary-container p-sm rounded-full transition-colors duration-200 flex items-center justify-center">
-<span class="material-symbols-outlined">help</span>
-</button>
-</div>
-<div class="flex items-center gap-sm bg-primary-container px-md py-sm rounded-full border border-outline-variant/30 cursor-pointer hover:bg-primary-container/80 transition-colors">
-<img class="w-6 h-6 rounded-full object-cover" data-alt="A small, professional corporate headshot of an Indian Railways planner against a neutral grey background. The lighting is studio quality, soft and even. The subject is wearing a crisp light blue shirt, exuding competence and reliability. Corporate realism style." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBybNldgw0LOjkXZqXUzDL86HVj5tJVJsyVv7ZWF9-b1wAU_CBV4i63l3aOpJ7qUwtHS5gvbQR2IN6AZ6r1v-oKCg4oLNv6QRmF7pPQrbiLK0edEO8lZA1nod8n6lrKgFGQ-YUYwbc1NOXqrZlIdv-PNVP9LRKMGK8PeXsuv_8SXP6IH-yBJvV2uvCERi88XHFUaYluN0id1eJetlHtua29klGMbXj6VivI0E6Yy9yS19cq5R_cVEui">
-<span class="font-label-md text-label-md">Planner</span>
-<span class="material-symbols-outlined text-[16px]">expand_more</span>
-</div>
-</div>
-</header>
-<div class="flex flex-1 pt-16">
-<!-- SideNavBar -->
-<nav class="flex flex-col py-md w-[240px] h-full fixed left-0 top-16 z-40 bg-primary dark:bg-tertiary">
-<div class="flex-1 overflow-y-auto mt-sm">
-<ul class="flex flex-col gap-xs px-sm">
-<li class="">
-<a class="flex items-center gap-md px-md py-sm rounded-md text-on-primary-container opacity-70 hover:bg-primary-container hover:opacity-100 transition-all duration-150 group" href="#">
-<span class="material-symbols-outlined group-hover:scale-110 transition-transform">dashboard</span>
-<span class="font-label-md text-label-md">Dashboard</span>
-</a>
-</li>
-<li class="">
-<a class="flex items-center gap-md px-md py-sm rounded-md text-on-primary-container opacity-70 hover:bg-primary-container hover:opacity-100 transition-all duration-150 group" href="#">
-<span class="material-symbols-outlined group-hover:scale-110 transition-transform">pending_actions</span>
-<span class="font-label-md text-label-md">Maintenance Requests</span>
-</a>
-</li>
-<li class="">
-<a class="flex items-center gap-md px-md py-sm rounded-md bg-primary-container text-on-primary-container border-l-4 border-on-primary-container opacity-100 group" href="#">
-<span class="material-symbols-outlined">edit_calendar</span>
-<span class="font-label-md text-label-md">Block Planning</span>
-</a>
-</li>
-<li class="">
-<a class="flex items-center gap-md px-md py-sm rounded-md text-on-primary-container opacity-70 hover:bg-primary-container hover:opacity-100 transition-all duration-150 group" href="#">
-<span class="material-symbols-outlined group-hover:scale-110 transition-transform">view_timeline</span>
-<span class="font-label-md text-label-md">Gantt View</span>
-</a>
-</li>
-<li class="">
-<a class="flex items-center gap-md px-md py-sm rounded-md text-on-primary-container opacity-70 hover:bg-primary-container hover:opacity-100 transition-all duration-150 group" href="#">
-<span class="material-symbols-outlined group-hover:scale-110 transition-transform">query_stats</span>
-<span class="font-label-md text-label-md">What-if Analysis</span>
-</a>
-</li>
-<li class="">
-<a class="flex items-center gap-md px-md py-sm rounded-md text-on-primary-container opacity-70 hover:bg-primary-container hover:opacity-100 transition-all duration-150 group" href="#">
-<span class="material-symbols-outlined group-hover:scale-110 transition-transform">assessment</span>
-<span class="font-label-md text-label-md">Reports</span>
-</a>
-</li>
-<li class="">
-<a class="flex items-center gap-md px-md py-sm rounded-md text-on-primary-container opacity-70 hover:bg-primary-container hover:opacity-100 transition-all duration-150 group" href="#">
-<span class="material-symbols-outlined group-hover:scale-110 transition-transform">database</span>
-<span class="font-label-md text-label-md">Master Data</span>
-</a>
-</li>
-<li class="">
-<a class="flex items-center gap-md px-md py-sm rounded-md text-on-primary-container opacity-70 hover:bg-primary-container hover:opacity-100 transition-all duration-150 group" href="#">
-<span class="material-symbols-outlined group-hover:scale-110 transition-transform">admin_panel_settings</span>
-<span class="font-label-md text-label-md">Administration</span>
-</a>
-</li>
-</ul>
-</div>
+<body class="font-body-md text-on-surface bg-background flex flex-col md:flex-row min-h-screen overflow-x-hidden">
+<!-- Standardized SideNavBar (Desktop) -->
+<nav class="hidden md:flex flex-col py-md w-[240px] h-screen fixed left-0 top-0 z-40 bg-primary dark:bg-tertiary">
+    <div class="px-md mb-lg">
+        <a href="/dashboard" class="flex items-center gap-sm mb-xs cursor-pointer">
+            <img src="/assets/10_indian_railways_official_logo_ad892ab5.png" alt="Indian Railways Official Logo" class="w-9 h-9 rounded-full bg-white p-0.5 shadow-sm object-cover">
+            <div>
+                <h1 class="font-headline-sm text-[17px] font-bold text-on-primary uppercase tracking-tight leading-none">RAILOPT</h1>
+                <p class="font-body-sm text-[11px] text-on-primary opacity-80 mt-0.5">Block Planning System</p>
+            </div>
+        </a>
+    </div>
+    <div class="flex-1 overflow-y-auto dense-scroll">
+        <ul class="flex flex-col gap-xs px-sm">
+        <li class="sidebar-item">
+            <a class="flex items-center gap-sm px-md py-sm rounded-lg text-on-primary-container opacity-70 hover:bg-primary-container hover:opacity-100 transition-all duration-150 active:scale-[0.98]" href="/dashboard" id="nav-dashboard">
+                <span class="material-symbols-outlined text-[20px]">dashboard</span>
+                <span class="font-label-md text-label-md">Operations Dashboard</span>
+            </a>
+        </li>
+        <li class="sidebar-item">
+            <a class="flex items-center gap-sm px-md py-sm rounded-lg text-on-primary-container opacity-70 hover:bg-primary-container hover:opacity-100 transition-all duration-150 active:scale-[0.98]" href="/maintenance-requests" id="nav-maintenance-requests">
+                <span class="material-symbols-outlined text-[20px]">pending_actions</span>
+                <span class="font-label-md text-label-md">Maintenance Requests</span>
+            </a>
+        </li>
+        <li class="sidebar-item">
+            <a class="flex items-center gap-sm px-md py-sm rounded-lg text-on-primary-container opacity-70 hover:bg-primary-container hover:opacity-100 transition-all duration-150 active:scale-[0.98]" href="/block-planning" id="nav-block-planning">
+                <span class="material-symbols-outlined text-[20px]">edit_calendar</span>
+                <span class="font-label-md text-label-md">Block Planning</span>
+            </a>
+        </li>
+        <li class="sidebar-item">
+            <a class="flex items-center gap-sm px-md py-sm rounded-lg text-on-primary-container opacity-70 hover:bg-primary-container hover:opacity-100 transition-all duration-150 active:scale-[0.98]" href="/gantt-view" id="nav-gantt-view">
+                <span class="material-symbols-outlined text-[20px]">view_timeline</span>
+                <span class="font-label-md text-label-md">Gantt View</span>
+            </a>
+        </li>
+        <li class="sidebar-item">
+            <a class="flex items-center gap-sm px-md py-sm rounded-lg text-on-primary-container opacity-70 hover:bg-primary-container hover:opacity-100 transition-all duration-150 active:scale-[0.98]" href="/what-if" id="nav-what-if">
+                <span class="material-symbols-outlined text-[20px]">query_stats</span>
+                <span class="font-label-md text-label-md">What-if Analysis</span>
+            </a>
+        </li>
+        <li class="sidebar-item">
+            <a class="flex items-center gap-sm px-md py-sm rounded-lg bg-primary-container text-on-primary-container border-l-4 border-on-primary-container font-semibold transition-all duration-150 active:scale-[0.98]" href="/constraints-logic" id="nav-constraints-logic">
+                <span class="material-symbols-outlined text-[20px]">rule</span>
+                <span class="font-label-md text-label-md">Plan Logic & Constraints</span>
+            </a>
+        </li>
+        <li class="sidebar-item">
+            <a class="flex items-center gap-sm px-md py-sm rounded-lg text-on-primary-container opacity-70 hover:bg-primary-container hover:opacity-100 transition-all duration-150 active:scale-[0.98]" href="/reports" id="nav-reports">
+                <span class="material-symbols-outlined text-[20px]">assessment</span>
+                <span class="font-label-md text-label-md">Reports</span>
+            </a>
+        </li>
+        </ul>
+    </div>
+    <div class="mt-auto px-sm pt-md border-t border-primary-container">
+        <ul class="flex flex-col gap-xs">
+            <li>
+                <button onclick="window.triggerNewRequestModal && window.triggerNewRequestModal()" class="w-full flex items-center gap-sm px-md py-sm rounded-lg bg-surface-tint text-on-primary font-semibold hover:bg-opacity-90 transition-all shadow-sm">
+                    <span class="material-symbols-outlined text-[20px]">add_circle</span>
+                    <span class="font-label-md text-label-md">New Request</span>
+                </button>
+            </li>
+            <li>
+                <a class="flex items-center gap-sm px-md py-sm rounded-lg text-on-primary-container opacity-70 hover:bg-primary-container hover:opacity-100 transition-all duration-150" href="/constraints-logic">
+                    <span class="material-symbols-outlined text-[20px]">verified_user</span>
+                    <span class="font-label-md text-label-md">Domain Rules</span>
+                </a>
+            </li>
+        </ul>
+    </div>
 </nav>
-<!-- Main Content Canvas -->
-<main class="flex-1 ml-[240px] p-container-margin overflow-y-auto bg-surface">
+<!-- Standardized TopNavBar (Mobile) -->
+<header class="flex md:hidden justify-between items-center px-md w-full fixed top-0 z-50 bg-primary border-b border-outline-variant h-16">
+    <div class="flex items-center gap-sm">
+        <img alt="Indian Railways Official Logo" class="w-8 h-8 rounded-full bg-white p-0.5 object-cover" src="/assets/10_indian_railways_official_logo_ad892ab5.png">
+        <span class="font-headline-md text-headline-md font-bold text-on-primary tracking-tight uppercase">RAILOPT</span>
+    </div>
+    <div class="flex items-center gap-sm text-on-primary">
+        <button class="hover:bg-primary-container p-1.5 rounded-full"><span class="material-symbols-outlined text-[20px]">notifications</span></button>
+        <div class="flex items-center gap-1.5 bg-primary-container px-2.5 py-1 rounded-lg">
+            <span class="font-label-md text-label-md text-on-primary">Planner</span>
+        </div>
+    </div>
+</header>
+
+<!-- Standardized Desktop Header -->
+<header class="hidden md:flex justify-between items-center px-lg w-full h-16 bg-primary border-b border-primary-container z-30 fixed top-0 left-[240px] right-0" style="width: calc(100% - 240px);">
+    <div class="flex items-center gap-sm">
+        <span class="font-body-sm text-body-sm text-on-primary opacity-90 font-medium">AI-Powered Block Planning System</span>
+        <span class="text-xs bg-primary-container text-on-primary px-2 py-0.5 rounded text-[11px] border border-outline-variant/30">Northern / NCR Division</span>
+    </div>
+    <div class="flex items-center gap-lg">
+        <span class="font-label-md text-label-md text-on-primary opacity-80" id="header-datetime">31 Aug 2026 | 20:15:00</span>
+        <div class="flex items-center gap-sm text-on-primary">
+            <button class="hover:bg-primary-container p-1.5 rounded-full transition-colors duration-200 relative" title="Notifications">
+                <span class="material-symbols-outlined text-[20px]">notifications</span>
+                <span class="absolute top-1 right-1 w-2 h-2 bg-error rounded-full"></span>
+            </button>
+            <a href="/constraints-logic" class="hover:bg-primary-container p-1.5 rounded-full transition-colors duration-200" title="Configuration & Rules">
+                <span class="material-symbols-outlined text-[20px]">settings</span>
+            </a>
+        </div>
+        <div class="flex items-center gap-2 bg-primary-container px-3 py-1.5 rounded-lg border border-outline-variant/20">
+            <div class="w-6 h-6 rounded-full bg-surface text-primary flex items-center justify-center font-bold text-xs">P</div>
+            <span class="font-label-md text-label-md text-on-primary font-medium">Planner</span>
+            <span class="material-symbols-outlined text-[16px] text-on-primary opacity-70">expand_more</span>
+        </div>
+    </div>
+</header>
+<main class="flex-1 md:ml-[240px] mt-16 p-container-margin md:p-lg bg-surface-container-lowest min-h-screen">
+
 <!-- Page Header -->
 <div class="mb-lg flex justify-between items-end">
 <div>

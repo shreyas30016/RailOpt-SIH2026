@@ -221,8 +221,8 @@ async function initDashboard() {
         const data = await dataService.getDashboardSummary();
         const liveTrainData = await trainDataService.getLiveTrainMovements();
 
-        // Update Bento KPI Metric numbers
-        const kpiValues = document.querySelectorAll(".grid.grid-cols-1.md\\:grid-cols-4 .text-primary, .grid.grid-cols-1.md\\:grid-cols-4 .text-error, .font-headline-lg");
+        // Update Bento KPI Metric numbers (strictly inside metric cards)
+        const kpiValues = document.querySelectorAll(".grid.grid-cols-1.md\\:grid-cols-4 div[class*='rounded'] .text-3xl, .grid.grid-cols-1.md\\:grid-cols-4 div[class*='rounded'] .text-\\[32px\\], .grid.grid-cols-1.md\\:grid-cols-4 div[class*='rounded'] span.font-bold, .grid.grid-cols-1.md\\:grid-cols-4 div[class*='rounded'] span.font-headline-lg");
         if (kpiValues.length >= 4) {
             kpiValues[0].textContent = data.total_pending_requests;
             kpiValues[1].textContent = data.urgent_queue.length;
@@ -353,8 +353,8 @@ async function initMaintenanceRequests() {
 // 4. Block Planning & Optimization Screen (Real Workflow)
 async function initBlockPlanning() {
     const renderPlanData = (data) => {
-        // 1. Metric values
-        const kpiElements = document.querySelectorAll(".font-headline-lg, .text-\\[32px\\], .kpi-value");
+        // 1. Metric values (strictly inside metric cards)
+        const kpiElements = document.querySelectorAll(".grid.grid-cols-5 span.font-headline-lg, .grid.grid-cols-5 .text-\\[32px\\], .grid.grid-cols-5 .kpi-value, .grid.grid-cols-5 span.text-on-surface");
         if (kpiElements.length >= 3) {
             kpiElements[0].textContent = `${data.scheduled_jobs_count || 16}/${data.total_jobs || 16}`;
             kpiElements[1].textContent = `${data.total_maintenance_hours || 35.4} hrs`;
@@ -595,8 +595,8 @@ async function initReports() {
     try {
         const data = await dataService.getOperationalReports();
         
-        // Update YTD Metrics
-        const kpiElements = document.querySelectorAll(".font-headline-lg, .text-\\[32px\\]");
+        // Update YTD Metrics (strictly inside metric cards)
+        const kpiElements = document.querySelectorAll(".grid.grid-cols-1.md\\:grid-cols-4 div[class*='rounded'] span.font-headline-lg, .grid.grid-cols-1.md\\:grid-cols-4 div[class*='rounded'] .text-\\[32px\\], .grid.grid-cols-1.md\\:grid-cols-4 div[class*='rounded'] .text-3xl, .grid.grid-cols-1.md\\:grid-cols-4 div[class*='rounded'] span.text-primary");
         if (kpiElements.length >= 4 && data.kpis) {
             kpiElements[0].textContent = data.kpis.total_blocks_executed_ytd;
             kpiElements[1].textContent = `${data.kpis.average_grant_ratio_pct}%`;

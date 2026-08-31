@@ -1,7 +1,7 @@
 <!DOCTYPE html><html class="light" lang="en"><head>
 <meta charset="utf-8">
 <meta content="width=device-width, initial-scale=1.0" name="viewport">
-<title>RAILOPT - Gantt View</title>
+<title>Corridor Gantt Timeline | RAILOPT</title>
 <!-- Google Fonts & Icons -->
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap" rel="stylesheet">
 <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
@@ -133,29 +133,17 @@
         }
     </style>
 </head>
-<body class="bg-background text-on-surface font-body-sm min-h-screen flex flex-col md:flex-row overflow-hidden">
-<!-- Top Navigation Bar (Mobile / Tablet) -->
-<header class="md:hidden bg-primary dark:bg-primary text-on-primary flex justify-between items-center px-lg w-full fixed top-0 z-50 h-16 border-b border-outline-variant flat no shadows">
-<div class="flex items-center gap-md">
-<img src="https://lh3.googleusercontent.com/aida-public/AB6AXuAsBkV1EB3sdA1w9rmrxuZcCE0N8QEumD4ptyz2W_zu6PmYInV4-AvANnFFWC0zJVXDa-d0oxAzQpnDZFSwn00dK1WOvqVwVaR1D-KiMK254eYrGYfCV-AisIa0HcjN5aifuigIlJuJ-VnU82Q_Rp_FNWJpe68J3nQbPteH7bTJ-zMguITOzmBOqFaXRZzgkXUI5iIrrrw1T_d-uni16hYqKTfMS8xVlnl3mRoyBXXNe2UECyvinyOI" alt="Indian Railways Logo" class="h-10 w-auto object-contain">
-</div>
-<div class="flex items-center gap-md">
-<span class="material-symbols-outlined text-on-primary cursor-pointer">notifications</span>
-<span class="material-symbols-outlined text-on-primary cursor-pointer">settings</span>
-<div class="flex items-center gap-xs cursor-pointer">
-<span class="material-symbols-outlined text-on-primary">account_circle</span>
-</div>
-</div>
-</header>
-<!-- Side Navigation Bar (Desktop) -->
-<!-- Standardized Responsive SideNavBar -->
+<body class="font-body-md text-on-surface bg-background flex flex-col md:flex-row min-h-screen overflow-x-hidden">
+<!-- Standardized SideNavBar (Desktop) -->
 <nav class="hidden md:flex flex-col py-md w-[240px] h-screen fixed left-0 top-0 z-40 bg-primary dark:bg-tertiary">
     <div class="px-md mb-lg">
         <a href="/dashboard" class="flex items-center gap-sm mb-xs cursor-pointer">
-            <div class="w-8 h-8 rounded-full bg-surface flex items-center justify-center text-primary font-bold text-lg">🚆</div>
-            <h1 class="font-headline-sm text-headline-sm font-bold text-on-primary uppercase tracking-tight">RAILOPT</h1>
+            <img src="/assets/10_indian_railways_official_logo_ad892ab5.png" alt="Indian Railways Official Logo" class="w-9 h-9 rounded-full bg-white p-0.5 shadow-sm object-cover">
+            <div>
+                <h1 class="font-headline-sm text-[17px] font-bold text-on-primary uppercase tracking-tight leading-none">RAILOPT</h1>
+                <p class="font-body-sm text-[11px] text-on-primary opacity-80 mt-0.5">Block Planning System</p>
+            </div>
         </a>
-        <p class="font-body-sm text-body-sm text-on-primary opacity-80 pl-10">Block Planning System</p>
     </div>
     <div class="flex-1 overflow-y-auto dense-scroll">
         <ul class="flex flex-col gap-xs px-sm">
@@ -220,28 +208,47 @@
         </ul>
     </div>
 </nav>
-<!-- Main Content Canvas -->
-<main class="flex-1 flex flex-col md:ml-[240px] pt-16 md:pt-0 h-screen overflow-hidden bg-background">
-<!-- Top App Bar (Desktop Context) -->
-<div class="hidden md:flex h-14 bg-primary text-on-primary items-center justify-between px-lg shrink-0 border-b border-primary-container">
-<div class="font-body-sm opacity-80 flex items-center gap-xs">
-<span class="">AI-Powered Block Planning System</span>
-</div>
-<div class="flex items-center gap-lg font-data-mono text-[11px]">
-<span class="">15 May 2024 | 10:30:25</span>
-<div class="flex items-center gap-md">
-<span class="material-symbols-outlined text-[18px] cursor-pointer hover:text-on-primary-container">notifications</span>
-<span class="material-symbols-outlined text-[18px] cursor-pointer hover:text-on-primary-container">help</span>
-<div class="flex items-center gap-xs cursor-pointer bg-primary-container px-sm py-1 rounded">
-<span class="material-symbols-outlined text-[16px]">account_circle</span>
-<span class="font-label-md">Planner</span>
-<span class="material-symbols-outlined text-[16px]">arrow_drop_down</span>
-</div>
-</div>
-</div>
-</div>
+<!-- Standardized TopNavBar (Mobile) -->
+<header class="flex md:hidden justify-between items-center px-md w-full fixed top-0 z-50 bg-primary border-b border-outline-variant h-16">
+    <div class="flex items-center gap-sm">
+        <img alt="Indian Railways Official Logo" class="w-8 h-8 rounded-full bg-white p-0.5 object-cover" src="/assets/10_indian_railways_official_logo_ad892ab5.png">
+        <span class="font-headline-md text-headline-md font-bold text-on-primary tracking-tight uppercase">RAILOPT</span>
+    </div>
+    <div class="flex items-center gap-sm text-on-primary">
+        <button class="hover:bg-primary-container p-1.5 rounded-full"><span class="material-symbols-outlined text-[20px]">notifications</span></button>
+        <div class="flex items-center gap-1.5 bg-primary-container px-2.5 py-1 rounded-lg">
+            <span class="font-label-md text-label-md text-on-primary">Planner</span>
+        </div>
+    </div>
+</header>
+
+<!-- Standardized Desktop Header -->
+<header class="hidden md:flex justify-between items-center px-lg w-full h-16 bg-primary border-b border-primary-container z-30 fixed top-0 left-[240px] right-0" style="width: calc(100% - 240px);">
+    <div class="flex items-center gap-sm">
+        <span class="font-body-sm text-body-sm text-on-primary opacity-90 font-medium">AI-Powered Block Planning System</span>
+        <span class="text-xs bg-primary-container text-on-primary px-2 py-0.5 rounded text-[11px] border border-outline-variant/30">Northern / NCR Division</span>
+    </div>
+    <div class="flex items-center gap-lg">
+        <span class="font-label-md text-label-md text-on-primary opacity-80" id="header-datetime">31 Aug 2026 | 20:15:00</span>
+        <div class="flex items-center gap-sm text-on-primary">
+            <button class="hover:bg-primary-container p-1.5 rounded-full transition-colors duration-200 relative" title="Notifications">
+                <span class="material-symbols-outlined text-[20px]">notifications</span>
+                <span class="absolute top-1 right-1 w-2 h-2 bg-error rounded-full"></span>
+            </button>
+            <a href="/constraints-logic" class="hover:bg-primary-container p-1.5 rounded-full transition-colors duration-200" title="Configuration & Rules">
+                <span class="material-symbols-outlined text-[20px]">settings</span>
+            </a>
+        </div>
+        <div class="flex items-center gap-2 bg-primary-container px-3 py-1.5 rounded-lg border border-outline-variant/20">
+            <div class="w-6 h-6 rounded-full bg-surface text-primary flex items-center justify-center font-bold text-xs">P</div>
+            <span class="font-label-md text-label-md text-on-primary font-medium">Planner</span>
+            <span class="material-symbols-outlined text-[16px] text-on-primary opacity-70">expand_more</span>
+        </div>
+    </div>
+</header>
+<main class="flex-1 md:ml-[240px] mt-16 p-container-margin md:p-lg bg-surface-container-lowest min-h-screen">
 <!-- Page Content -->
-<div class="flex-1 p-container-margin overflow-auto flex flex-col gap-md">
+<div class="flex-1 overflow-auto flex flex-col gap-md">
 <!-- Header Section -->
 <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-md shrink-0">
 <div>

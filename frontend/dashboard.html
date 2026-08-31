@@ -128,15 +128,16 @@
     </style>
 </head>
 <body class="font-body-md text-on-surface bg-background flex flex-col md:flex-row min-h-screen overflow-x-hidden">
-<!-- SideNavBar (Desktop) -->
-<!-- Standardized Responsive SideNavBar -->
+<!-- Standardized SideNavBar (Desktop) -->
 <nav class="hidden md:flex flex-col py-md w-[240px] h-screen fixed left-0 top-0 z-40 bg-primary dark:bg-tertiary">
     <div class="px-md mb-lg">
         <a href="/dashboard" class="flex items-center gap-sm mb-xs cursor-pointer">
-            <div class="w-8 h-8 rounded-full bg-surface flex items-center justify-center text-primary font-bold text-lg">🚆</div>
-            <h1 class="font-headline-sm text-headline-sm font-bold text-on-primary uppercase tracking-tight">RAILOPT</h1>
+            <img src="/assets/10_indian_railways_official_logo_ad892ab5.png" alt="Indian Railways Official Logo" class="w-9 h-9 rounded-full bg-white p-0.5 shadow-sm object-cover">
+            <div>
+                <h1 class="font-headline-sm text-[17px] font-bold text-on-primary uppercase tracking-tight leading-none">RAILOPT</h1>
+                <p class="font-body-sm text-[11px] text-on-primary opacity-80 mt-0.5">Block Planning System</p>
+            </div>
         </a>
-        <p class="font-body-sm text-body-sm text-on-primary opacity-80 pl-10">Block Planning System</p>
     </div>
     <div class="flex-1 overflow-y-auto dense-scroll">
         <ul class="flex flex-col gap-xs px-sm">
@@ -201,47 +202,46 @@
         </ul>
     </div>
 </nav>
-<!-- TopNavBar (Mobile only in this layout, typically desktop has it too but as header) -->
-<header class="flex md:hidden justify-between items-center px-lg w-full fixed top-0 z-50 bg-primary dark:bg-primary border-b border-outline-variant h-16 flat no shadows">
-<div class="flex items-center gap-sm"><img alt="Indian Railways Official Logo" class="w-8 h-8 rounded-full bg-primary-container object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAsBkV1EB3sdA1w9rmrxuZcCE0N8QEumD4ptyz2W_zu6PmYInV4-AvANnFFWC0zJVXDa-d0oxAzQpnDZFSwn00dK1WOvqVwVaR1D-KiMK254eYrGYfCV-AisIa0HcjN5aifuigIlJuJ-VnU82Q_Rp_FNWJpe68J3nQbPteH7bTJ-zMguITOzmBOqFaXRZzgkXUI5iIrrrw1T_d-uni16hYqKTfMS8xVlnl3mRoyBXXNe2UECyvinyOI">
-<span class="font-headline-md text-headline-md font-bold text-on-primary tracking-tight uppercase">RAILOPT</span>
-</div>
-<div class="flex items-center gap-md">
-<span class="font-label-md text-label-md text-on-primary opacity-80 hidden sm:block">15 May 2024 | 10:30:25</span>
-<div class="flex items-center gap-sm text-on-primary">
-<button class="hover:bg-primary-container p-1 rounded-full transition-colors duration-200"><span class="material-symbols-outlined" data-icon="notifications">notifications</span></button>
-<button class="hover:bg-primary-container p-1 rounded-full transition-colors duration-200"><span class="material-symbols-outlined" data-icon="settings">settings</span></button>
-<button class="hover:bg-primary-container p-1 rounded-full transition-colors duration-200"><span class="material-symbols-outlined" data-icon="help">help</span></button>
-</div>
-<div class="flex items-center gap-2 bg-primary-container px-3 py-1.5 rounded-lg border border-outline-variant border-opacity-30">
-<img alt="User profile avatar" class="w-6 h-6 rounded-full object-cover" data-alt="A small, professional headshot avatar of a railway planning user, male, wearing a blue shirt against a neutral gray background. The lighting is soft and studio-quality." src="https://lh3.googleusercontent.com/aida-public/AB6AXuA56-v8dcSpyvs30ysqJRayYrUzco4UO21cfKjK1nBADe9eTOaG3l1XVkN9hFbuN4ITcrw_qdxcu81IGeyJF-_W8UtUZfhaT_VLKirHZWa8R6_J7epXXCm7jsDSjWn6NZ8Ju1G33u_Y_pi1-V_7P4QL01j3UShDo6z5XIlAmhn-6_gunZa5UO_eFYPgsZGjgKByTtgs5TEHUixzHQ06lrs_BBQZxXus4gHONJW27_OeRTJs0G9iN0M8">
-<span class="font-label-md text-label-md text-on-primary">Planner</span>
-<span class="material-symbols-outlined text-[16px] text-on-primary" data-icon="expand_more">expand_more</span>
-</div>
-</div>
+<!-- Standardized TopNavBar (Mobile) -->
+<header class="flex md:hidden justify-between items-center px-md w-full fixed top-0 z-50 bg-primary border-b border-outline-variant h-16">
+    <div class="flex items-center gap-sm">
+        <img alt="Indian Railways Official Logo" class="w-8 h-8 rounded-full bg-white p-0.5 object-cover" src="/assets/10_indian_railways_official_logo_ad892ab5.png">
+        <span class="font-headline-md text-headline-md font-bold text-on-primary tracking-tight uppercase">RAILOPT</span>
+    </div>
+    <div class="flex items-center gap-sm text-on-primary">
+        <button class="hover:bg-primary-container p-1.5 rounded-full"><span class="material-symbols-outlined text-[20px]">notifications</span></button>
+        <div class="flex items-center gap-1.5 bg-primary-container px-2.5 py-1 rounded-lg">
+            <span class="font-label-md text-label-md text-on-primary">Planner</span>
+        </div>
+    </div>
 </header>
-<!-- Desktop Header (mimicking TopNavBar but inside main content area to sit next to sidebar) -->
+
+<!-- Standardized Desktop Header -->
 <header class="hidden md:flex justify-between items-center px-lg w-full h-16 bg-primary border-b border-primary-container z-30 fixed top-0 left-[240px] right-0" style="width: calc(100% - 240px);">
-<div class="flex items-center">
-<span class="font-body-sm text-body-sm text-on-primary opacity-80">AI-Powered Block Planning System</span>
-</div>
-<div class="flex items-center gap-lg">
-<span class="font-label-md text-label-md text-on-primary opacity-80">15 May 2024 | 10:30:25</span>
-<div class="flex items-center gap-sm text-on-primary">
-<button class="hover:bg-primary-container p-1 rounded-full transition-colors duration-200 relative">
-<span class="material-symbols-outlined" data-icon="notifications">notifications</span>
-<span class="absolute top-1 right-1 w-2 h-2 bg-error rounded-full"></span>
-</button>
-</div>
-<div class="flex items-center gap-2 bg-primary-container px-3 py-1.5 rounded-lg cursor-pointer hover:bg-opacity-80 transition-opacity">
-<img alt="User profile avatar" class="w-6 h-6 rounded-full object-cover" data-alt="A small, professional headshot avatar of a railway planning user, female, wearing a white blouse against a neutral gray background. The lighting is soft and studio-quality." src="https://lh3.googleusercontent.com/aida-public/AB6AXuD19fqra4XqKw-IG8viZG-xid1MnWvhYo0Qzz-YxGJzur3QqyJx40zdvDZWM5IAise3GzRz2yDYnJFNclp45WJGMPAtUaTyB3dCQlVqdROm1HJVAgRvlV8ddxlVpLSkfl0ecEOD5uHR0mcuX1b0bzs9lLGwX4jfHgkHlCPX4K27J31RRck4X2P1LlLmYNIsw38CWMMHoSeTQKJ05wiYxgkwQPooiXX9DKHDywpuyQ3MLa7Q9_7k5Bpf">
-<span class="font-label-md text-label-md text-on-primary">Planner</span>
-<span class="material-symbols-outlined text-[16px] text-on-primary" data-icon="expand_more">expand_more</span>
-</div>
-</div>
+    <div class="flex items-center gap-sm">
+        <span class="font-body-sm text-body-sm text-on-primary opacity-90 font-medium">AI-Powered Block Planning System</span>
+        <span class="text-xs bg-primary-container text-on-primary px-2 py-0.5 rounded text-[11px] border border-outline-variant/30">Northern / NCR Division</span>
+    </div>
+    <div class="flex items-center gap-lg">
+        <span class="font-label-md text-label-md text-on-primary opacity-80" id="header-datetime">31 Aug 2026 | 20:15:00</span>
+        <div class="flex items-center gap-sm text-on-primary">
+            <button class="hover:bg-primary-container p-1.5 rounded-full transition-colors duration-200 relative" title="Notifications">
+                <span class="material-symbols-outlined text-[20px]">notifications</span>
+                <span class="absolute top-1 right-1 w-2 h-2 bg-error rounded-full"></span>
+            </button>
+            <a href="/constraints-logic" class="hover:bg-primary-container p-1.5 rounded-full transition-colors duration-200" title="Configuration & Rules">
+                <span class="material-symbols-outlined text-[20px]">settings</span>
+            </a>
+        </div>
+        <div class="flex items-center gap-2 bg-primary-container px-3 py-1.5 rounded-lg border border-outline-variant/20">
+            <div class="w-6 h-6 rounded-full bg-surface text-primary flex items-center justify-center font-bold text-xs">P</div>
+            <span class="font-label-md text-label-md text-on-primary font-medium">Planner</span>
+            <span class="material-symbols-outlined text-[16px] text-on-primary opacity-70">expand_more</span>
+        </div>
+    </div>
 </header>
-<!-- Main Content Canvas -->
 <main class="flex-1 md:ml-[240px] mt-16 p-container-margin md:p-lg bg-surface-container-lowest min-h-screen">
+
 <!-- Page Header -->
 <div class="mb-lg">
 <h2 class="font-headline-lg text-headline-lg text-on-surface">Operations Dashboard</h2>
