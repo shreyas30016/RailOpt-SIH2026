@@ -234,3 +234,8 @@ def get_latest_optimization(db: Session = Depends(get_db)):
 def get_decision_explanation(job_code: str, db: Session = Depends(get_db)):
     explainer = DecisionExplainer(db)
     return explainer.explain_job_decision(job_code)
+
+@router.get("/rules")
+def get_railway_rules():
+    from ..optimizer.rules_loader import rules_loader
+    return rules_loader.raw_rules

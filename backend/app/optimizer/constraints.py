@@ -1,5 +1,6 @@
 from typing import List, Dict, Any, Tuple, Optional
 from dataclasses import dataclass, field
+from .rules_loader import rules_loader
 
 @dataclass
 class JobConstraintMeta:
@@ -34,8 +35,7 @@ class TrainConstraintMeta:
 class RailwayConstraintManager:
     """
     Modular constraint configuration manager for Indian Railways block scheduling.
-    Allows enabling/disabling or tuning weights for specific railway operating rules.
-    Every unvalidated operational rule is marked as PROTOTYPE ASSUMPTION / NEEDS DOMAIN VALIDATION.
+    Pulls configurable operating parameters, buffers, bounds, and weights from backend/config/railway_rules.yaml.
     """
     def __init__(
         self,
@@ -44,10 +44,9 @@ class RailwayConstraintManager:
         enable_machine_exclusivity: bool = True,
         enable_job_precedence: bool = True,
         enable_headway_margins: bool = True,
-        headway_margin_minutes: int = 3, # [PROTOTYPE ASSUMPTION / NEEDS DOMAIN VALIDATION]
-        max_allowed_train_delay_min: int = 45,
-        shadow_block_bonus_weight: int = 4000,
-        train_delay_penalty_multiplier: int = 10,
+        headway_margin_minutes: Optional[int] = None,
+        max_allowed_train_delay_min: Optional[int] = None,
+        shadow_block_bonus_weight: Optional[int] = None,
         department_compatibility: Optional[Dict[str, List[str]]] = None
     ):
         self.enable_power_block_coupling = enable_power_block_coupling
@@ -55,19 +54,52 @@ class RailwayConstraintManager:
         self.enable_machine_exclusivity = enable_machine_exclusivity
         self.enable_job_precedence = enable_job_precedence
         self.enable_headway_margins = enable_headway_margins
-        self.headway_margin_minutes = headway_margin_minutes
-        self.max_allowed_train_delay_min = max_allowed_train_delay_min
-        self.shadow_block_bonus_weight = shadow_block_bonus_weight
-        self.train_delay_penalty_multiplier = train_delay_penalty_multiplier
+        
+        # Load from configuration layer or parameter override
+        self.headway_margin_minutes = (
+            headway_margin_minutes if headway_margin_minutes is not None
+            else rules_loader.get_value("safety_and_headway", "block_release_headway_buffer", 3)
+        )
+        self.max_allowed_train_delay_min = (
+            max_allowed_train_delay_min if max_allowed_train_delay_min is not None
+            else rules_loader.get_value("train_regulation", "max_mail_express_delay", 45)
+        )
+        self.shadow_block_bonus_weight = (
+            shadow_block_bonus_weight if shadow_block_bonus_weight is not None
+            else rules_loader.get_value("optimization_weights", "shadow_block_bonus", 4000)
+        )
+        self.dept_compatibility = (
+            department_compatibility if department_compatibility is not None
+            else rules_loader.get_value("department_compatibility", "shadow_block_co_location", {
+                "ENG": ["TRD", "S_T", "MECH"],
+                "TRD": ["ENG", "S_T", "MECH"],
+                "S_T": ["ENG", "TRD", "MECH"],
+                "MECH": ["ENG", "TRD", "S_T"]
+            })
+        )
 
-        # Configurable Department Compatibility Matrix for Shadow Block Co-Location
-        # [PROTOTYPE ASSUMPTION / NEEDS DOMAIN VALIDATION]
-        self.dept_compatibility = department_compatibility or {
-            "ENG": ["TRD", "S_T", "MECH"],
-            "TRD": ["ENG", "S_T", "MECH"],
-            "S_T": ["ENG", "TRD", "MECH"],
-            "MECH": ["ENG", "TRD", "S_T"]
-        }
+        # Section order & bypass configurations
+        self.section_order = rules_loader.get_value("corridor_sections", "section_order", [
+            "NDLS-TKD", "TKD-FDB", "FDB-PWL", "PWL-KDS", "KDS-MTJ", "MTJ-AGC"
+        ])
+        self.third_line_sections = rules_loader.get_value("corridor_sections", "third_line_bypass_available", [
+            "TKD-FDB", "FDB-PWL"
+        ])
+
+        # Delay limits by priority tier
+        self.max_premium_delay = rules_loader.get_value("train_regulation", "max_premium_passenger_delay", 25)
+        self.max_mail_delay = rules_loader.get_value("train_regulation", "max_mail_express_delay", 45)
+        self.max_freight_holding = rules_loader.get_value("train_regulation", "max_freight_holding_time", 240)
+
+        # Objective weights
+        self.job_priority_multiplier = rules_loader.get_value("optimization_weights", "job_priority_multiplier", 2000)
+        self.urgency_critical_bonus = rules_loader.get_value("optimization_weights", "urgency_bonus_critical", 3000)
+        self.urgency_high_bonus = rules_loader.get_value("optimization_weights", "urgency_bonus_high", 1500)
+        self.urgency_routine_bonus = rules_loader.get_value("optimization_weights", "urgency_bonus_routine", 800)
+
+        self.penalty_premium_delay = rules_loader.get_value("optimization_weights", "penalty_premium_passenger_delay", 50)
+        self.penalty_mail_delay = rules_loader.get_value("optimization_weights", "penalty_mail_express_delay", 20)
+        self.penalty_freight_delay = rules_loader.get_value("optimization_weights", "penalty_freight_delay", 2)
 
     def can_form_shadow_block(self, job_a: JobConstraintMeta, job_b: JobConstraintMeta) -> bool:
         """

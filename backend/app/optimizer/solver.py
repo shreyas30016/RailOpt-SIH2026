@@ -171,26 +171,27 @@ class RailwayBlockOptimizer:
                         model.AddBoolOr([j1_before_j2, j2_before_j1, job_scheduled_vars[j1.job_id].Not(), job_scheduled_vars[j2.job_id].Not()])
 
         # 6. Train Timetable Deconfliction & Delay Modeling
-        # Section index order along corridor: NDLS-TKD (0), TKD-FDB (1), FDB-PWL (2), PWL-KDS (3), KDS-MTJ (4), MTJ-AGC (5)
-        sec_order = {"NDLS-TKD": 0, "TKD-FDB": 1, "FDB-PWL": 2, "PWL-KDS": 3, "KDS-MTJ": 4, "MTJ-AGC": 5}
+        sec_order = {sec: i for i, sec in enumerate(self.constraint_mgr.section_order)}
         total_secs = len(sec_order)
+        headway_buf = self.constraint_mgr.headway_margin_minutes
 
         train_delay_vars: Dict[str, cp_model.IntVar] = {}
         for tr in trains_db:
-            # High priority passenger trains have tight limits (20-30 min), freight/goods trains can be held for the block window (up to 240 min)
+            # High priority passenger trains have tight limits, freight/goods trains can be held in siding loops
             if tr.priority_weight >= 30:
-                max_delay = 25
+                max_delay = self.constraint_mgr.max_premium_delay
             elif tr.priority_weight >= 15:
-                max_delay = 45
+                max_delay = self.constraint_mgr.max_mail_delay
             else:
-                max_delay = 240
+                max_delay = self.constraint_mgr.max_freight_holding
+
             delay_var = model.NewIntVar(0, max_delay, f"delay_{tr.train_number}")
             train_delay_vars[tr.train_number] = delay_var
 
             # For each job on a specific section
             for j in job_metas:
-                # Check if section has a 3rd line for diversion
-                has_3rd_line = "3RD" in [tl.line_code for tl in track_lines_db if sec_dict.get(tl.section_id) and sec_dict[tl.section_id].code == j.section_code]
+                # Check if section has a 3rd line for diversion from config
+                has_3rd_line = j.section_code in self.constraint_mgr.third_line_sections
                 
                 # If section has no 3rd line, calculate train transit window across this specific section
                 if not has_3rd_line and j.requires_traffic_block:
@@ -211,37 +212,41 @@ class RailwayBlockOptimizer:
                         tr_before = model.NewBoolVar(f"tr_{tr.train_number}_before_{j.job_code}")
                         tr_after = model.NewBoolVar(f"tr_{tr.train_number}_after_{j.job_code}")
 
-                        # Train passes before block
-                        model.Add(exit_m + 3 <= job_start_vars[j.job_id]).OnlyEnforceIf(tr_before)
+                        # Train passes before block with safety buffer
+                        model.Add(exit_m + headway_buf <= job_start_vars[j.job_id]).OnlyEnforceIf(tr_before)
 
-                        # Train passes after block (with possible delay)
-                        model.Add(job_end_vars[j.job_id] + 3 <= entry_m + delay_var).OnlyEnforceIf(tr_after)
+                        # Train passes after block with safety buffer (with possible delay)
+                        model.Add(job_end_vars[j.job_id] + headway_buf <= entry_m + delay_var).OnlyEnforceIf(tr_after)
 
                         model.AddBoolOr([tr_before, tr_after, job_scheduled_vars[j.job_id].Not()])
 
         # 7. Objective Function Formulation
         objective_terms = []
 
-        # (a) Maximize Scheduled Jobs weighted by Priority and Urgency (High value for executing critical rail maintenance)
+        # (a) Maximize Scheduled Jobs weighted by Priority and Urgency
         for j in job_metas:
-            weight = j.priority * 2000 + (3000 if j.urgency == "CRITICAL" else (1500 if j.urgency == "HIGH" else 800))
+            u_bonus = (
+                self.constraint_mgr.urgency_critical_bonus if j.urgency == "CRITICAL"
+                else (self.constraint_mgr.urgency_high_bonus if j.urgency == "HIGH"
+                      else self.constraint_mgr.urgency_routine_bonus)
+            )
+            weight = j.priority * self.constraint_mgr.job_priority_multiplier + u_bonus
             objective_terms.append(job_scheduled_vars[j.job_id] * weight)
 
-        # (b) Maximize Shadow Block Synergies (Heavy Bonus for bundling multiple departments in same window)
+        # (b) Maximize Shadow Block Synergies (Bonus for bundling multiple departments in same window)
         if maximize_shadow_blocks:
             for j1, j2, is_shadow in shadow_pairs_vars:
-                objective_terms.append(is_shadow * 4000)
+                objective_terms.append(is_shadow * self.constraint_mgr.shadow_block_bonus_weight)
 
         # (c) Minimize Train Delays (scaled by train priority: Passenger express high penalty, freight nominal)
         if minimize_passenger_delays:
             for tr in trains_db:
-                # Vande Bharat / Rajdhani = 50 per min, Express = 20 per min, Freight = 2 per min
                 if tr.priority_weight >= 30:
-                    weight_factor = 50
+                    weight_factor = self.constraint_mgr.penalty_premium_delay
                 elif tr.priority_weight >= 15:
-                    weight_factor = 20
+                    weight_factor = self.constraint_mgr.penalty_mail_delay
                 else:
-                    weight_factor = 2
+                    weight_factor = self.constraint_mgr.penalty_freight_delay
                 objective_terms.append(train_delay_vars[tr.train_number] * (-weight_factor))
 
         model.Maximize(sum(objective_terms))

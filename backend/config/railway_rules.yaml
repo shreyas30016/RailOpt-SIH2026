@@ -1,0 +1,269 @@
+# Indian Railways Block Planning & Optimization Configuration Rules
+# Problem Statement: SIH26027
+# Status Definitions:
+#   - VALIDATED: Validated against Indian Railways operational rules / domain experts.
+#   - PROTOTYPE_ASSUMPTION: Engineering/algorithmic assumption for the prototype. Needs domain validation.
+#   - UNKNOWN: Railway policy unspecified or varying across zones/divisions. Needs formal clarification.
+
+version: "1.0.0"
+corridor: "New Delhi - Agra Mainline (Northern / North Central Railway)"
+
+# ==============================================================================
+# 1. Safety & Headway Buffer Rules
+# ==============================================================================
+safety_and_headway:
+  block_release_headway_buffer:
+    name: "Block Release Safety Headway Buffer"
+    value: 3
+    unit: "minutes"
+    status: "PROTOTYPE_ASSUMPTION"
+    source: "IR Working Time Table general safety practice"
+    notes: "Minimum buffer between block cancellation/handover and the signal clearance for the first entering train."
+
+  power_isolation_permit_margin:
+    name: "TRD Power Block Isolation Margin"
+    value: 10
+    unit: "minutes"
+    status: "PROTOTYPE_ASSUMPTION"
+    source: "Traction Distribution (TRD) general maintenance guidelines"
+    notes: "Buffer time required for OHE de-energization, earthing, and permit-to-work issuance before track gangs enter."
+
+  caution_order_clearing_speed:
+    name: "Default Speed Restriction after Tamping"
+    value: 30
+    unit: "km/h"
+    status: "VALIDATED"
+    source: "Indian Railways Permanent Way Manual (IRPWM)"
+    notes: "Mandatory speed restriction imposed on track section immediately after heavy mechanical tamping until stabilization."
+
+# ==============================================================================
+# 2. Multi-Department Compatibility Matrix (Shadow Blocks)
+# ==============================================================================
+department_compatibility:
+  shadow_block_co_location:
+    name: "Department Co-Location Compatibility Matrix"
+    value:
+      ENG: ["TRD", "S_T", "MECH"]
+      TRD: ["ENG", "S_T", "MECH"]
+      S_T: ["ENG", "TRD", "MECH"]
+      MECH: ["ENG", "TRD", "S_T"]
+    unit: "department_pairs"
+    status: "PROTOTYPE_ASSUMPTION"
+    source: "SIH26027 Shadow Block Multi-Department Coordination Scope"
+    notes: "Different departments operating on the same track line can synchronize start times into a single shared possession. Same department jobs on identical track lines require sequential separation."
+
+  allow_same_department_co_location:
+    name: "Same Department Co-Location on Identical Track Line"
+    value: false
+    unit: "boolean"
+    status: "VALIDATED"
+    source: "Safety rules for on-track machinery operations"
+    notes: "Two gangs from the same department cannot work on the exact same track kilometer simultaneously without spatial buffer."
+
+# ==============================================================================
+# 3. Resource & Heavy Machine Exclusivity Rules
+# ==============================================================================
+resource_allocation:
+  tamping_machine_exclusivity:
+    name: "Continuous Tamping Machine (CSM 09-32) Exclusivity"
+    value: true
+    unit: "boolean"
+    status: "VALIDATED"
+    source: "Track Machine Directorate operational rules"
+    notes: "A single continuous tamping machine cannot be allocated to multiple track sections simultaneously."
+
+  tower_wagon_exclusivity:
+    name: "OHE 8-Wheeler Tower Wagon Exclusivity"
+    value: true
+    unit: "boolean"
+    status: "VALIDATED"
+    source: "TRD Electrical Maintenance Depot norms"
+    notes: "Tower wagon unit must move sequentially between assigned section maintenance blocks."
+
+  ballast_regulator_exclusivity:
+    name: "Dynamic Track Stabilizer (DTS) Exclusivity"
+    value: true
+    unit: "boolean"
+    status: "VALIDATED"
+    source: "IRPWM Track Machine deployment guidelines"
+    notes: "DTS machine cannot be double-booked across division sections."
+
+# ==============================================================================
+# 4. Section-Specific Corridor Constraints
+# ==============================================================================
+corridor_sections:
+  section_order:
+    name: "Delhi-Agra Mainline Section Sequence"
+    value: ["NDLS-TKD", "TKD-FDB", "FDB-PWL", "PWL-KDS", "KDS-MTJ", "MTJ-AGC"]
+    unit: "sections_list"
+    status: "VALIDATED"
+    source: "Northern Railway Division Corridor Map"
+    notes: "Physical order of block sections along the mainline corridor."
+
+  third_line_bypass_available:
+    name: "Sections with 3rd Line Freight/Passenger Bypass"
+    value: ["TKD-FDB", "FDB-PWL"]
+    unit: "section_codes"
+    status: "VALIDATED"
+    source: "Railway network infrastructure layout"
+    notes: "Sections with a dedicated 3rd line allow main-line traffic blocks without holding passing trains."
+
+# ==============================================================================
+# 5. Train Disruption & Holding Assumptions
+# ==============================================================================
+train_regulation:
+  max_freight_holding_time:
+    name: "Maximum Permissible Freight Train Holding Time"
+    value: 240
+    unit: "minutes"
+    status: "PROTOTYPE_ASSUMPTION"
+    source: "Division Freight Operations Information System (FOIS) practice"
+    notes: "Goods/container rakes can be held in siding loops for up to 4 hours during corridor block possessions."
+
+  max_mail_express_delay:
+    name: "Maximum Permissible Mail/Express Train Delay"
+    value: 45
+    unit: "minutes"
+    status: "VALIDATED"
+    source: "Control Office Application (COA) punctuality threshold"
+    notes: "Mail and Express trains cannot be held past 45 minutes for non-emergency planned maintenance."
+
+  max_premium_passenger_delay:
+    name: "Maximum Permissible Vande Bharat / Rajdhani Delay"
+    value: 25
+    unit: "minutes"
+    status: "VALIDATED"
+    source: "Railway Board High-Speed Corridor Punctuality Directives"
+    notes: "Premium trains have strict punctuality protection and cannot be delayed past 25 minutes."
+
+# ==============================================================================
+# 6. Objective Function Weights & Disruption Penalties
+# ==============================================================================
+optimization_weights:
+  job_priority_multiplier:
+    name: "Base Priority Multiplier per Level"
+    value: 2000
+    unit: "points"
+    status: "PROTOTYPE_ASSUMPTION"
+    source: "Mathematical optimization model tuning"
+    notes: "Multiplier applied to job priority (scale 1 to 5)."
+
+  urgency_bonus_critical:
+    name: "Urgency Score Bonus: CRITICAL"
+    value: 3000
+    unit: "points"
+    status: "PROTOTYPE_ASSUMPTION"
+    source: "Algorithmic tuning for safety-critical maintenance demand"
+    notes: "Bonus awarded for admitting critical emergency work into the schedule."
+
+  urgency_bonus_high:
+    name: "Urgency Score Bonus: HIGH"
+    value: 1500
+    unit: "points"
+    status: "PROTOTYPE_ASSUMPTION"
+    source: "Algorithmic tuning for overdue maintenance"
+    notes: "Bonus awarded for scheduling overdue high-priority work."
+
+  urgency_bonus_routine:
+    name: "Urgency Score Bonus: ROUTINE"
+    value: 800
+    unit: "points"
+    status: "PROTOTYPE_ASSUMPTION"
+    source: "Algorithmic tuning for routine work"
+    notes: "Base bonus for routine periodic maintenance."
+
+  shadow_block_bonus:
+    name: "Multi-Department Shadow Block Synergy Bonus"
+    value: 4000
+    unit: "points"
+    status: "PROTOTYPE_ASSUMPTION"
+    source: "Algorithmic incentive for corridor possession efficiency"
+    notes: "Heavy reward for bundling multiple departmental jobs into a single closure."
+
+  penalty_premium_passenger_delay:
+    name: "Delay Penalty: Vande Bharat / Rajdhani"
+    value: 50
+    unit: "points_per_minute"
+    status: "PROTOTYPE_ASSUMPTION"
+    source: "Mathematical model penalty weight"
+    notes: "Heavy penalty applied per minute of premium train delay."
+
+  penalty_mail_express_delay:
+    name: "Delay Penalty: Mail / Express"
+    value: 20
+    unit: "points_per_minute"
+    status: "PROTOTYPE_ASSUMPTION"
+    source: "Mathematical model penalty weight"
+    notes: "Standard penalty applied per minute of regular passenger express delay."
+
+  penalty_freight_delay:
+    name: "Delay Penalty: Freight / Goods"
+    value: 2
+    unit: "points_per_minute"
+    status: "PROTOTYPE_ASSUMPTION"
+    source: "Mathematical model penalty weight"
+    notes: "Nominal penalty applied per minute of freight train holding in loop sidings."
+
+# ==============================================================================
+# 7. Block Planning & Operational Window Rules
+# ==============================================================================
+block_planning_rules:
+  min_block_duration:
+    name: "Minimum Feasible Block Duration"
+    value: 30
+    unit: "minutes"
+    status: "VALIDATED"
+    source: "Indian Railways Block Operating Rules"
+    notes: "No maintenance block is granted for under 30 minutes due to permit overhead."
+
+  max_block_duration:
+    name: "Maximum Single Block Duration"
+    value: 480
+    unit: "minutes"
+    status: "VALIDATED"
+    source: "Mega-block operating guidelines"
+    notes: "Maximum single track possession limit is 8 hours."
+
+  default_night_window_start:
+    name: "Corridor Night Lull Window Start"
+    value: 90
+    unit: "minutes_from_midnight"
+    status: "PROTOTYPE_ASSUMPTION"
+    source: "Delhi Division working timetable typical lull period"
+    notes: "01:30 AM default start time for daily planned track maintenance window."
+
+  default_night_window_end:
+    name: "Corridor Night Lull Window End"
+    value: 330
+    unit: "minutes_from_midnight"
+    status: "PROTOTYPE_ASSUMPTION"
+    source: "Delhi Division working timetable typical lull period"
+    notes: "05:30 AM default end time for daily planned track maintenance window."
+
+# ==============================================================================
+# 8. Track Restoration & Unvalidated Domain Rules
+# ==============================================================================
+restoration_and_unvalidated:
+  usfd_testing_traffic_block_required:
+    name: "Ultrasonic Flaw Detection (USFD) Traffic Block Requirement"
+    value: false
+    unit: "boolean"
+    status: "PROTOTYPE_ASSUMPTION"
+    source: "USFD Manual provisional practice"
+    notes: "Prototyped as shadow work without full traffic closure; needs divisional confirmation."
+
+  electronic_interlocking_testing_scope:
+    name: "Electronic Interlocking Testing Isolation Scope"
+    value: "TURNOUT_ONLY"
+    unit: "isolation_scope"
+    status: "UNKNOWN"
+    source: "Signal Engineering Manual (SEM) pending division validation"
+    notes: "Divisional practice varies on whether S&T interlocking testing blocks full mainline or only turnout crossover."
+
+  post_derailment_emergency_possession_priority:
+    name: "Emergency Restoration Overrides All Schedules"
+    value: true
+    unit: "boolean"
+    status: "VALIDATED"
+    source: "IR Disaster Management & Safety Rules"
+    notes: "Safety-critical rail fractures or derailment restorations preempt all train timetables unconditionally."
