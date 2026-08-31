@@ -1,0 +1,472 @@
+<!DOCTYPE html><html lang="en"><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<title>Operations Dashboard | RAILOPT</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "surface-variant": "#dae4ef",
+                        "primary": "#001e40",
+                        "tertiary": "#141f2f",
+                        "on-error-container": "#93000a",
+                        "on-surface-variant": "#43474f",
+                        "secondary": "#5a5f62",
+                        "surface-dim": "#d1dbe6",
+                        "surface": "#f6f9ff",
+                        "error-container": "#ffdad6",
+                        "secondary-fixed": "#dfe3e7",
+                        "surface-container-lowest": "#ffffff",
+                        "secondary-container": "#dce0e4",
+                        "outline": "#737780",
+                        "primary-fixed": "#d5e3ff",
+                        "on-tertiary": "#ffffff",
+                        "outline-variant": "#c3c6d1",
+                        "background": "#f6f9ff",
+                        "on-secondary-container": "#5e6367",
+                        "secondary-fixed-dim": "#c3c7cb",
+                        "on-secondary-fixed-variant": "#43474b",
+                        "on-primary": "#ffffff",
+                        "on-surface": "#131d24",
+                        "on-error": "#ffffff",
+                        "error": "#ba1a1a",
+                        "surface-container": "#e5effa",
+                        "surface-container-low": "#ecf5ff",
+                        "on-tertiary-container": "#919cb2",
+                        "primary-fixed-dim": "#a7c8ff",
+                        "surface-bright": "#f6f9ff",
+                        "on-tertiary-fixed-variant": "#3c475a",
+                        "on-background": "#131d24",
+                        "on-secondary": "#ffffff",
+                        "primary-container": "#003366",
+                        "inverse-surface": "#28313a",
+                        "on-primary-fixed-variant": "#1f477b",
+                        "surface-tint": "#3a5f94",
+                        "surface-container-high": "#dfe9f4",
+                        "inverse-on-surface": "#e8f2fd",
+                        "on-tertiary-fixed": "#111c2c",
+                        "on-secondary-fixed": "#171c1f",
+                        "tertiary-container": "#293446",
+                        "tertiary-fixed-dim": "#bcc7dd",
+                        "on-primary-fixed": "#001b3c",
+                        "on-primary-container": "#799dd6",
+                        "tertiary-fixed": "#d8e3fa",
+                        "surface-container-highest": "#dae4ef",
+                        "inverse-primary": "#a7c8ff"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.125rem",
+                        "lg": "0.25rem",
+                        "xl": "0.5rem",
+                        "full": "0.75rem"
+                    },
+                    "spacing": {
+                        "lg": "24px",
+                        "table-cell-padding": "8px 12px",
+                        "base": "4px",
+                        "container-margin": "24px",
+                        "xs": "4px",
+                        "xl": "32px",
+                        "sm": "8px",
+                        "md": "16px"
+                    },
+                    "fontFamily": {
+                        "body-lg": ["Inter"],
+                        "body-sm": ["Inter"],
+                        "data-mono": ["JetBrains Mono"],
+                        "label-md": ["Inter"],
+                        "headline-lg": ["Inter"],
+                        "headline-md": ["Inter"],
+                        "body-md": ["Inter"],
+                        "headline-sm": ["Inter"]
+                    },
+                    "fontSize": {
+                        "body-lg": ["16px", { "lineHeight": "24px", "fontWeight": "400" }],
+                        "body-sm": ["12px", { "lineHeight": "16px", "fontWeight": "400" }],
+                        "data-mono": ["13px", { "lineHeight": "18px", "fontWeight": "400" }],
+                        "label-md": ["12px", { "lineHeight": "16px", "letterSpacing": "0.02em", "fontWeight": "600" }],
+                        "headline-lg": ["24px", { "lineHeight": "32px", "fontWeight": "700" }],
+                        "headline-md": ["20px", { "lineHeight": "28px", "fontWeight": "600" }],
+                        "body-md": ["14px", { "lineHeight": "20px", "fontWeight": "400" }],
+                        "headline-sm": ["16px", { "lineHeight": "24px", "fontWeight": "600" }]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .material-symbols-outlined[data-weight="fill"] {
+            font-variation-settings: 'FILL' 1;
+        }
+        body {
+            background-color: #f6f9ff;
+        }
+        /* Custom scrollbar for dense tables */
+        .dense-scroll::-webkit-scrollbar {
+            height: 6px;
+            width: 6px;
+        }
+        .dense-scroll::-webkit-scrollbar-track {
+            background: #f1f1f1;
+        }
+        .dense-scroll::-webkit-scrollbar-thumb {
+            background: #c3c6d1;
+            border-radius: 4px;
+        }
+        .dense-scroll::-webkit-scrollbar-thumb:hover {
+            background: #737780;
+        }
+    </style>
+</head>
+<body class="font-body-md text-on-surface bg-background flex flex-col md:flex-row min-h-screen overflow-x-hidden">
+<!-- SideNavBar (Desktop) -->
+<nav class="hidden md:flex flex-col py-md w-[240px] h-screen fixed left-0 top-0 z-40 bg-primary dark:bg-tertiary">
+<div class="px-md mb-lg">
+<div class="flex items-center gap-sm mb-xs">
+<img alt="Indian Railways Official Logo" class="w-8 h-8 rounded-full bg-primary-container object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAsBkV1EB3sdA1w9rmrxuZcCE0N8QEumD4ptyz2W_zu6PmYInV4-AvANnFFWC0zJVXDa-d0oxAzQpnDZFSwn00dK1WOvqVwVaR1D-KiMK254eYrGYfCV-AisIa0HcjN5aifuigIlJuJ-VnU82Q_Rp_FNWJpe68J3nQbPteH7bTJ-zMguITOzmBOqFaXRZzgkXUI5iIrrrw1T_d-uni16hYqKTfMS8xVlnl3mRoyBXXNe2UECyvinyOI">
+<h1 class="font-headline-sm text-headline-sm font-bold text-on-primary uppercase tracking-tight">RAILOPT</h1>
+</div>
+<p class="font-body-sm text-body-sm text-on-primary opacity-80 pl-10">Block Planning System</p>
+</div>
+<div class="flex-1 overflow-y-auto dense-scroll">
+<ul class="flex flex-col gap-xs px-sm">
+<li class="">
+<a class="flex items-center gap-sm px-md py-sm rounded-lg bg-primary-container text-on-primary-container border-l-4 border-on-primary-container hover:bg-primary-container hover:opacity-100 transition-all duration-150 active:scale-[0.98]" href="#">
+<span class="material-symbols-outlined text-[20px]" data-icon="dashboard">dashboard</span>
+<span class="font-label-md text-label-md">Dashboard</span>
+</a>
+</li>
+<li class="">
+<a class="flex items-center gap-sm px-md py-sm rounded-lg text-on-primary-container opacity-70 hover:bg-primary-container hover:opacity-100 transition-all duration-150 active:scale-[0.98]" href="#">
+<span class="material-symbols-outlined text-[20px]" data-icon="pending_actions">pending_actions</span>
+<span class="font-label-md text-label-md">Maintenance Requests</span>
+</a>
+</li>
+<li class="">
+<a class="flex items-center gap-sm px-md py-sm rounded-lg text-on-primary-container opacity-70 hover:bg-primary-container hover:opacity-100 transition-all duration-150 active:scale-[0.98]" href="#">
+<span class="material-symbols-outlined text-[20px]" data-icon="edit_calendar">edit_calendar</span>
+<span class="font-label-md text-label-md">Block Planning</span>
+</a>
+</li>
+<li class="">
+<a class="flex items-center gap-sm px-md py-sm rounded-lg text-on-primary-container opacity-70 hover:bg-primary-container hover:opacity-100 transition-all duration-150 active:scale-[0.98]" href="#">
+<span class="material-symbols-outlined text-[20px]" data-icon="view_timeline">view_timeline</span>
+<span class="font-label-md text-label-md">Gantt View</span>
+</a>
+</li>
+<li class="">
+<a class="flex items-center gap-sm px-md py-sm rounded-lg text-on-primary-container opacity-70 hover:bg-primary-container hover:opacity-100 transition-all duration-150 active:scale-[0.98]" href="#">
+<span class="material-symbols-outlined text-[20px]" data-icon="query_stats">query_stats</span>
+<span class="font-label-md text-label-md">What-if Analysis</span>
+</a>
+</li>
+<li class="">
+<a class="flex items-center gap-sm px-md py-sm rounded-lg text-on-primary-container opacity-70 hover:bg-primary-container hover:opacity-100 transition-all duration-150 active:scale-[0.98]" href="#">
+<span class="material-symbols-outlined text-[20px]" data-icon="assessment">assessment</span>
+<span class="font-label-md text-label-md">Reports</span>
+</a>
+</li>
+<li class="">
+<a class="flex items-center gap-sm px-md py-sm rounded-lg text-on-primary-container opacity-70 hover:bg-primary-container hover:opacity-100 transition-all duration-150 active:scale-[0.98]" href="#">
+<span class="material-symbols-outlined text-[20px]" data-icon="database">database</span>
+<span class="font-label-md text-label-md">Master Data</span>
+</a>
+</li>
+<li class="">
+<a class="flex items-center gap-sm px-md py-sm rounded-lg text-on-primary-container opacity-70 hover:bg-primary-container hover:opacity-100 transition-all duration-150 active:scale-[0.98]" href="#">
+<span class="material-symbols-outlined text-[20px]" data-icon="admin_panel_settings">admin_panel_settings</span>
+<span class="font-label-md text-label-md">Administration</span>
+</a>
+</li>
+</ul>
+</div>
+<div class="mt-auto px-sm pt-md border-t border-primary-container">
+<ul class="flex flex-col gap-xs">
+<li class="">
+<a class="flex items-center gap-sm px-md py-sm rounded-lg text-on-primary-container opacity-70 hover:bg-primary-container hover:opacity-100 transition-all duration-150" href="#">
+<span class="material-symbols-outlined text-[20px]" data-icon="notifications">notifications</span>
+<span class="font-label-md text-label-md">Notifications</span>
+</a>
+</li>
+<li class="">
+<a class="flex items-center gap-sm px-md py-sm rounded-lg text-on-primary-container opacity-70 hover:bg-primary-container hover:opacity-100 transition-all duration-150" href="#">
+<span class="material-symbols-outlined text-[20px]" data-icon="settings">settings</span>
+<span class="font-label-md text-label-md">Settings</span>
+</a>
+</li>
+</ul>
+</div>
+</nav>
+<!-- TopNavBar (Mobile only in this layout, typically desktop has it too but as header) -->
+<header class="flex md:hidden justify-between items-center px-lg w-full fixed top-0 z-50 bg-primary dark:bg-primary border-b border-outline-variant h-16 flat no shadows">
+<div class="flex items-center gap-sm"><img alt="Indian Railways Official Logo" class="w-8 h-8 rounded-full bg-primary-container object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAsBkV1EB3sdA1w9rmrxuZcCE0N8QEumD4ptyz2W_zu6PmYInV4-AvANnFFWC0zJVXDa-d0oxAzQpnDZFSwn00dK1WOvqVwVaR1D-KiMK254eYrGYfCV-AisIa0HcjN5aifuigIlJuJ-VnU82Q_Rp_FNWJpe68J3nQbPteH7bTJ-zMguITOzmBOqFaXRZzgkXUI5iIrrrw1T_d-uni16hYqKTfMS8xVlnl3mRoyBXXNe2UECyvinyOI">
+<span class="font-headline-md text-headline-md font-bold text-on-primary tracking-tight uppercase">RAILOPT</span>
+</div>
+<div class="flex items-center gap-md">
+<span class="font-label-md text-label-md text-on-primary opacity-80 hidden sm:block">15 May 2024 | 10:30:25</span>
+<div class="flex items-center gap-sm text-on-primary">
+<button class="hover:bg-primary-container p-1 rounded-full transition-colors duration-200"><span class="material-symbols-outlined" data-icon="notifications">notifications</span></button>
+<button class="hover:bg-primary-container p-1 rounded-full transition-colors duration-200"><span class="material-symbols-outlined" data-icon="settings">settings</span></button>
+<button class="hover:bg-primary-container p-1 rounded-full transition-colors duration-200"><span class="material-symbols-outlined" data-icon="help">help</span></button>
+</div>
+<div class="flex items-center gap-2 bg-primary-container px-3 py-1.5 rounded-lg border border-outline-variant border-opacity-30">
+<img alt="User profile avatar" class="w-6 h-6 rounded-full object-cover" data-alt="A small, professional headshot avatar of a railway planning user, male, wearing a blue shirt against a neutral gray background. The lighting is soft and studio-quality." src="https://lh3.googleusercontent.com/aida-public/AB6AXuA56-v8dcSpyvs30ysqJRayYrUzco4UO21cfKjK1nBADe9eTOaG3l1XVkN9hFbuN4ITcrw_qdxcu81IGeyJF-_W8UtUZfhaT_VLKirHZWa8R6_J7epXXCm7jsDSjWn6NZ8Ju1G33u_Y_pi1-V_7P4QL01j3UShDo6z5XIlAmhn-6_gunZa5UO_eFYPgsZGjgKByTtgs5TEHUixzHQ06lrs_BBQZxXus4gHONJW27_OeRTJs0G9iN0M8">
+<span class="font-label-md text-label-md text-on-primary">Planner</span>
+<span class="material-symbols-outlined text-[16px] text-on-primary" data-icon="expand_more">expand_more</span>
+</div>
+</div>
+</header>
+<!-- Desktop Header (mimicking TopNavBar but inside main content area to sit next to sidebar) -->
+<header class="hidden md:flex justify-between items-center px-lg w-full h-16 bg-primary border-b border-primary-container z-30 fixed top-0 left-[240px] right-0" style="width: calc(100% - 240px);">
+<div class="flex items-center">
+<span class="font-body-sm text-body-sm text-on-primary opacity-80">AI-Powered Block Planning System</span>
+</div>
+<div class="flex items-center gap-lg">
+<span class="font-label-md text-label-md text-on-primary opacity-80">15 May 2024 | 10:30:25</span>
+<div class="flex items-center gap-sm text-on-primary">
+<button class="hover:bg-primary-container p-1 rounded-full transition-colors duration-200 relative">
+<span class="material-symbols-outlined" data-icon="notifications">notifications</span>
+<span class="absolute top-1 right-1 w-2 h-2 bg-error rounded-full"></span>
+</button>
+</div>
+<div class="flex items-center gap-2 bg-primary-container px-3 py-1.5 rounded-lg cursor-pointer hover:bg-opacity-80 transition-opacity">
+<img alt="User profile avatar" class="w-6 h-6 rounded-full object-cover" data-alt="A small, professional headshot avatar of a railway planning user, female, wearing a white blouse against a neutral gray background. The lighting is soft and studio-quality." src="https://lh3.googleusercontent.com/aida-public/AB6AXuD19fqra4XqKw-IG8viZG-xid1MnWvhYo0Qzz-YxGJzur3QqyJx40zdvDZWM5IAise3GzRz2yDYnJFNclp45WJGMPAtUaTyB3dCQlVqdROm1HJVAgRvlV8ddxlVpLSkfl0ecEOD5uHR0mcuX1b0bzs9lLGwX4jfHgkHlCPX4K27J31RRck4X2P1LlLmYNIsw38CWMMHoSeTQKJ05wiYxgkwQPooiXX9DKHDywpuyQ3MLa7Q9_7k5Bpf">
+<span class="font-label-md text-label-md text-on-primary">Planner</span>
+<span class="material-symbols-outlined text-[16px] text-on-primary" data-icon="expand_more">expand_more</span>
+</div>
+</div>
+</header>
+<!-- Main Content Canvas -->
+<main class="flex-1 md:ml-[240px] mt-16 p-container-margin md:p-lg bg-surface-container-lowest min-h-screen">
+<!-- Page Header -->
+<div class="mb-lg">
+<h2 class="font-headline-lg text-headline-lg text-on-surface">Operations Dashboard</h2>
+</div>
+<!-- Bento Grid Layout -->
+<div class="grid grid-cols-1 md:grid-cols-4 gap-md mb-lg">
+<!-- Metric 1 -->
+<div class="bg-surface-container-lowest border border-outline-variant border-opacity-50 rounded-lg p-md shadow-[0_4px_6px_rgba(0,0,0,0.02)]">
+<div class="flex justify-between items-start mb-sm">
+<span class="font-label-md text-label-md text-on-surface-variant uppercase">Maintenance Requests</span>
+<span class="material-symbols-outlined text-outline text-[20px]" data-icon="assignment">assignment</span>
+</div>
+<div class="flex items-end gap-sm">
+<span class="font-headline-lg text-[32px] font-bold text-primary">12</span>
+</div>
+<div class="mt-2 flex items-center gap-1 text-[12px] text-surface-tint font-medium">
+<span class="material-symbols-outlined text-[14px]" data-icon="arrow_upward">arrow_upward</span>
+<span class="">3 new</span>
+</div>
+</div>
+<!-- Metric 2 -->
+<div class="bg-surface-container-lowest border border-outline-variant border-opacity-50 rounded-lg p-md shadow-[0_4px_6px_rgba(0,0,0,0.02)] relative overflow-hidden">
+<div class="absolute top-0 left-0 w-1 h-full bg-error"></div>
+<div class="flex justify-between items-start mb-sm pl-2">
+<span class="font-label-md text-label-md text-on-surface-variant uppercase">Critical Jobs</span>
+<span class="material-symbols-outlined text-error opacity-70 text-[20px]" data-icon="warning">warning</span>
+</div>
+<div class="flex items-end gap-sm pl-2">
+<span class="font-headline-lg text-[32px] font-bold text-error">3</span>
+</div>
+<div class="mt-2 pl-2 text-[12px] text-error font-medium">
+<span class="">Requires attention</span>
+</div>
+</div>
+<!-- Metric 3 -->
+<div class="bg-surface-container-lowest border border-outline-variant border-opacity-50 rounded-lg p-md shadow-[0_4px_6px_rgba(0,0,0,0.02)]">
+<div class="flex justify-between items-start mb-sm">
+<span class="font-label-md text-label-md text-on-surface-variant uppercase">Available Blocks</span>
+<span class="material-symbols-outlined text-outline text-[20px]" data-icon="event_available">event_available</span>
+</div>
+<div class="flex items-end gap-sm">
+<span class="font-headline-lg text-[32px] font-bold text-primary">5</span>
+</div>
+<div class="mt-2 text-[12px] text-on-surface-variant">
+<span class="">Next 24 hrs</span>
+</div>
+</div>
+<!-- Metric 4 -->
+<div class="bg-surface-container-lowest border border-outline-variant border-opacity-50 rounded-lg p-md shadow-[0_4px_6px_rgba(0,0,0,0.02)] relative overflow-hidden">
+<div class="absolute top-0 left-0 w-1 h-full bg-error-container"></div>
+<div class="flex justify-between items-start mb-sm pl-2">
+<span class="font-label-md text-label-md text-on-surface-variant uppercase">Conflicts</span>
+<span class="material-symbols-outlined text-error opacity-70 text-[20px]" data-icon="gavel">gavel</span>
+</div>
+<div class="flex items-end gap-sm pl-2">
+<span class="font-headline-lg text-[32px] font-bold text-error">2</span>
+</div>
+<div class="mt-2 pl-2 text-[12px] text-error font-medium">
+<span class="">Need resolution</span>
+</div>
+</div>
+<!-- Metric 5 (Optional Extra for 5-col layout if needed, hiding on small, showing as 4 cols wide on top otherwise) -->
+<div class="hidden"></div>
+</div>
+<!-- Secondary Grid (Charts & Lists) -->
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-md mb-lg">
+<!-- Pie Chart Card -->
+<div class="bg-surface-container-lowest border border-outline-variant border-opacity-50 rounded-lg p-md col-span-1 shadow-[0_4px_6px_rgba(0,0,0,0.02)]">
+<h3 class="font-headline-sm text-headline-sm text-on-surface mb-lg">Maintenance Requests by Department</h3>
+<div class="flex flex-col items-center justify-center py-sm">
+<!-- CSS Mock Pie Chart -->
+<div class="relative w-32 h-32 rounded-full mb-md" style="background: conic-gradient(#003366 0% 50%, #3a5f94 50% 83%, #a7c8ff 83% 100%);">
+<div class="absolute inset-2 bg-surface-container-lowest rounded-full flex items-center justify-center flex-col">
+<span class="font-headline-md font-bold text-primary">12</span>
+<span class="text-[10px] text-on-surface-variant uppercase">Total</span>
+</div>
+</div>
+<!-- Legend -->
+<div class="w-full flex flex-col gap-sm">
+<div class="flex justify-between items-center text-body-sm">
+<div class="flex items-center gap-2">
+<span class="w-2 h-2 rounded-full bg-primary-container"></span>
+<span class="">Engineering</span>
+</div>
+<span class="font-data-mono font-medium">6 (50%)</span>
+</div>
+<div class="flex justify-between items-center text-body-sm">
+<div class="flex items-center gap-2">
+<span class="w-2 h-2 rounded-full bg-surface-tint"></span>
+<span class="">S&amp;T</span>
+</div>
+<span class="font-data-mono font-medium">4 (33%)</span>
+</div>
+<div class="flex justify-between items-center text-body-sm">
+<div class="flex items-center gap-2">
+<span class="w-2 h-2 rounded-full bg-primary-fixed-dim"></span>
+<span class="">Traction (TRD)</span>
+</div>
+<span class="font-data-mono font-medium">2 (17%)</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Upcoming Blocks Table -->
+<div class="bg-surface-container-lowest border border-outline-variant border-opacity-50 rounded-lg p-0 col-span-1 lg:col-span-2 shadow-[0_4px_6px_rgba(0,0,0,0.02)] flex flex-col">
+<div class="p-md border-b border-outline-variant border-opacity-50 flex justify-between items-center">
+<h3 class="font-headline-sm text-headline-sm text-on-surface">Upcoming Blocks (Next 24 hrs)</h3>
+<button class="text-surface-tint text-label-md font-label-md hover:underline">View All</button>
+</div>
+<div class="flex-1 overflow-x-auto dense-scroll">
+<table class="w-full text-left border-collapse">
+<thead>
+<tr class="bg-[#F8FAFC] border-b border-outline-variant border-opacity-50">
+<th class="font-label-md text-[11px] text-on-surface-variant uppercase p-[table-cell-padding] tracking-wider whitespace-nowrap">Block ID</th>
+<th class="font-label-md text-[11px] text-on-surface-variant uppercase p-[table-cell-padding] tracking-wider whitespace-nowrap">Section</th>
+<th class="font-label-md text-[11px] text-on-surface-variant uppercase p-[table-cell-padding] tracking-wider whitespace-nowrap text-right">Start Time</th>
+<th class="font-label-md text-[11px] text-on-surface-variant uppercase p-[table-cell-padding] tracking-wider whitespace-nowrap text-right">End Time</th>
+<th class="font-label-md text-[11px] text-on-surface-variant uppercase p-[table-cell-padding] tracking-wider whitespace-nowrap text-right">Duration</th>
+<th class="font-label-md text-[11px] text-on-surface-variant uppercase p-[table-cell-padding] tracking-wider whitespace-nowrap text-center">Status</th>
+</tr>
+</thead>
+<tbody class="text-data-mono text-on-surface">
+<tr class="border-b border-outline-variant border-opacity-30 hover:bg-surface transition-colors">
+<td class="p-[table-cell-padding] font-medium text-primary">B-01</td>
+<td class="p-[table-cell-padding]">NDLS - GZB</td>
+<td class="p-[table-cell-padding] text-right">22:30</td>
+<td class="p-[table-cell-padding] text-right">01:30</td>
+<td class="p-[table-cell-padding] text-right text-on-surface-variant">03:00</td>
+<td class="p-[table-cell-padding] text-center">
+<span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium bg-[#DEF7EC] text-[#03543F]">Approved</span>
+</td>
+</tr>
+<tr class="border-b border-outline-variant border-opacity-30 hover:bg-surface transition-colors">
+<td class="p-[table-cell-padding] font-medium text-primary">B-02</td>
+<td class="p-[table-cell-padding]">GZB - MTC</td>
+<td class="p-[table-cell-padding] text-right">01:45</td>
+<td class="p-[table-cell-padding] text-right">04:45</td>
+<td class="p-[table-cell-padding] text-right text-on-surface-variant">03:00</td>
+<td class="p-[table-cell-padding] text-center">
+<span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium bg-[#E1EFFE] text-[#1E429F]">Tentative</span>
+</td>
+</tr>
+<tr class="border-b border-outline-variant border-opacity-30 hover:bg-surface transition-colors">
+<td class="p-[table-cell-padding] font-medium text-primary">B-03</td>
+<td class="p-[table-cell-padding]">MTC - TDL</td>
+<td class="p-[table-cell-padding] text-right">23:15</td>
+<td class="p-[table-cell-padding] text-right">02:15</td>
+<td class="p-[table-cell-padding] text-right text-on-surface-variant">03:00</td>
+<td class="p-[table-cell-padding] text-center">
+<span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium bg-[#F3F4F6] text-[#374151]">Available</span>
+</td>
+</tr>
+<tr class="border-b border-outline-variant border-opacity-30 hover:bg-surface transition-colors">
+<td class="p-[table-cell-padding] font-medium text-primary">B-04</td>
+<td class="p-[table-cell-padding]">NDLS - GZB</td>
+<td class="p-[table-cell-padding] text-right">03:00</td>
+<td class="p-[table-cell-padding] text-right">06:00</td>
+<td class="p-[table-cell-padding] text-right text-on-surface-variant">03:00</td>
+<td class="p-[table-cell-padding] text-center">
+<span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium bg-[#F3F4F6] text-[#374151]">Available</span>
+</td>
+</tr>
+<tr class="hover:bg-surface transition-colors">
+<td class="p-[table-cell-padding] font-medium text-primary">B-05</td>
+<td class="p-[table-cell-padding]">GZB - MTC</td>
+<td class="p-[table-cell-padding] text-right">02:00</td>
+<td class="p-[table-cell-padding] text-right">05:00</td>
+<td class="p-[table-cell-padding] text-right text-on-surface-variant">03:00</td>
+<td class="p-[table-cell-padding] text-center">
+<span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium bg-[#F3F4F6] text-[#374151]">Available</span>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</div>
+<!-- Bottom Grid (Conflicts) -->
+<div class="grid grid-cols-1 md:grid-cols-2 gap-md">
+<!-- Conflicts Overview List -->
+<div class="bg-surface-container-lowest border border-outline-variant border-opacity-50 rounded-lg p-md shadow-[0_4px_6px_rgba(0,0,0,0.02)]">
+<div class="flex justify-between items-center mb-md">
+<h3 class="font-headline-sm text-headline-sm text-on-surface">Conflicts Overview</h3>
+<button class="text-surface-tint text-label-md font-label-md hover:underline">View All</button>
+</div>
+<div class="mb-sm">
+<span class="font-headline-md text-error font-bold">2 Conflicts</span>
+</div>
+<div class="flex flex-col gap-sm">
+<!-- Conflict Item 1 -->
+<div class="bg-error-container bg-opacity-20 border border-error-container rounded p-sm flex items-start gap-sm">
+<span class="material-symbols-outlined text-error mt-0.5 text-[18px]" data-icon="error">error</span>
+<div class="flex-1">
+<h4 class="font-label-md text-on-surface">B-01 vs Train 12302</h4>
+<p class="font-body-sm text-on-surface-variant mt-1 text-[11px]">Overlaps with scheduled movement</p>
+</div>
+<button class="text-surface-tint text-[12px] font-medium hover:underline">Resolve</button>
+</div>
+<!-- Conflict Item 2 -->
+<div class="bg-surface-variant border border-outline-variant border-opacity-50 rounded p-sm flex items-start gap-sm">
+<span class="material-symbols-outlined text-outline mt-0.5 text-[18px]" data-icon="warning">warning</span>
+<div class="flex-1">
+<h4 class="font-label-md text-on-surface">B-02 vs Maintenance Job J-07</h4>
+<p class="font-body-sm text-on-surface-variant mt-1 text-[11px]">Resource conflict (Track Machine)</p>
+</div>
+<button class="text-surface-tint text-[12px] font-medium hover:underline">Resolve</button>
+</div>
+</div>
+</div>
+<!-- Contextual Image / Illustration -->
+<div class="hidden md:flex bg-surface-container-lowest border border-outline-variant border-opacity-50 rounded-lg p-0 shadow-[0_4px_6px_rgba(0,0,0,0.02)] overflow-hidden items-center justify-center bg-surface relative">
+<div class="absolute inset-0 bg-gradient-to-t from-primary to-transparent opacity-60 z-10"></div>
+<img alt="Railway Operations" class="w-full h-full object-cover z-0" data-alt="A cinematic, wide-angle shot of a modern railway junction at dusk. The tracks curve elegantly into the distance under complex overhead catenary wires. Warm, golden hour light reflects off the steel rails, contrasting with the cool, deep blues of the encroaching evening sky. A high-speed train is slightly blurred in the background, conveying motion and punctuality. The overall mood is industrial, precise, and technologically advanced, fitting for an AI operations dashboard." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBUAAOTnrDJtf0uZPS8TcxOQn6AmsMDCpGIl5RE-6iN9FTYdW8Bckkd-TSlagz_546afID_5Rpw-SwsqPU-xj_kauVwVn5Fk6QfXIyPLaxkil3XfDsmJsY4JtGDTZdBbjyaz7ENLblUO5SS5RTJDBTOMRUEuNOiMH4y3xV5OtUFMBjDPVkFwZ40IGF4qJg3EITU1xF2Zbf2I176T8xwg_AHUoOjZvhAgtQnPgmGtFUyGbSy5yawqwfg">
+<div class="absolute bottom-md left-md right-md z-20 text-on-primary">
+<h4 class="font-headline-sm font-bold mb-1 shadow-sm">AI Optimization Active</h4>
+<p class="font-body-sm opacity-90 text-[11px]">System continuously analyzing track availability and train schedules to propose conflict-free maintenance blocks.</p>
+</div>
+</div>
+</div>
+</main>
+
+
+</body></html>

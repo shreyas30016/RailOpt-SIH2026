@@ -1,0 +1,412 @@
+<!DOCTYPE html><html lang="en"><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<title>RAILOPT - Plan Explanation &amp; Logic</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                            "surface-variant": "#dae4ef",
+                            "primary": "#001e40",
+                            "tertiary": "#141f2f",
+                            "on-error-container": "#93000a",
+                            "on-surface-variant": "#43474f",
+                            "secondary": "#5a5f62",
+                            "surface-dim": "#d1dbe6",
+                            "surface": "#f6f9ff",
+                            "error-container": "#ffdad6",
+                            "secondary-fixed": "#dfe3e7",
+                            "surface-container-lowest": "#ffffff",
+                            "secondary-container": "#dce0e4",
+                            "outline": "#737780",
+                            "primary-fixed": "#d5e3ff",
+                            "on-tertiary": "#ffffff",
+                            "outline-variant": "#c3c6d1",
+                            "background": "#f6f9ff",
+                            "on-secondary-container": "#5e6367",
+                            "secondary-fixed-dim": "#c3c7cb",
+                            "on-secondary-fixed-variant": "#43474b",
+                            "on-primary": "#ffffff",
+                            "on-surface": "#131d24",
+                            "on-error": "#ffffff",
+                            "error": "#ba1a1a",
+                            "surface-container": "#e5effa",
+                            "surface-container-low": "#ecf5ff",
+                            "on-tertiary-container": "#919cb2",
+                            "primary-fixed-dim": "#a7c8ff",
+                            "surface-bright": "#f6f9ff",
+                            "on-tertiary-fixed-variant": "#3c475a",
+                            "on-background": "#131d24",
+                            "on-secondary": "#ffffff",
+                            "primary-container": "#003366",
+                            "inverse-surface": "#28313a",
+                            "on-primary-fixed-variant": "#1f477b",
+                            "surface-tint": "#3a5f94",
+                            "surface-container-high": "#dfe9f4",
+                            "inverse-on-surface": "#e8f2fd",
+                            "on-tertiary-fixed": "#111c2c",
+                            "on-secondary-fixed": "#171c1f",
+                            "tertiary-container": "#293446",
+                            "tertiary-fixed-dim": "#bcc7dd",
+                            "on-primary-fixed": "#001b3c",
+                            "on-primary-container": "#799dd6",
+                            "tertiary-fixed": "#d8e3fa",
+                            "surface-container-highest": "#dae4ef",
+                            "inverse-primary": "#a7c8ff"
+                    },
+                    "borderRadius": {
+                            "DEFAULT": "0.125rem",
+                            "lg": "0.25rem",
+                            "xl": "0.5rem",
+                            "full": "0.75rem"
+                    },
+                    "spacing": {
+                            "lg": "24px",
+                            "table-cell-padding": "8px 12px",
+                            "base": "4px",
+                            "container-margin": "24px",
+                            "xs": "4px",
+                            "xl": "32px",
+                            "sm": "8px",
+                            "md": "16px"
+                    },
+                    "fontFamily": {
+                            "body-lg": ["Inter"],
+                            "body-sm": ["Inter"],
+                            "data-mono": ["JetBrains Mono"],
+                            "label-md": ["Inter"],
+                            "headline-lg": ["Inter"],
+                            "headline-md": ["Inter"],
+                            "body-md": ["Inter"],
+                            "headline-sm": ["Inter"]
+                    },
+                    "fontSize": {
+                            "body-lg": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                            "body-sm": ["12px", {"lineHeight": "16px", "fontWeight": "400"}],
+                            "data-mono": ["13px", {"lineHeight": "18px", "fontWeight": "400"}],
+                            "label-md": ["12px", {"lineHeight": "16px", "letterSpacing": "0.02em", "fontWeight": "600"}],
+                            "headline-lg": ["24px", {"lineHeight": "32px", "fontWeight": "700"}],
+                            "headline-md": ["20px", {"lineHeight": "28px", "fontWeight": "600"}],
+                            "body-md": ["14px", {"lineHeight": "20px", "fontWeight": "400"}],
+                            "headline-sm": ["16px", {"lineHeight": "24px", "fontWeight": "600"}]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        body { background-color: #f6f9ff; }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .icon-fill {
+            font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+    </style>
+</head>
+<body class="font-body-md text-on-background bg-background h-screen overflow-hidden flex flex-col">
+<!-- TopNavBar -->
+<header class="bg-primary text-on-primary flex justify-between items-center px-lg w-full fixed top-0 z-50 border-b border-outline-variant h-16">
+<div class="flex items-center gap-md">
+<div class="w-8 h-8 shrink-0 flex items-center justify-center"><img src="https://lh3.googleusercontent.com/aida-public/AB6AXuAsBkV1EB3sdA1w9rmrxuZcCE0N8QEumD4ptyz2W_zu6PmYInV4-AvANnFFWC0zJVXDa-d0oxAzQpnDZFSwn00dK1WOvqVwVaR1D-KiMK254eYrGYfCV-AisIa0HcjN5aifuigIlJuJ-VnU82Q_Rp_FNWJpe68J3nQbPteH7bTJ-zMguITOzmBOqFaXRZzgkXUI5iIrrrw1T_d-uni16hYqKTfMS8xVlnl3mRoyBXXNe2UECyvinyOI" alt="Indian Railways Official Logo" class="w-full h-full object-contain"></div>
+<span class="font-headline-md text-headline-md font-bold text-on-primary tracking-tight">RAILOPT</span>
+<span class="font-body-sm text-body-sm opacity-80 border-l border-on-primary/30 pl-sm ml-sm">AI-Powered Block Planning System</span>
+</div>
+<div class="flex items-center gap-lg">
+<div class="font-data-mono text-data-mono opacity-90">15 May 2024 | 10:30:25</div>
+<div class="flex items-center gap-md">
+<button class="hover:bg-primary-container p-sm rounded-full transition-colors duration-200 flex items-center justify-center">
+<span class="material-symbols-outlined">notifications</span>
+</button>
+<button class="hover:bg-primary-container p-sm rounded-full transition-colors duration-200 flex items-center justify-center">
+<span class="material-symbols-outlined">settings</span>
+</button>
+<button class="hover:bg-primary-container p-sm rounded-full transition-colors duration-200 flex items-center justify-center">
+<span class="material-symbols-outlined">help</span>
+</button>
+</div>
+<div class="flex items-center gap-sm bg-primary-container px-md py-sm rounded-full border border-outline-variant/30 cursor-pointer hover:bg-primary-container/80 transition-colors">
+<img class="w-6 h-6 rounded-full object-cover" data-alt="A small, professional corporate headshot of an Indian Railways planner against a neutral grey background. The lighting is studio quality, soft and even. The subject is wearing a crisp light blue shirt, exuding competence and reliability. Corporate realism style." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBybNldgw0LOjkXZqXUzDL86HVj5tJVJsyVv7ZWF9-b1wAU_CBV4i63l3aOpJ7qUwtHS5gvbQR2IN6AZ6r1v-oKCg4oLNv6QRmF7pPQrbiLK0edEO8lZA1nod8n6lrKgFGQ-YUYwbc1NOXqrZlIdv-PNVP9LRKMGK8PeXsuv_8SXP6IH-yBJvV2uvCERi88XHFUaYluN0id1eJetlHtua29klGMbXj6VivI0E6Yy9yS19cq5R_cVEui">
+<span class="font-label-md text-label-md">Planner</span>
+<span class="material-symbols-outlined text-[16px]">expand_more</span>
+</div>
+</div>
+</header>
+<div class="flex flex-1 pt-16">
+<!-- SideNavBar -->
+<nav class="flex flex-col py-md w-[240px] h-full fixed left-0 top-16 z-40 bg-primary dark:bg-tertiary">
+<div class="flex-1 overflow-y-auto mt-sm">
+<ul class="flex flex-col gap-xs px-sm">
+<li class="">
+<a class="flex items-center gap-md px-md py-sm rounded-md text-on-primary-container opacity-70 hover:bg-primary-container hover:opacity-100 transition-all duration-150 group" href="#">
+<span class="material-symbols-outlined group-hover:scale-110 transition-transform">dashboard</span>
+<span class="font-label-md text-label-md">Dashboard</span>
+</a>
+</li>
+<li class="">
+<a class="flex items-center gap-md px-md py-sm rounded-md text-on-primary-container opacity-70 hover:bg-primary-container hover:opacity-100 transition-all duration-150 group" href="#">
+<span class="material-symbols-outlined group-hover:scale-110 transition-transform">pending_actions</span>
+<span class="font-label-md text-label-md">Maintenance Requests</span>
+</a>
+</li>
+<li class="">
+<a class="flex items-center gap-md px-md py-sm rounded-md bg-primary-container text-on-primary-container border-l-4 border-on-primary-container opacity-100 group" href="#">
+<span class="material-symbols-outlined">edit_calendar</span>
+<span class="font-label-md text-label-md">Block Planning</span>
+</a>
+</li>
+<li class="">
+<a class="flex items-center gap-md px-md py-sm rounded-md text-on-primary-container opacity-70 hover:bg-primary-container hover:opacity-100 transition-all duration-150 group" href="#">
+<span class="material-symbols-outlined group-hover:scale-110 transition-transform">view_timeline</span>
+<span class="font-label-md text-label-md">Gantt View</span>
+</a>
+</li>
+<li class="">
+<a class="flex items-center gap-md px-md py-sm rounded-md text-on-primary-container opacity-70 hover:bg-primary-container hover:opacity-100 transition-all duration-150 group" href="#">
+<span class="material-symbols-outlined group-hover:scale-110 transition-transform">query_stats</span>
+<span class="font-label-md text-label-md">What-if Analysis</span>
+</a>
+</li>
+<li class="">
+<a class="flex items-center gap-md px-md py-sm rounded-md text-on-primary-container opacity-70 hover:bg-primary-container hover:opacity-100 transition-all duration-150 group" href="#">
+<span class="material-symbols-outlined group-hover:scale-110 transition-transform">assessment</span>
+<span class="font-label-md text-label-md">Reports</span>
+</a>
+</li>
+<li class="">
+<a class="flex items-center gap-md px-md py-sm rounded-md text-on-primary-container opacity-70 hover:bg-primary-container hover:opacity-100 transition-all duration-150 group" href="#">
+<span class="material-symbols-outlined group-hover:scale-110 transition-transform">database</span>
+<span class="font-label-md text-label-md">Master Data</span>
+</a>
+</li>
+<li class="">
+<a class="flex items-center gap-md px-md py-sm rounded-md text-on-primary-container opacity-70 hover:bg-primary-container hover:opacity-100 transition-all duration-150 group" href="#">
+<span class="material-symbols-outlined group-hover:scale-110 transition-transform">admin_panel_settings</span>
+<span class="font-label-md text-label-md">Administration</span>
+</a>
+</li>
+</ul>
+</div>
+</nav>
+<!-- Main Content Canvas -->
+<main class="flex-1 ml-[240px] p-container-margin overflow-y-auto bg-surface">
+<!-- Page Header -->
+<div class="mb-lg flex justify-between items-end">
+<div>
+<div class="flex items-center gap-sm text-on-surface-variant font-label-md text-label-md mb-xs">
+<a class="hover:text-primary transition-colors" href="#">Block Planning</a>
+<span class="material-symbols-outlined text-[14px]">chevron_right</span>
+<a class="hover:text-primary transition-colors" href="#">Plan P-2024-05-15-01</a>
+<span class="material-symbols-outlined text-[14px]">chevron_right</span>
+<span class="text-on-surface">Explanation &amp; Logic</span>
+</div>
+<h1 class="font-headline-lg text-headline-lg text-on-surface flex items-center gap-sm">
+                        Plan Explanation &amp; Logic
+                        <span class="bg-primary-fixed text-on-primary-fixed-variant font-label-md text-label-md px-sm py-[2px] rounded-full border border-primary-fixed-dim inline-flex items-center gap-xs">
+<span class="material-symbols-outlined text-[14px]">verified</span>
+                            Optimized
+                        </span>
+</h1>
+</div>
+<div class="flex gap-sm">
+<button class="px-md py-sm border border-outline bg-surface-container-lowest text-on-surface rounded font-label-md text-label-md hover:bg-surface-variant transition-colors flex items-center gap-sm">
+<span class="material-symbols-outlined text-[18px]">download</span>
+                        Export Report
+                    </button>
+<button class="px-md py-sm bg-primary text-on-primary rounded font-label-md text-label-md hover:bg-primary-container transition-colors flex items-center gap-sm shadow-sm">
+<span class="material-symbols-outlined text-[18px]">arrow_back</span>
+                        Back to Plan
+                    </button>
+</div>
+</div>
+<!-- Bento Grid Layout -->
+<div class="grid grid-cols-12 gap-lg">
+<!-- Optimization Reason Narrative (Left Column) -->
+<div class="col-span-12 xl:col-span-7 space-y-lg">
+<div class="bg-surface-container-lowest rounded-lg border border-outline-variant p-lg shadow-sm">
+<div class="flex items-center gap-sm mb-md pb-sm border-b border-surface-variant">
+<span class="material-symbols-outlined text-primary">psychology</span>
+<h2 class="font-headline-md text-headline-md text-on-surface">Optimization Reasoning: Job J-01 vs J-04</h2>
+</div>
+<div class="prose prose-sm max-w-none text-on-surface-variant font-body-md text-body-md space-y-md">
+<p class="leading-relaxed">
+                                The AI planning engine prioritized <strong class="text-on-surface">Job J-01 (Engineering, NDLS-GZB)</strong> over <strong class="text-on-surface">Job J-04 (Engineering, GZB-MTC)</strong> during the critical 22:30 - 01:30 block window. This decision was driven by an analysis of projected train traffic density and cascading delay probabilities across the North Central sector.
+                            </p>
+<div class="bg-surface-container p-md rounded border border-surface-variant my-md">
+<h4 class="font-label-md text-label-md text-on-surface mb-sm flex items-center gap-xs">
+<span class="material-symbols-outlined text-[16px] text-error">warning</span>
+                                    Traffic Density Constraint
+                                </h4>
+<p class="font-body-sm text-body-sm text-on-surface-variant leading-relaxed">
+                                    Historical data and real-time NTES feeds indicated a surge in freight movement (Train 12302 path) on the GZB-MTC section between 00:00 and 03:00. Allocating the block to J-04 would have necessitated a complete diversion of this freight traffic, resulting in an estimated cascading network delay of <span class="font-data-mono font-medium text-error">420 minutes</span>.
+                                </p>
+</div>
+<p class="leading-relaxed">
+                                By scheduling J-01 first, the system leverages a natural low-traffic window on the NDLS-GZB route. Job J-04 has been safely deferred to the 02:00 - 05:00 window, where traffic density drops by 65%, allowing for a single-line working protocol without severe operational disruption.
+                            </p>
+<div class="flex gap-md mt-lg pt-md border-t border-surface-variant">
+<div class="flex-1 bg-surface p-sm rounded border border-outline-variant">
+<div class="font-label-md text-label-md text-on-surface-variant mb-xs">J-01 Priority Score</div>
+<div class="font-headline-md text-headline-md text-primary flex items-baseline gap-xs">
+                                        94 <span class="font-body-sm text-body-sm text-on-surface-variant font-normal">/ 100</span>
+</div>
+</div>
+<div class="flex-1 bg-surface p-sm rounded border border-outline-variant">
+<div class="font-label-md text-label-md text-on-surface-variant mb-xs">J-04 Priority Score</div>
+<div class="font-headline-md text-headline-md text-on-surface flex items-baseline gap-xs">
+                                        72 <span class="font-body-sm text-body-sm text-on-surface-variant font-normal">/ 100</span>
+</div>
+</div>
+<div class="flex-1 bg-surface p-sm rounded border border-outline-variant">
+<div class="font-label-md text-label-md text-on-surface-variant mb-xs">Net Time Saved</div>
+<div class="font-headline-md text-headline-md text-green-700 flex items-baseline gap-xs">
+                                        18.5 <span class="font-body-sm text-body-sm text-on-surface-variant font-normal">hrs</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Hard Constraints Check Table -->
+<div class="bg-surface-container-lowest rounded-lg border border-outline-variant p-lg shadow-sm">
+<div class="flex justify-between items-center mb-md pb-sm border-b border-surface-variant">
+<div class="flex items-center gap-sm">
+<span class="material-symbols-outlined text-primary">fact_check</span>
+<h2 class="font-headline-md text-headline-md text-on-surface">Hard Constraints Verification</h2>
+</div>
+<span class="bg-green-100 text-green-800 border border-green-200 font-label-md text-[10px] px-2 py-1 rounded-full uppercase tracking-wider">All Cleared</span>
+</div>
+<div class="overflow-x-auto">
+<table class="w-full text-left border-collapse">
+<thead>
+<tr class="bg-surface-container-low border-b border-outline-variant">
+<th class="p-table-cell-padding font-label-md text-label-md text-on-surface-variant uppercase">Constraint Type</th>
+<th class="p-table-cell-padding font-label-md text-label-md text-on-surface-variant uppercase">Parameter</th>
+<th class="p-table-cell-padding font-label-md text-label-md text-on-surface-variant uppercase">Required</th>
+<th class="p-table-cell-padding font-label-md text-label-md text-on-surface-variant uppercase">Status</th>
+</tr>
+</thead>
+<tbody class="font-body-sm text-body-sm text-on-surface">
+<tr class="border-b border-surface-variant hover:bg-surface-bright transition-colors">
+<td class="p-table-cell-padding font-medium">Safety Clearance</td>
+<td class="p-table-cell-padding">Adjacent Line Speed Restriction</td>
+<td class="p-table-cell-padding font-data-mono">Max 30 Kmph</td>
+<td class="p-table-cell-padding">
+<span class="inline-flex items-center gap-xs text-green-700 font-medium">
+<span class="material-symbols-outlined text-[14px]">check_circle</span> Passed
+                                            </span>
+</td>
+</tr>
+<tr class="border-b border-surface-variant hover:bg-surface-bright transition-colors">
+<td class="p-table-cell-padding font-medium">Resource Availability</td>
+<td class="p-table-cell-padding">Track Machine (BCM)</td>
+<td class="p-table-cell-padding font-data-mono">Available 22:00+</td>
+<td class="p-table-cell-padding">
+<span class="inline-flex items-center gap-xs text-green-700 font-medium">
+<span class="material-symbols-outlined text-[14px]">check_circle</span> Passed
+                                            </span>
+</td>
+</tr>
+<tr class="border-b border-surface-variant hover:bg-surface-bright transition-colors">
+<td class="p-table-cell-padding font-medium">Power Isolation</td>
+<td class="p-table-cell-padding">Traction Power Cut (TRD)</td>
+<td class="p-table-cell-padding font-data-mono">OHE De-energized</td>
+<td class="p-table-cell-padding">
+<span class="inline-flex items-center gap-xs text-green-700 font-medium">
+<span class="material-symbols-outlined text-[14px]">check_circle</span> Passed
+                                            </span>
+</td>
+</tr>
+<tr class="hover:bg-surface-bright transition-colors">
+<td class="p-table-cell-padding font-medium">Crew Scheduling</td>
+<td class="p-table-cell-padding">Working Hours Limit</td>
+<td class="p-table-cell-padding font-data-mono">&lt; 8 Hrs Shift</td>
+<td class="p-table-cell-padding">
+<span class="inline-flex items-center gap-xs text-green-700 font-medium">
+<span class="material-symbols-outlined text-[14px]">check_circle</span> Passed
+                                            </span>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</div>
+<!-- Right Column -->
+<div class="col-span-12 xl:col-span-5 space-y-lg">
+<!-- Sensitivity Analysis -->
+<div class="bg-surface-container-lowest rounded-lg border border-outline-variant p-lg shadow-sm">
+<div class="flex items-center gap-sm mb-md pb-sm border-b border-surface-variant">
+<span class="material-symbols-outlined text-primary">ssid_chart</span>
+<h2 class="font-headline-md text-headline-md text-on-surface">Sensitivity Analysis</h2>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant mb-md">
+                            Impact on overall plan efficiency if manual override prioritizes Train 12302 (Freight) during the primary block window.
+                        </p>
+<div class="space-y-md">
+<!-- Metric 1 -->
+<div>
+<div class="flex justify-between font-label-md text-label-md mb-xs">
+<span class="text-on-surface">Overall Plan Degradation</span>
+<span class="text-error font-data-mono">-14.2%</span>
+</div>
+<div class="w-full bg-surface-variant rounded-full h-2">
+<div class="bg-error h-2 rounded-full" style="width: 14.2%"></div>
+</div>
+</div>
+<!-- Metric 2 -->
+<div>
+<div class="flex justify-between font-label-md text-label-md mb-xs">
+<span class="text-on-surface">Maintenance Jobs Delayed</span>
+<span class="text-on-surface-variant font-data-mono">3 Jobs</span>
+</div>
+<div class="w-full bg-surface-variant rounded-full h-2">
+<div class="bg-secondary h-2 rounded-full" style="width: 30%"></div>
+</div>
+</div>
+</div>
+<div class="mt-md p-sm bg-error-container text-on-error-container rounded border border-error/20 font-body-sm text-body-sm flex gap-sm items-start">
+<span class="material-symbols-outlined text-[18px] shrink-0 mt-0.5">info</span>
+<p class="">Forcing this prioritization would violate 'Resource Availability' constraints for BCM machine routing to MTC yard.</p>
+</div>
+</div>
+<!-- Visual Data / Mini Chart Placeholder -->
+<div class="bg-surface-container-lowest rounded-lg border border-outline-variant p-lg shadow-sm h-[280px] flex flex-col relative overflow-hidden">
+<div class="flex items-center gap-sm mb-sm relative z-10">
+<span class="material-symbols-outlined text-primary">insights</span>
+<h2 class="font-headline-sm text-headline-sm text-on-surface">Traffic Density Projection</h2>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant mb-md relative z-10">NDLS - GZB Section (22:00 - 06:00)</p>
+<!-- Abstract decorative representation of a chart to avoid image generation -->
+<div class="flex-1 w-full flex items-end gap-1 px-sm pb-sm relative z-10 opacity-70">
+<div class="w-1/12 bg-primary/20 h-[30%] rounded-t-sm"></div>
+<div class="w-1/12 bg-primary/30 h-[40%] rounded-t-sm"></div>
+<div class="w-1/12 bg-primary/40 h-[60%] rounded-t-sm"></div>
+<div class="w-1/12 bg-error/40 h-[90%] rounded-t-sm border-t-2 border-error"></div> <!-- Peak -->
+<div class="w-1/12 bg-error/30 h-[70%] rounded-t-sm"></div>
+<div class="w-1/12 bg-primary/20 h-[50%] rounded-t-sm"></div>
+<div class="w-1/12 bg-primary/10 h-[20%] rounded-t-sm border-t-2 border-green-500"></div> <!-- Optimal Block -->
+<div class="w-1/12 bg-primary/10 h-[15%] rounded-t-sm border-t-2 border-green-500"></div>
+<div class="w-1/12 bg-primary/10 h-[10%] rounded-t-sm border-t-2 border-green-500"></div>
+<div class="w-1/12 bg-primary/20 h-[30%] rounded-t-sm"></div>
+<div class="w-1/12 bg-primary/40 h-[50%] rounded-t-sm"></div>
+<div class="w-1/12 bg-primary/60 h-[80%] rounded-t-sm"></div>
+</div>
+<div class="absolute bottom-4 left-4 right-4 flex justify-between font-data-mono text-[10px] text-on-surface-variant z-10 border-t border-surface-variant pt-1">
+<span class="">22:00</span>
+<span class="text-green-700 font-bold">02:00 (J-04 Window)</span>
+<span class="">06:00</span>
+</div>
+</div>
+</div>
+</div>
+</main>
+</div>
+
+
+</body></html>

@@ -1,0 +1,320 @@
+<!DOCTYPE html><html lang="en"><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<title>RAILOPT - Block Planning &amp; Optimization</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "surface-variant": "#dae4ef",
+                        "primary": "#001e40",
+                        "tertiary": "#141f2f",
+                        "on-error-container": "#93000a",
+                        "on-surface-variant": "#43474f",
+                        "secondary": "#5a5f62",
+                        "surface-dim": "#d1dbe6",
+                        "surface": "#f6f9ff",
+                        "error-container": "#ffdad6",
+                        "secondary-fixed": "#dfe3e7",
+                        "surface-container-lowest": "#ffffff",
+                        "secondary-container": "#dce0e4",
+                        "outline": "#737780",
+                        "primary-fixed": "#d5e3ff",
+                        "on-tertiary": "#ffffff",
+                        "outline-variant": "#c3c6d1",
+                        "background": "#f6f9ff",
+                        "on-secondary-container": "#5e6367",
+                        "secondary-fixed-dim": "#c3c7cb",
+                        "on-secondary-fixed-variant": "#43474b",
+                        "on-primary": "#ffffff",
+                        "on-surface": "#131d24",
+                        "on-error": "#ffffff",
+                        "error": "#ba1a1a",
+                        "surface-container": "#e5effa",
+                        "surface-container-low": "#ecf5ff",
+                        "on-tertiary-container": "#919cb2",
+                        "primary-fixed-dim": "#a7c8ff",
+                        "surface-bright": "#f6f9ff",
+                        "on-tertiary-fixed-variant": "#3c475a",
+                        "on-background": "#131d24",
+                        "on-secondary": "#ffffff",
+                        "primary-container": "#003366",
+                        "inverse-surface": "#28313a",
+                        "on-primary-fixed-variant": "#1f477b",
+                        "surface-tint": "#3a5f94",
+                        "surface-container-high": "#dfe9f4",
+                        "inverse-on-surface": "#e8f2fd",
+                        "on-tertiary-fixed": "#111c2c",
+                        "on-secondary-fixed": "#171c1f",
+                        "tertiary-container": "#293446",
+                        "tertiary-fixed-dim": "#bcc7dd",
+                        "on-primary-fixed": "#001b3c",
+                        "on-primary-container": "#799dd6",
+                        "tertiary-fixed": "#d8e3fa",
+                        "surface-container-highest": "#dae4ef",
+                        "inverse-primary": "#a7c8ff"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.125rem",
+                        "lg": "0.25rem",
+                        "xl": "0.5rem",
+                        "full": "0.75rem"
+                    },
+                    "spacing": {
+                        "lg": "24px",
+                        "table-cell-padding": "8px 12px",
+                        "base": "4px",
+                        "container-margin": "24px",
+                        "xs": "4px",
+                        "xl": "32px",
+                        "sm": "8px",
+                        "md": "16px"
+                    },
+                    "fontFamily": {
+                        "body-lg": ["Inter"],
+                        "body-sm": ["Inter"],
+                        "data-mono": ["JetBrains Mono"],
+                        "label-md": ["Inter"],
+                        "headline-lg": ["Inter"],
+                        "headline-md": ["Inter"],
+                        "body-md": ["Inter"],
+                        "headline-sm": ["Inter"]
+                    },
+                    "fontSize": {
+                        "body-lg": ["16px", { "lineHeight": "24px", "fontWeight": "400" }],
+                        "body-sm": ["12px", { "lineHeight": "16px", "fontWeight": "400" }],
+                        "data-mono": ["13px", { "lineHeight": "18px", "fontWeight": "400" }],
+                        "label-md": ["12px", { "lineHeight": "16px", "letterSpacing": "0.02em", "fontWeight": "600" }],
+                        "headline-lg": ["24px", { "lineHeight": "32px", "fontWeight": "700" }],
+                        "headline-md": ["20px", { "lineHeight": "28px", "fontWeight": "600" }],
+                        "body-md": ["14px", { "lineHeight": "20px", "fontWeight": "400" }],
+                        "headline-sm": ["16px", { "lineHeight": "24px", "fontWeight": "600" }]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        body { background-color: theme('colors.background'); }
+        .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 20; }
+        .icon-fill { font-variation-settings: 'FILL' 1; }
+    </style>
+</head>
+<body class="text-on-background font-body-md overflow-x-hidden">
+<!-- TopNavBar -->
+<header class="bg-primary dark:bg-primary border-b border-outline-variant flex justify-between items-center px-lg w-full fixed top-0 z-50 docked full-width top-0 h-16 flat no shadows">
+<div class="flex items-center gap-md">
+<img src="https://lh3.googleusercontent.com/aida-public/AB6AXuAsBkV1EB3sdA1w9rmrxuZcCE0N8QEumD4ptyz2W_zu6PmYInV4-AvANnFFWC0zJVXDa-d0oxAzQpnDZFSwn00dK1WOvqVwVaR1D-KiMK254eYrGYfCV-AisIa0HcjN5aifuigIlJuJ-VnU82Q_Rp_FNWJpe68J3nQbPteH7bTJ-zMguITOzmBOqFaXRZzgkXUI5iIrrrw1T_d-uni16hYqKTfMS8xVlnl3mRoyBXXNe2UECyvinyOI" alt="Indian Railways Official Logo" class="h-10 w-auto object-contain">
+
+</div>
+<div class="flex items-center gap-md text-on-primary dark:text-on-primary">
+<span class="font-label-md text-label-md text-on-primary-container mr-lg">15 May 2024 | 10:30:25</span>
+<button class="hover:bg-primary-container transition-colors duration-200 p-sm rounded-full"><span class="material-symbols-outlined text-[20px]">notifications</span></button>
+<button class="hover:bg-primary-container transition-colors duration-200 p-sm rounded-full"><span class="material-symbols-outlined text-[20px]">settings</span></button>
+<button class="hover:bg-primary-container transition-colors duration-200 p-sm rounded-full"><span class="material-symbols-outlined text-[20px]">help</span></button>
+<div class="flex items-center gap-sm ml-md hover:bg-primary-container transition-colors duration-200 px-sm py-xs rounded cursor-pointer border border-on-primary-container/30">
+<img class="w-6 h-6 rounded-full object-cover" data-alt="A small, professional user avatar portrait of an Indian Railways planner, warm professional lighting, minimalist background, corporate modern style, ensuring realism and institutional trust." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBDd6whYwIIEH82zxCe1er8QMJbf0Oa7pnoImn2cvkhdQ9uLzkZ8TRKtYaXaWpBFy4Bth5SDVKGaswQstdWvZ5Eej-KYZjsz3vxHOOoCQrHsQZQRpBUo_wt-D8aCqASF-zmZNMKEf9yaickKfAXm-BR5bp5jzzFbxo7vBZudPtfDu6ZNk6SPCEXo_40RxDfE-KGWlFS2pub7MQPnRpuSaPCmrilKUsueijRZPp4c5A6b1r94oaWsBpQ">
+<span class="font-label-md text-label-md">Planner</span>
+<span class="material-symbols-outlined text-[16px]">expand_more</span>
+</div>
+</div>
+</header>
+<div class="flex pt-16">
+<!-- SideNavBar -->
+<nav class="bg-primary dark:bg-tertiary flex flex-col py-md w-[240px] h-screen fixed left-0 top-[64px] z-40 flat no shadows border-r border-tertiary">
+<div class="flex flex-col gap-sm px-sm flex-grow">
+<!-- Dashboard -->
+<a class="flex items-center gap-md px-md py-sm rounded-md text-on-primary-container opacity-70 hover:bg-primary-container hover:opacity-100 transition-all duration-150 group" href="#">
+<span class="material-symbols-outlined text-[20px] group-hover:text-on-primary">dashboard</span>
+<span class="font-label-md text-label-md group-hover:text-on-primary">Dashboard</span>
+</a>
+<!-- Maintenance Requests -->
+<a class="flex items-center gap-md px-md py-sm rounded-md text-on-primary-container opacity-70 hover:bg-primary-container hover:opacity-100 transition-all duration-150 group" href="#">
+<span class="material-symbols-outlined text-[20px] group-hover:text-on-primary">pending_actions</span>
+<span class="font-label-md text-label-md group-hover:text-on-primary">Maintenance Requests</span>
+</a>
+<!-- Block Planning (ACTIVE) -->
+<a class="flex items-center gap-md px-md py-sm rounded-md bg-primary-container text-on-primary-container border-l-4 border-on-primary-container Active: scale-[0.98] transition-transform" href="#">
+<span class="material-symbols-outlined text-[20px] text-on-primary">edit_calendar</span>
+<span class="font-label-md text-label-md text-on-primary">Block Planning</span>
+</a>
+<!-- Gantt View -->
+<a class="flex items-center gap-md px-md py-sm rounded-md text-on-primary-container opacity-70 hover:bg-primary-container hover:opacity-100 transition-all duration-150 group" href="#">
+<span class="material-symbols-outlined text-[20px] group-hover:text-on-primary">view_timeline</span>
+<span class="font-label-md text-label-md group-hover:text-on-primary">Gantt View</span>
+</a>
+<!-- What-if Analysis -->
+<a class="flex items-center gap-md px-md py-sm rounded-md text-on-primary-container opacity-70 hover:bg-primary-container hover:opacity-100 transition-all duration-150 group" href="#">
+<span class="material-symbols-outlined text-[20px] group-hover:text-on-primary">query_stats</span>
+<span class="font-label-md text-label-md group-hover:text-on-primary">What-if Analysis</span>
+</a>
+<!-- Reports -->
+<a class="flex items-center gap-md px-md py-sm rounded-md text-on-primary-container opacity-70 hover:bg-primary-container hover:opacity-100 transition-all duration-150 group" href="#">
+<span class="material-symbols-outlined text-[20px] group-hover:text-on-primary">assessment</span>
+<span class="font-label-md text-label-md group-hover:text-on-primary">Reports</span>
+</a>
+<div class="mt-auto flex flex-col gap-sm border-t border-tertiary-container pt-sm">
+<!-- Notifications -->
+<a class="flex items-center gap-md px-md py-sm rounded-md text-on-primary-container opacity-70 hover:bg-primary-container hover:opacity-100 transition-all duration-150 group" href="#">
+<span class="material-symbols-outlined text-[20px] group-hover:text-on-primary">notifications</span>
+<span class="font-label-md text-label-md group-hover:text-on-primary">Notifications</span>
+</a>
+<!-- Settings -->
+<a class="flex items-center gap-md px-md py-sm rounded-md text-on-primary-container opacity-70 hover:bg-primary-container hover:opacity-100 transition-all duration-150 group" href="#">
+<span class="material-symbols-outlined text-[20px] group-hover:text-on-primary">settings</span>
+<span class="font-label-md text-label-md group-hover:text-on-primary">Settings</span>
+</a>
+</div>
+</div>
+</nav>
+<!-- Main Content -->
+<main class="ml-[240px] flex-grow p-container-margin min-h-[calc(100vh-64px)] overflow-y-auto">
+<div class="flex justify-between items-center mb-lg">
+<h1 class="font-headline-lg text-headline-lg text-on-surface">Generate Optimal Plan</h1>
+</div>
+<!-- Success Banner -->
+<div class="bg-surface-container-low border border-[#CBD5E0] rounded-xl p-md flex justify-between items-center mb-lg">
+<div class="flex items-start gap-md">
+<span class="material-symbols-outlined text-[24px] text-[#16a34a] icon-fill mt-xs">check_circle</span>
+<div>
+<h2 class="font-headline-sm text-headline-sm text-on-surface mb-xs">Optimal Plan Generated Successfully</h2>
+<p class="font-body-sm text-body-sm text-outline">Plan ID: P-2024-05-15-01 | Generated at: 10:29 AM</p>
+</div>
+</div>
+<button class="bg-primary-container hover:bg-primary text-on-primary font-label-md text-label-md px-lg py-sm rounded transition-colors shadow-sm">View Plan</button>
+</div>
+<!-- Metrics Row -->
+<div class="grid grid-cols-5 gap-md mb-lg">
+<!-- Metric 1 -->
+<div class="bg-surface-container-lowest border border-[#CBD5E0] rounded-lg p-md">
+<h3 class="font-label-md text-label-md text-outline mb-sm uppercase tracking-wide">Jobs Scheduled</h3>
+<div class="flex items-end justify-between">
+<span class="font-headline-lg text-headline-lg text-on-surface">10/12</span>
+<span class="font-body-sm text-body-sm text-[#16a34a] font-medium">83%</span>
+</div>
+</div>
+<!-- Metric 2 -->
+<div class="bg-surface-container-lowest border border-[#CBD5E0] rounded-lg p-md">
+<h3 class="font-label-md text-label-md text-outline mb-sm uppercase tracking-wide">Blocks Utilized</h3>
+<div class="flex items-end justify-between">
+<span class="font-headline-lg text-headline-lg text-on-surface">4/5</span>
+<span class="font-body-sm text-body-sm text-[#16a34a] font-medium">80%</span>
+</div>
+</div>
+<!-- Metric 3 -->
+<div class="bg-surface-container-lowest border border-[#CBD5E0] rounded-lg p-md">
+<h3 class="font-label-md text-label-md text-outline mb-sm uppercase tracking-wide">Total Blocked Time</h3>
+<div class="flex items-end justify-between">
+<span class="font-headline-lg text-headline-lg text-on-surface">16.5 <span class="text-body-lg text-outline">hrs</span></span>
+<span class="font-body-sm text-body-sm text-[#16a34a] font-medium flex items-center"><span class="material-symbols-outlined text-[14px]">arrow_downward</span> 28% vs Manual</span>
+</div>
+</div>
+<!-- Metric 4 -->
+<div class="bg-surface-container-lowest border border-[#CBD5E0] rounded-lg p-md">
+<h3 class="font-label-md text-label-md text-outline mb-sm uppercase tracking-wide">Conflicts Resolved</h3>
+<div class="flex items-end justify-between">
+<span class="font-headline-lg text-headline-lg text-on-surface">2/2</span>
+<span class="font-body-sm text-body-sm text-[#16a34a] font-medium">100%</span>
+</div>
+</div>
+<!-- Metric 5 -->
+<div class="bg-surface-container-lowest border border-[#CBD5E0] rounded-lg p-md">
+<h3 class="font-label-md text-label-md text-outline mb-sm uppercase tracking-wide">Critical Jobs Covered</h3>
+<div class="flex items-end justify-between">
+<span class="font-headline-lg text-headline-lg text-on-surface">3/3</span>
+<span class="font-body-sm text-body-sm text-[#16a34a] font-medium">100%</span>
+</div>
+</div>
+</div>
+<!-- Bottom Panels -->
+<div class="grid grid-cols-2 gap-lg">
+<!-- Why this plan -->
+<div class="bg-surface-container-lowest border border-[#CBD5E0] rounded-lg p-md">
+<h3 class="font-headline-sm text-headline-sm text-on-surface mb-md">Why this plan is optimal?</h3>
+<ul class="space-y-sm">
+<li class="flex items-start gap-sm">
+<span class="material-symbols-outlined text-[18px] text-[#16a34a] mt-[2px]">check</span>
+<span class="font-body-md text-body-md text-on-surface-variant">No conflict with train movements</span>
+</li>
+<li class="flex items-start gap-sm">
+<span class="material-symbols-outlined text-[18px] text-[#16a34a] mt-[2px]">check</span>
+<span class="font-body-md text-body-md text-on-surface-variant">Maximum utilization of available blocks</span>
+</li>
+<li class="flex items-start gap-sm">
+<span class="material-symbols-outlined text-[18px] text-[#16a34a] mt-[2px]">check</span>
+<span class="font-body-md text-body-md text-on-surface-variant">Compatible jobs combined to reduce blocked time</span>
+</li>
+<li class="flex items-start gap-sm">
+<span class="material-symbols-outlined text-[18px] text-[#16a34a] mt-[2px]">check</span>
+<span class="font-body-md text-body-md text-on-surface-variant">Critical jobs prioritized</span>
+</li>
+<li class="flex items-start gap-sm">
+<span class="material-symbols-outlined text-[18px] text-[#16a34a] mt-[2px]">check</span>
+<span class="font-body-md text-body-md text-on-surface-variant">Resource and dependency constraints satisfied</span>
+</li>
+</ul>
+</div>
+<!-- Plan Comparison -->
+<div class="bg-surface-container-lowest border border-[#CBD5E0] rounded-lg p-md">
+<h3 class="font-headline-sm text-headline-sm text-on-surface mb-md">Plan Comparison</h3>
+<div class="flex justify-end gap-md mb-md font-body-sm text-body-sm text-outline">
+<div class="flex items-center gap-xs"><div class="w-3 h-3 bg-surface-variant rounded-sm"></div> Manual Plan</div>
+<div class="flex items-center gap-xs"><div class="w-3 h-3 bg-primary-container rounded-sm"></div> AI Plan (RAILOPT)</div>
+</div>
+<div class="space-y-md">
+<!-- Row 1 -->
+<div class="grid grid-cols-[150px_1fr_40px_40px] items-center gap-sm">
+<span class="font-body-sm text-body-sm text-on-surface-variant">Total Blocked Time (hrs)</span>
+<div class="flex flex-col gap-[2px]">
+<div class="h-4 bg-surface-variant rounded-r flex items-center justify-end pr-xs text-[10px] text-on-surface-variant w-[80%]">22.8</div>
+<div class="h-4 bg-primary-container rounded-r flex items-center justify-end pr-xs text-[10px] text-on-primary w-[60%]">16.5</div>
+</div>
+<span class="font-data-mono text-data-mono text-outline text-right">22.8</span>
+<span class="font-data-mono text-data-mono text-on-surface font-semibold text-right">16.5</span>
+</div>
+<!-- Row 2 -->
+<div class="grid grid-cols-[150px_1fr_40px_40px] items-center gap-sm">
+<span class="font-body-sm text-body-sm text-on-surface-variant">Number of Blocks</span>
+<div class="flex flex-col gap-[2px]">
+<div class="h-4 bg-surface-variant rounded-r flex items-center justify-end pr-xs text-[10px] text-on-surface-variant w-[60%]">6</div>
+<div class="h-4 bg-primary-container rounded-r flex items-center justify-end pr-xs text-[10px] text-on-primary w-[40%]">4</div>
+</div>
+<span class="font-data-mono text-data-mono text-outline text-right">6</span>
+<span class="font-data-mono text-data-mono text-on-surface font-semibold text-right">4</span>
+</div>
+<!-- Row 3 -->
+<div class="grid grid-cols-[150px_1fr_40px_40px] items-center gap-sm">
+<span class="font-body-sm text-body-sm text-on-surface-variant">Jobs Completed</span>
+<div class="flex flex-col gap-[2px]">
+<div class="h-4 bg-surface-variant rounded-r flex items-center justify-end pr-xs text-[10px] text-on-surface-variant w-[80%]">8</div>
+<div class="h-4 bg-primary-container rounded-r flex items-center justify-end pr-xs text-[10px] text-on-primary w-[100%]">10</div>
+</div>
+<span class="font-data-mono text-data-mono text-outline text-right">8</span>
+<span class="font-data-mono text-data-mono text-on-surface font-semibold text-right">10</span>
+</div>
+<!-- Row 4 -->
+<div class="grid grid-cols-[150px_1fr_40px_40px] items-center gap-sm">
+<span class="font-body-sm text-body-sm text-on-surface-variant">Conflicts</span>
+<div class="flex flex-col gap-[2px]">
+<div class="h-4 bg-error-container rounded-r flex items-center justify-end pr-xs text-[10px] text-error w-[20%]">2</div>
+<div class="h-4 bg-[#16a34a] rounded-r flex items-center justify-end pr-xs text-[10px] text-white w-[2%]">0</div>
+</div>
+<span class="font-data-mono text-data-mono text-outline text-right">2</span>
+<span class="font-data-mono text-data-mono text-on-surface font-semibold text-right">0</span>
+</div>
+</div>
+</div>
+</div>
+</main>
+</div>
+
+
+
+<script type="module" src="/static/js/app.js"></script>
+</body></html>

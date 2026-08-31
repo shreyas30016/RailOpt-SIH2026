@@ -1,0 +1,592 @@
+<!DOCTYPE html><html class="light" lang="en"><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<title>RailOpt - Maintenance Requests</title>
+<!-- Material Symbols -->
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<!-- Google Fonts -->
+<link href="https://fonts.googleapis.com" rel="preconnect">
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<!-- Tailwind CSS -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<!-- Tailwind Configuration -->
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "surface-variant": "#dae4ef",
+                        "primary": "#001e40",
+                        "tertiary": "#141f2f",
+                        "on-error-container": "#93000a",
+                        "on-surface-variant": "#43474f",
+                        "secondary": "#5a5f62",
+                        "surface-dim": "#d1dbe6",
+                        "surface": "#f6f9ff",
+                        "error-container": "#ffdad6",
+                        "secondary-fixed": "#dfe3e7",
+                        "surface-container-lowest": "#ffffff",
+                        "secondary-container": "#dce0e4",
+                        "outline": "#737780",
+                        "primary-fixed": "#d5e3ff",
+                        "on-tertiary": "#ffffff",
+                        "outline-variant": "#c3c6d1",
+                        "background": "#f6f9ff",
+                        "on-secondary-container": "#5e6367",
+                        "secondary-fixed-dim": "#c3c7cb",
+                        "on-secondary-fixed-variant": "#43474b",
+                        "on-primary": "#ffffff",
+                        "on-surface": "#131d24",
+                        "on-error": "#ffffff",
+                        "error": "#ba1a1a",
+                        "surface-container": "#e5effa",
+                        "surface-container-low": "#ecf5ff",
+                        "on-tertiary-container": "#919cb2",
+                        "primary-fixed-dim": "#a7c8ff",
+                        "surface-bright": "#f6f9ff",
+                        "on-tertiary-fixed-variant": "#3c475a",
+                        "on-background": "#131d24",
+                        "on-secondary": "#ffffff",
+                        "primary-container": "#003366",
+                        "inverse-surface": "#28313a",
+                        "on-primary-fixed-variant": "#1f477b",
+                        "surface-tint": "#3a5f94",
+                        "surface-container-high": "#dfe9f4",
+                        "inverse-on-surface": "#e8f2fd",
+                        "on-tertiary-fixed": "#111c2c",
+                        "on-secondary-fixed": "#171c1f",
+                        "tertiary-container": "#293446",
+                        "tertiary-fixed-dim": "#bcc7dd",
+                        "on-primary-fixed": "#001b3c",
+                        "on-primary-container": "#799dd6",
+                        "tertiary-fixed": "#d8e3fa",
+                        "surface-container-highest": "#dae4ef",
+                        "inverse-primary": "#a7c8ff"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.125rem",
+                        "lg": "0.25rem",
+                        "xl": "0.5rem",
+                        "full": "0.75rem"
+                    },
+                    "spacing": {
+                        "lg": "24px",
+                        "table-cell-padding": "8px 12px",
+                        "base": "4px",
+                        "container-margin": "24px",
+                        "xs": "4px",
+                        "xl": "32px",
+                        "sm": "8px",
+                        "md": "16px"
+                    },
+                    "fontFamily": {
+                        "body-lg": ["Inter"],
+                        "body-sm": ["Inter"],
+                        "data-mono": ["JetBrains Mono"],
+                        "label-md": ["Inter"],
+                        "headline-lg": ["Inter"],
+                        "headline-md": ["Inter"],
+                        "body-md": ["Inter"],
+                        "headline-sm": ["Inter"]
+                    },
+                    "fontSize": {
+                        "body-lg": ["16px", { "lineHeight": "24px", "fontWeight": "400" }],
+                        "body-sm": ["12px", { "lineHeight": "16px", "fontWeight": "400" }],
+                        "data-mono": ["13px", { "lineHeight": "18px", "fontWeight": "400" }],
+                        "label-md": ["12px", { "lineHeight": "16px", "letterSpacing": "0.02em", "fontWeight": "600" }],
+                        "headline-lg": ["24px", { "lineHeight": "32px", "fontWeight": "700" }],
+                        "headline-md": ["20px", { "lineHeight": "28px", "fontWeight": "600" }],
+                        "body-md": ["14px", { "lineHeight": "20px", "fontWeight": "400" }],
+                        "headline-sm": ["16px", { "lineHeight": "24px", "fontWeight": "600" }]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .material-symbols-outlined.fill {
+            font-variation-settings: 'FILL' 1;
+        }
+        
+        /* High density table styles */
+        .dense-table th {
+            padding: 8px 12px;
+            background-color: #F8FAFC;
+            color: #43474f;
+            text-transform: uppercase;
+            font-size: 11px;
+            font-weight: 600;
+            letter-spacing: 0.05em;
+            text-align: left;
+            border-bottom: 1px solid #CBD5E0;
+        }
+        .dense-table td {
+            padding: 10px 12px;
+            border-bottom: 1px solid #E2E8F0;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 13px;
+            color: #131d24;
+        }
+        .dense-table tr:hover {
+            background-color: #f1f5f9;
+        }
+        .dense-table tr.selected {
+            background-color: #e0e7ff;
+        }
+        
+        /* Status Pills */
+        .pill {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 2px 8px;
+            border-radius: 9999px;
+            font-family: 'Inter', sans-serif;
+            font-size: 11px;
+            font-weight: 600;
+            letter-spacing: 0.02em;
+        }
+        .pill-critical { background-color: #fee2e2; color: #991b1b; }
+        .pill-high { background-color: #ffedd5; color: #9a3412; }
+        .pill-medium { background-color: #fef3c7; color: #b45309; }
+        .pill-pending { background-color: #e0f2fe; color: #0369a1; }
+        .pill-approved { background-color: #dcfce7; color: #166534; }
+    </style>
+</head>
+<body class="bg-background text-on-background font-body-md h-screen overflow-hidden flex flex-col">
+<!-- TopNavBar -->
+<header class="bg-primary dark:bg-primary border-b border-outline-variant flex justify-between items-center px-lg w-full h-16 shrink-0 z-50">
+<div class="flex items-center gap-sm">
+<img src="https://lh3.googleusercontent.com/aida-public/AB6AXuAsBkV1EB3sdA1w9rmrxuZcCE0N8QEumD4ptyz2W_zu6PmYInV4-AvANnFFWC0zJVXDa-d0oxAzQpnDZFSwn00dK1WOvqVwVaR1D-KiMK254eYrGYfCV-AisIa0HcjN5aifuigIlJuJ-VnU82Q_Rp_FNWJpe68J3nQbPteH7bTJ-zMguITOzmBOqFaXRZzgkXUI5iIrrrw1T_d-uni16hYqKTfMS8xVlnl3mRoyBXXNe2UECyvinyOI" alt="Indian Railways Official Logo" class="h-8 w-8 object-contain">
+<h1 class="font-headline-md text-headline-md font-bold text-on-primary tracking-tight">RAILOPT</h1>
+<span class="text-on-primary-container text-body-sm ml-2 hidden sm:inline-block">AI-Powered Block Planning System</span>
+</div>
+<div class="flex items-center gap-md">
+<span class="text-on-primary-container text-body-sm hidden md:inline-block">15 May 2024 | 10:30:25</span>
+<div class="flex items-center gap-xs ml-sm border-l border-primary-container pl-md">
+<button class="p-2 rounded-full hover:bg-primary-container transition-colors duration-200 text-on-primary-container flex items-center justify-center">
+<span class="material-symbols-outlined" data-icon="notifications">notifications</span>
+</button>
+<button class="p-2 rounded-full hover:bg-primary-container transition-colors duration-200 text-on-primary-container flex items-center justify-center">
+<span class="material-symbols-outlined" data-icon="settings">settings</span>
+</button>
+<button class="p-2 rounded-full hover:bg-primary-container transition-colors duration-200 text-on-primary-container flex items-center justify-center">
+<span class="material-symbols-outlined" data-icon="help">help</span>
+</button>
+</div>
+<div class="flex items-center gap-sm ml-sm bg-primary-container rounded-full pl-1 pr-3 py-1 cursor-pointer hover:bg-primary-container/80 transition-colors">
+<div class="w-8 h-8 rounded-full bg-surface-variant flex items-center justify-center overflow-hidden">
+<span class="material-symbols-outlined text-primary text-sm">person</span>
+</div>
+<span class="text-on-primary text-label-md font-medium">Planner</span>
+<span class="material-symbols-outlined text-on-primary text-[18px]">keyboard_arrow_down</span>
+</div>
+</div>
+</header>
+<div class="flex flex-1 overflow-hidden h-full">
+<!-- SideNavBar -->
+<nav class="bg-primary dark:bg-tertiary flex flex-col w-[240px] h-full shrink-0 z-40 border-r border-outline-variant/20 hidden md:flex">
+<div class="flex-1 py-md overflow-y-auto">
+<ul class="flex flex-col gap-1 px-2">
+<li class="">
+<a class="flex items-center gap-3 px-4 py-3 rounded-lg text-on-primary-container opacity-70 hover:bg-primary-container hover:opacity-100 transition-all duration-150" href="#">
+<span class="material-symbols-outlined" data-icon="dashboard">dashboard</span>
+<span class="font-label-md text-label-md">Dashboard</span>
+</a>
+</li>
+<li class="">
+<a class="flex items-center gap-3 px-4 py-3 rounded-lg bg-primary-container text-on-primary-container border-l-4 border-on-primary-container opacity-100 transition-all duration-150 relative" href="#">
+<span class="material-symbols-outlined" data-icon="pending_actions">pending_actions</span>
+<span class="font-label-md text-label-md">Maintenance Requests</span>
+</a>
+</li>
+<li class="">
+<a class="flex items-center gap-3 px-4 py-3 rounded-lg text-on-primary-container opacity-70 hover:bg-primary-container hover:opacity-100 transition-all duration-150" href="#">
+<span class="material-symbols-outlined" data-icon="edit_calendar">edit_calendar</span>
+<span class="font-label-md text-label-md">Block Planning</span>
+</a>
+</li>
+<li class="">
+<a class="flex items-center gap-3 px-4 py-3 rounded-lg text-on-primary-container opacity-70 hover:bg-primary-container hover:opacity-100 transition-all duration-150" href="#">
+<span class="material-symbols-outlined" data-icon="view_timeline">view_timeline</span>
+<span class="font-label-md text-label-md">Gantt View</span>
+</a>
+</li>
+<li class="">
+<a class="flex items-center gap-3 px-4 py-3 rounded-lg text-on-primary-container opacity-70 hover:bg-primary-container hover:opacity-100 transition-all duration-150" href="#">
+<span class="material-symbols-outlined" data-icon="query_stats">query_stats</span>
+<span class="font-label-md text-label-md">What-if Analysis</span>
+</a>
+</li>
+<li class="">
+<a class="flex items-center gap-3 px-4 py-3 rounded-lg text-on-primary-container opacity-70 hover:bg-primary-container hover:opacity-100 transition-all duration-150" href="#">
+<span class="material-symbols-outlined" data-icon="assessment">assessment</span>
+<span class="font-label-md text-label-md">Reports</span>
+</a>
+</li>
+<li class="">
+<a class="flex items-center gap-3 px-4 py-3 rounded-lg text-on-primary-container opacity-70 hover:bg-primary-container hover:opacity-100 transition-all duration-150" href="#">
+<span class="material-symbols-outlined" data-icon="database">database</span>
+<span class="font-label-md text-label-md">Master Data</span>
+</a>
+</li>
+<li class="">
+<a class="flex items-center gap-3 px-4 py-3 rounded-lg text-on-primary-container opacity-70 hover:bg-primary-container hover:opacity-100 transition-all duration-150" href="#">
+<span class="material-symbols-outlined" data-icon="admin_panel_settings">admin_panel_settings</span>
+<span class="font-label-md text-label-md">Administration</span>
+</a>
+</li>
+</ul>
+</div>
+<div class="p-4 border-t border-primary-container/30">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-full bg-surface-variant flex items-center justify-center shrink-0">
+<img src="https://lh3.googleusercontent.com/aida-public/AB6AXuAsBkV1EB3sdA1w9rmrxuZcCE0N8QEumD4ptyz2W_zu6PmYInV4-AvANnFFWC0zJVXDa-d0oxAzQpnDZFSwn00dK1WOvqVwVaR1D-KiMK254eYrGYfCV-AisIa0HcjN5aifuigIlJuJ-VnU82Q_Rp_FNWJpe68J3nQbPteH7bTJ-zMguITOzmBOqFaXRZzgkXUI5iIrrrw1T_d-uni16hYqKTfMS8xVlnl3mRoyBXXNe2UECyvinyOI" alt="Indian Railways Official Logo" class="h-full w-full object-contain">
+</div>
+<div>
+<div class="font-headline-sm text-headline-sm font-bold text-on-primary uppercase text-xs">RAILOPT</div>
+<div class="font-body-sm text-body-sm text-on-primary-container text-[10px]">Block Planning System</div>
+</div>
+</div>
+</div>
+</nav>
+<!-- Main Content Area -->
+<main class="flex-1 flex flex-col h-full bg-surface overflow-hidden relative">
+<!-- Page Header -->
+<div class="px-container-margin py-md border-b border-outline-variant bg-surface-container-lowest flex justify-between items-center shrink-0">
+<div>
+<h2 class="font-headline-lg text-headline-lg text-on-surface">Maintenance Requests</h2>
+<p class="font-body-sm text-body-sm text-on-surface-variant mt-1">Manage and approve track block requests across all departments.</p>
+</div>
+<button class="bg-primary-container text-on-primary px-4 py-2 rounded-lg font-label-md text-label-md flex items-center gap-2 hover:bg-primary transition-colors shadow-sm">
+<span class="material-symbols-outlined text-sm">add</span>
+                    New Request
+                </button>
+</div>
+<!-- Content Workspace -->
+<div class="flex-1 flex overflow-hidden">
+<!-- Data List Section -->
+<div class="flex-1 flex flex-col h-full border-r border-outline-variant">
+<!-- Filters -->
+<div class="px-md py-sm bg-surface-container-lowest border-b border-outline-variant flex items-center gap-4 shrink-0">
+<div class="flex items-center gap-2">
+<span class="font-label-md text-label-md text-on-surface-variant uppercase text-[10px]">Department:</span>
+<div class="flex bg-surface-variant rounded-md p-0.5">
+<button class="px-3 py-1 rounded bg-surface-container-lowest text-on-surface font-label-md text-label-md shadow-sm">All</button>
+<button class="px-3 py-1 rounded text-on-surface-variant font-label-md text-label-md hover:bg-surface-container-lowest/50 transition-colors">Engineering</button>
+<button class="px-3 py-1 rounded text-on-surface-variant font-label-md text-label-md hover:bg-surface-container-lowest/50 transition-colors">S&amp;T</button>
+<button class="px-3 py-1 rounded text-on-surface-variant font-label-md text-label-md hover:bg-surface-container-lowest/50 transition-colors">Traction (TRD)</button>
+</div>
+</div>
+<div class="h-6 w-px bg-outline-variant mx-2"></div>
+<div class="flex items-center gap-2 flex-1">
+<div class="relative flex-1 max-w-xs">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline text-[18px]">search</span>
+<input class="w-full pl-9 pr-3 py-1.5 text-body-sm border border-outline-variant rounded-md focus:border-primary-container focus:ring-1 focus:ring-primary-container bg-surface-container-lowest" placeholder="Search ID, Section, Location..." type="text">
+</div>
+<button class="flex items-center gap-1 px-3 py-1.5 border border-outline-variant rounded-md text-on-surface text-label-md hover:bg-surface-variant transition-colors bg-surface-container-lowest">
+<span class="material-symbols-outlined text-[16px]">filter_list</span>
+                                Filters
+                            </button>
+</div>
+</div>
+<!-- Table Container -->
+<div class="flex-1 overflow-auto bg-surface-container-lowest">
+<table class="w-full text-left border-collapse dense-table">
+<thead class="sticky top-0 z-10 bg-surface-container-low shadow-[0_1px_0_0_#CBD5E0]">
+<tr>
+<th class="w-10 text-center">
+<input class="rounded border-outline-variant text-primary-container focus:ring-primary-container w-3.5 h-3.5" type="checkbox">
+</th>
+<th class="">Job ID</th>
+<th class="">Department</th>
+<th class="">Section</th>
+<th class="">Location</th>
+<th class="">Duration</th>
+<th class="">Priority</th>
+<th class="">Status</th>
+<th class="">Dependencies</th>
+<th class="w-10"></th>
+</tr>
+</thead>
+<tbody>
+<tr class="group cursor-pointer">
+<td class="text-center">
+<input class="rounded border-outline-variant text-primary-container focus:ring-primary-container w-3.5 h-3.5" type="checkbox">
+</td>
+<td class="font-medium text-primary-container">J-01</td>
+<td class="font-body-sm">Engineering</td>
+<td class="">NDLS - GZB</td>
+<td class="">KM 12/4-12/6</td>
+<td class="">120 mins</td>
+<td class=""><span class="pill pill-critical">Critical</span></td>
+<td class=""><span class="pill pill-pending">Pending</span></td>
+<td class="text-outline">—</td>
+<td>
+<button class="text-outline hover:text-on-surface opacity-0 group-hover:opacity-100 transition-opacity">
+<span class="material-symbols-outlined text-[18px]">more_vert</span>
+</button>
+</td>
+</tr>
+<tr class="group cursor-pointer">
+<td class="text-center">
+<input class="rounded border-outline-variant text-primary-container focus:ring-primary-container w-3.5 h-3.5" type="checkbox">
+</td>
+<td class="font-medium text-primary-container">J-02</td>
+<td class="font-body-sm">S&amp;T</td>
+<td class="">NDLS - GZB</td>
+<td class="">Signal S-245</td>
+<td class="">60 mins</td>
+<td class=""><span class="pill pill-high">High</span></td>
+<td class=""><span class="pill pill-pending">Pending</span></td>
+<td class="font-medium text-surface-tint">J-01</td>
+<td>
+<button class="text-outline hover:text-on-surface opacity-0 group-hover:opacity-100 transition-opacity">
+<span class="material-symbols-outlined text-[18px]">more_vert</span>
+</button>
+</td>
+</tr>
+<tr class="group cursor-pointer selected">
+<td class="text-center">
+<input checked="" class="rounded border-outline-variant text-primary-container focus:ring-primary-container w-3.5 h-3.5" type="checkbox">
+</td>
+<td class="font-medium text-primary-container">J-03</td>
+<td class="font-body-sm">Traction (TRD)</td>
+<td class="">NDLS - GZB</td>
+<td class="">OHE 12/15-12/17</td>
+<td class="">90 mins</td>
+<td class=""><span class="pill pill-high">High</span></td>
+<td class=""><span class="pill pill-pending">Pending</span></td>
+<td class="text-outline">—</td>
+<td>
+<button class="text-outline hover:text-on-surface opacity-100 transition-opacity">
+<span class="material-symbols-outlined text-[18px]">more_vert</span>
+</button>
+</td>
+</tr>
+<tr class="group cursor-pointer">
+<td class="text-center">
+<input class="rounded border-outline-variant text-primary-container focus:ring-primary-container w-3.5 h-3.5" type="checkbox">
+</td>
+<td class="font-medium text-primary-container">J-04</td>
+<td class="font-body-sm">Engineering</td>
+<td class="">GZB - MTC</td>
+<td class="">KM 45/1-45/3</td>
+<td class="">180 mins</td>
+<td class=""><span class="pill pill-medium">Medium</span></td>
+<td class=""><span class="pill pill-approved">Approved</span></td>
+<td class="text-outline">—</td>
+<td>
+<button class="text-outline hover:text-on-surface opacity-0 group-hover:opacity-100 transition-opacity">
+<span class="material-symbols-outlined text-[18px]">more_vert</span>
+</button>
+</td>
+</tr>
+<tr class="group cursor-pointer">
+<td class="text-center">
+<input class="rounded border-outline-variant text-primary-container focus:ring-primary-container w-3.5 h-3.5" type="checkbox">
+</td>
+<td class="font-medium text-primary-container">J-05</td>
+<td class="font-body-sm">S&amp;T</td>
+<td class="">GZB - MTC</td>
+<td class="">Signal S-678</td>
+<td class="">60 mins</td>
+<td class=""><span class="pill pill-medium">Medium</span></td>
+<td class=""><span class="pill pill-approved">Approved</span></td>
+<td class="font-medium text-surface-tint">J-04</td>
+<td>
+<button class="text-outline hover:text-on-surface opacity-0 group-hover:opacity-100 transition-opacity">
+<span class="material-symbols-outlined text-[18px]">more_vert</span>
+</button>
+</td>
+</tr>
+<tr class="group cursor-pointer">
+<td class="text-center">
+<input class="rounded border-outline-variant text-primary-container focus:ring-primary-container w-3.5 h-3.5" type="checkbox">
+</td>
+<td class="font-medium text-primary-container">J-06</td>
+<td class="font-body-sm">Traction (TRD)</td>
+<td class="">MTC - TDL</td>
+<td class="">OHE 78/2-78/4</td>
+<td class="">120 mins</td>
+<td class=""><span class="pill pill-high">High</span></td>
+<td class=""><span class="pill pill-pending">Pending</span></td>
+<td class="text-outline">—</td>
+<td>
+<button class="text-outline hover:text-on-surface opacity-0 group-hover:opacity-100 transition-opacity">
+<span class="material-symbols-outlined text-[18px]">more_vert</span>
+</button>
+</td>
+</tr>
+<tr class="group cursor-pointer">
+<td class="text-center">
+<input class="rounded border-outline-variant text-primary-container focus:ring-primary-container w-3.5 h-3.5" type="checkbox">
+</td>
+<td class="font-medium text-primary-container">J-07</td>
+<td class="font-body-sm">Engineering</td>
+<td class="">MTC - TDL</td>
+<td class="">KM 102/5-102/7</td>
+<td class="">180 mins</td>
+<td class=""><span class="pill pill-critical">Critical</span></td>
+<td class=""><span class="pill pill-pending">Pending</span></td>
+<td class="text-outline">—</td>
+<td>
+<button class="text-outline hover:text-on-surface opacity-0 group-hover:opacity-100 transition-opacity">
+<span class="material-symbols-outlined text-[18px]">more_vert</span>
+</button>
+</td>
+</tr>
+<tr class="group cursor-pointer">
+<td class="text-center">
+<input class="rounded border-outline-variant text-primary-container focus:ring-primary-container w-3.5 h-3.5" type="checkbox">
+</td>
+<td class="font-medium text-primary-container">J-08</td>
+<td class="font-body-sm">Traction (TRD)</td>
+<td class="">TDL - CNB</td>
+<td class="">OHE 145/1-145/2</td>
+<td class="">60 mins</td>
+<td class=""><span class="pill pill-medium">Medium</span></td>
+<td class=""><span class="pill pill-pending">Pending</span></td>
+<td class="text-outline">—</td>
+<td>
+<button class="text-outline hover:text-on-surface opacity-0 group-hover:opacity-100 transition-opacity">
+<span class="material-symbols-outlined text-[18px]">more_vert</span>
+</button>
+</td>
+</tr>
+<tr class="group cursor-pointer">
+<td class="text-center">
+<input class="rounded border-outline-variant text-primary-container focus:ring-primary-container w-3.5 h-3.5" type="checkbox">
+</td>
+<td class="font-medium text-primary-container">J-09</td>
+<td class="font-body-sm">Engineering</td>
+<td class="">TDL - CNB</td>
+<td class="">KM 160/1-160/5</td>
+<td class="">240 mins</td>
+<td class=""><span class="pill pill-critical">Critical</span></td>
+<td class=""><span class="pill pill-approved">Approved</span></td>
+<td class="text-outline">—</td>
+<td>
+<button class="text-outline hover:text-on-surface opacity-0 group-hover:opacity-100 transition-opacity">
+<span class="material-symbols-outlined text-[18px]">more_vert</span>
+</button>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<!-- Table Pagination/Footer -->
+<div class="px-md py-sm bg-surface-container-lowest border-t border-outline-variant flex items-center justify-between shrink-0">
+<div class="text-body-sm text-on-surface-variant font-data-mono text-[11px]">
+                            Showing 1-9 of 42 requests
+                        </div>
+<div class="flex items-center gap-1">
+<button class="p-1 rounded text-outline hover:bg-surface-variant transition-colors disabled:opacity-50">
+<span class="material-symbols-outlined text-[18px]">chevron_left</span>
+</button>
+<span class="text-body-sm text-on-surface px-2">Page 1 of 5</span>
+<button class="p-1 rounded text-outline hover:bg-surface-variant transition-colors">
+<span class="material-symbols-outlined text-[18px]">chevron_right</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Detail Sidebar (Right) -->
+<div class="w-[320px] bg-surface-container-lowest flex flex-col h-full shrink-0 shadow-[-4px_0_15px_rgba(0,0,0,0.03)] z-10 relative">
+<!-- Sidebar Header -->
+<div class="px-md py-md border-b border-outline-variant flex items-start justify-between bg-surface-container-low shrink-0">
+<div>
+<div class="flex items-center gap-2 mb-1">
+<h3 class="font-headline-sm text-headline-sm text-on-surface">Job J-03</h3>
+<span class="pill pill-high">High</span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant">OHE Maintenance &amp; Alignment</p>
+</div>
+<button class="text-outline hover:text-on-surface rounded p-1 hover:bg-surface-variant transition-colors">
+<span class="material-symbols-outlined text-[20px]">close</span>
+</button>
+</div>
+<!-- Details Content -->
+<div class="flex-1 overflow-y-auto p-md flex flex-col gap-6">
+<!-- Status Bar -->
+<div class="bg-surface-variant/50 rounded-lg p-3 border border-outline-variant/30">
+<div class="flex justify-between items-center mb-1">
+<span class="text-[10px] uppercase font-label-md text-on-surface-variant">Current Status</span>
+<span class="font-label-md text-surface-tint">Pending Review</span>
+</div>
+<div class="w-full bg-outline-variant/30 rounded-full h-1.5 mt-2">
+<div class="bg-surface-tint h-1.5 rounded-full w-1/3"></div>
+</div>
+</div>
+<!-- Info Grid -->
+<div class="grid grid-cols-2 gap-y-4 gap-x-2">
+<div>
+<div class="text-[10px] uppercase font-label-md text-on-surface-variant mb-1">Department</div>
+<div class="font-body-sm text-on-surface flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px] text-outline">electrical_services</span>
+                                    Traction (TRD)
+                                </div>
+</div>
+<div>
+<div class="text-[10px] uppercase font-label-md text-on-surface-variant mb-1">Requested By</div>
+<div class="font-body-sm text-on-surface">SSE/TRD/GZB</div>
+</div>
+<div>
+<div class="text-[10px] uppercase font-label-md text-on-surface-variant mb-1">Section</div>
+<div class="font-body-sm text-on-surface font-data-mono text-[12px]">NDLS - GZB</div>
+</div>
+<div>
+<div class="text-[10px] uppercase font-label-md text-on-surface-variant mb-1">Location</div>
+<div class="font-body-sm text-on-surface font-data-mono text-[12px]">OHE 12/15-12/17</div>
+</div>
+<div>
+<div class="text-[10px] uppercase font-label-md text-on-surface-variant mb-1">Req. Duration</div>
+<div class="font-body-sm text-on-surface">90 mins</div>
+</div>
+<div>
+<div class="text-[10px] uppercase font-label-md text-on-surface-variant mb-1">Preferred Time</div>
+<div class="font-body-sm text-on-surface">02:00 - 05:00</div>
+</div>
+</div>
+<hr class="border-outline-variant/50">
+<!-- Description -->
+<div>
+<div class="text-[10px] uppercase font-label-md text-on-surface-variant mb-2">Description / Remarks</div>
+<p class="font-body-sm text-on-surface text-sm leading-relaxed">
+                                Routine alignment and tensioning of OHE catenary wire between mast 12/15 and 12/17. Requires power block on UP line.
+                            </p>
+</div>
+<!-- Map Placeholder -->
+<div>
+<div class="text-[10px] uppercase font-label-md text-on-surface-variant mb-2">Location Map</div>
+<div class="h-32 w-full rounded border border-outline-variant bg-surface-variant relative overflow-hidden" data-alt="A detailed, modern digital UI map snippet showing a railway line schematic between two stations (NDLS to GZB). The map uses a clean, light-mode palette with subtle grid lines on a soft grayish-blue background (#dae4ef). A specific section of the track is highlighted with a precise red marker and a glowing boundary, indicating a maintenance zone. The aesthetic is highly technical, precise, and utilitarian, suitable for an enterprise rail dashboard." data-location="New Delhi" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuAbbUBOAN12enl_Z8n4QBhEHJtppxpX9F5mJyBtz6dshZaRQmAW7b2Fe6_yRBXieEAKEtRll3ieST7I4r_7tRyCibT3RmBAC2Ny-PP4mOEyLTed1g85dEm9JnOpwI79RFohIZZuTSFovLmdNbUKpTq-O7DZPnV7hYPS0B13RVf_BT698MI2Pd5EEPu_Ur9cDjFY0FUZ8oIUwhlOVUlCaD2dCa2r2l7gHpbqL8fOTOUfVu0wFBya6M6o')">
+<div class="absolute inset-0 flex items-center justify-center opacity-50">
+<span class="material-symbols-outlined text-[48px] text-primary">map</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Action Footer -->
+<div class="p-md border-t border-outline-variant bg-surface-container-low shrink-0 flex gap-2">
+<button class="flex-1 px-4 py-2 border border-outline-variant rounded bg-surface-container-lowest text-on-surface font-label-md hover:bg-surface-variant transition-colors">
+                            Reject
+                        </button>
+<button class="flex-1 px-4 py-2 rounded bg-primary-container text-on-primary font-label-md hover:bg-primary transition-colors shadow-sm">
+                            Approve
+                        </button>
+</div>
+</div>
+</div>
+</main>
+</div>
+
+
+
+<script type="module" src="/static/js/app.js"></script>
+</body></html>

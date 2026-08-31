@@ -1,0 +1,472 @@
+<!DOCTYPE html><html class="light" lang="en"><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<title>RailOpt - Reports &amp; Analytics</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "surface-variant": "#dae4ef",
+                        "primary": "#001e40",
+                        "tertiary": "#141f2f",
+                        "on-error-container": "#93000a",
+                        "on-surface-variant": "#43474f",
+                        "secondary": "#5a5f62",
+                        "surface-dim": "#d1dbe6",
+                        "surface": "#f6f9ff",
+                        "error-container": "#ffdad6",
+                        "secondary-fixed": "#dfe3e7",
+                        "surface-container-lowest": "#ffffff",
+                        "secondary-container": "#dce0e4",
+                        "outline": "#737780",
+                        "primary-fixed": "#d5e3ff",
+                        "on-tertiary": "#ffffff",
+                        "outline-variant": "#c3c6d1",
+                        "background": "#f6f9ff",
+                        "on-secondary-container": "#5e6367",
+                        "secondary-fixed-dim": "#c3c7cb",
+                        "on-secondary-fixed-variant": "#43474b",
+                        "on-primary": "#ffffff",
+                        "on-surface": "#131d24",
+                        "on-error": "#ffffff",
+                        "error": "#ba1a1a",
+                        "surface-container": "#e5effa",
+                        "surface-container-low": "#ecf5ff",
+                        "on-tertiary-container": "#919cb2",
+                        "primary-fixed-dim": "#a7c8ff",
+                        "surface-bright": "#f6f9ff",
+                        "on-tertiary-fixed-variant": "#3c475a",
+                        "on-background": "#131d24",
+                        "on-secondary": "#ffffff",
+                        "primary-container": "#003366",
+                        "inverse-surface": "#28313a",
+                        "on-primary-fixed-variant": "#1f477b",
+                        "surface-tint": "#3a5f94",
+                        "surface-container-high": "#dfe9f4",
+                        "inverse-on-surface": "#e8f2fd",
+                        "on-tertiary-fixed": "#111c2c",
+                        "on-secondary-fixed": "#171c1f",
+                        "tertiary-container": "#293446",
+                        "tertiary-fixed-dim": "#bcc7dd",
+                        "on-primary-fixed": "#001b3c",
+                        "on-primary-container": "#799dd6",
+                        "tertiary-fixed": "#d8e3fa",
+                        "surface-container-highest": "#dae4ef",
+                        "inverse-primary": "#a7c8ff"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.125rem",
+                        "lg": "0.25rem",
+                        "xl": "0.5rem",
+                        "full": "0.75rem"
+                    },
+                    "spacing": {
+                        "lg": "24px",
+                        "table-cell-padding": "8px 12px",
+                        "base": "4px",
+                        "container-margin": "24px",
+                        "xs": "4px",
+                        "xl": "32px",
+                        "sm": "8px",
+                        "md": "16px"
+                    },
+                    "fontFamily": {
+                        "body-lg": ["Inter"],
+                        "body-sm": ["Inter"],
+                        "data-mono": ["JetBrains Mono"],
+                        "label-md": ["Inter"],
+                        "headline-lg": ["Inter"],
+                        "headline-md": ["Inter"],
+                        "body-md": ["Inter"],
+                        "headline-sm": ["Inter"]
+                    },
+                    "fontSize": {
+                        "body-lg": ["16px", { "lineHeight": "24px", "fontWeight": "400" }],
+                        "body-sm": ["12px", { "lineHeight": "16px", "fontWeight": "400" }],
+                        "data-mono": ["13px", { "lineHeight": "18px", "fontWeight": "400" }],
+                        "label-md": ["12px", { "lineHeight": "16px", "letterSpacing": "0.02em", "fontWeight": "600" }],
+                        "headline-lg": ["24px", { "lineHeight": "32px", "fontWeight": "700" }],
+                        "headline-md": ["20px", { "lineHeight": "28px", "fontWeight": "600" }],
+                        "body-md": ["14px", { "lineHeight": "20px", "fontWeight": "400" }],
+                        "headline-sm": ["16px", { "lineHeight": "24px", "fontWeight": "600" }]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 20;
+        }
+        .material-symbols-outlined[data-weight="fill"] {
+            font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 20;
+        }
+        
+        /* Custom scrollbar for data tables */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1; 
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #c3c6d1; 
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #737780; 
+        }
+    </style>
+</head>
+<body class="bg-background text-on-background font-body-md overflow-hidden flex h-screen">
+<!-- SideNavBar -->
+<nav class="fixed left-0 top-0 h-full w-[240px] bg-primary text-on-primary flex flex-col py-md z-40">
+<!-- Header -->
+<div class="px-md mb-xl flex items-center gap-sm">
+<div class="w-8 h-8 bg-surface-container-highest rounded-full flex items-center justify-center shrink-0"><img src="https://lh3.googleusercontent.com/aida-public/AB6AXuAsBkV1EB3sdA1w9rmrxuZcCE0N8QEumD4ptyz2W_zu6PmYInV4-AvANnFFWC0zJVXDa-d0oxAzQpnDZFSwn00dK1WOvqVwVaR1D-KiMK254eYrGYfCV-AisIa0HcjN5aifuigIlJuJ-VnU82Q_Rp_FNWJpe68J3nQbPteH7bTJ-zMguITOzmBOqFaXRZzgkXUI5iIrrrw1T_d-uni16hYqKTfMS8xVlnl3mRoyBXXNe2UECyvinyOI" alt="Indian Railways Official Logo" class="w-full h-full object-contain"></div>
+<div>
+<div class="font-headline-sm text-headline-sm font-bold text-on-primary uppercase">RAILOPT</div>
+<div class="font-body-sm text-body-sm text-on-primary opacity-80">Block Planning System</div>
+</div>
+</div>
+<!-- Main Nav -->
+<div class="flex-1 overflow-y-auto">
+<ul class="flex flex-col space-y-1 px-sm">
+<li class="">
+<a class="flex items-center gap-sm px-md py-sm rounded text-on-primary-container opacity-70 hover:bg-primary-container hover:opacity-100 transition-all duration-150" href="#">
+<span class="material-symbols-outlined text-[20px]" data-icon="dashboard">dashboard</span>
+<span class="font-label-md text-label-md">Dashboard</span>
+</a>
+</li>
+<li class="">
+<a class="flex items-center gap-sm px-md py-sm rounded text-on-primary-container opacity-70 hover:bg-primary-container hover:opacity-100 transition-all duration-150" href="#">
+<span class="material-symbols-outlined text-[20px]" data-icon="pending_actions">pending_actions</span>
+<span class="font-label-md text-label-md">Maintenance Requests</span>
+</a>
+</li>
+<li class="">
+<a class="flex items-center gap-sm px-md py-sm rounded text-on-primary-container opacity-70 hover:bg-primary-container hover:opacity-100 transition-all duration-150" href="#">
+<span class="material-symbols-outlined text-[20px]" data-icon="edit_calendar">edit_calendar</span>
+<span class="font-label-md text-label-md">Block Planning</span>
+</a>
+</li>
+<li class="">
+<a class="flex items-center gap-sm px-md py-sm rounded text-on-primary-container opacity-70 hover:bg-primary-container hover:opacity-100 transition-all duration-150" href="#">
+<span class="material-symbols-outlined text-[20px]" data-icon="view_timeline">view_timeline</span>
+<span class="font-label-md text-label-md">Gantt View</span>
+</a>
+</li>
+<li class="">
+<a class="flex items-center gap-sm px-md py-sm rounded text-on-primary-container opacity-70 hover:bg-primary-container hover:opacity-100 transition-all duration-150" href="#">
+<span class="material-symbols-outlined text-[20px]" data-icon="query_stats">query_stats</span>
+<span class="font-label-md text-label-md">What-if Analysis</span>
+</a>
+</li>
+<li class="">
+<a class="flex items-center gap-sm px-md py-sm rounded bg-primary-container text-on-primary-container border-l-4 border-on-primary-container scale-[0.98] transition-transform" href="#">
+<span class="material-symbols-outlined text-[20px]" data-icon="assessment">assessment</span>
+<span class="font-label-md text-label-md">Reports</span>
+</a>
+</li>
+<li class="">
+<a class="flex items-center gap-sm px-md py-sm rounded text-on-primary-container opacity-70 hover:bg-primary-container hover:opacity-100 transition-all duration-150" href="#">
+<span class="material-symbols-outlined text-[20px]" data-icon="database">database</span>
+<span class="font-label-md text-label-md">Master Data</span>
+</a>
+</li>
+<li class="">
+<a class="flex items-center gap-sm px-md py-sm rounded text-on-primary-container opacity-70 hover:bg-primary-container hover:opacity-100 transition-all duration-150" href="#">
+<span class="material-symbols-outlined text-[20px]" data-icon="admin_panel_settings">admin_panel_settings</span>
+<span class="font-label-md text-label-md">Administration</span>
+</a>
+</li>
+</ul>
+</div>
+<!-- Footer Nav -->
+<div class="mt-auto px-sm border-t border-primary-container pt-sm">
+<ul class="flex flex-col space-y-1">
+<li class="">
+<a class="flex items-center gap-sm px-md py-sm rounded text-on-primary-container opacity-70 hover:bg-primary-container hover:opacity-100 transition-all duration-150" href="#">
+<span class="material-symbols-outlined text-[20px]" data-icon="notifications">notifications</span>
+<span class="font-label-md text-label-md">Notifications</span>
+</a>
+</li>
+<li class="">
+<a class="flex items-center gap-sm px-md py-sm rounded text-on-primary-container opacity-70 hover:bg-primary-container hover:opacity-100 transition-all duration-150" href="#">
+<span class="material-symbols-outlined text-[20px]" data-icon="settings">settings</span>
+<span class="font-label-md text-label-md">Settings</span>
+</a>
+</li>
+</ul>
+</div>
+</nav>
+<!-- Main Content Area -->
+<main class="ml-[240px] flex-1 flex flex-col h-full bg-surface">
+<!-- TopNavBar (Embedded within main content area for this layout to avoid fixed overlap issues) -->
+<header class="flex justify-between items-center px-lg w-full h-16 bg-primary text-on-primary border-b border-outline-variant z-30 flex-shrink-0">
+<div class="flex items-center gap-sm"><img src="https://lh3.googleusercontent.com/aida-public/AB6AXuAsBkV1EB3sdA1w9rmrxuZcCE0N8QEumD4ptyz2W_zu6PmYInV4-AvANnFFWC0zJVXDa-d0oxAzQpnDZFSwn00dK1WOvqVwVaR1D-KiMK254eYrGYfCV-AisIa0HcjN5aifuigIlJuJ-VnU82Q_Rp_FNWJpe68J3nQbPteH7bTJ-zMguITOzmBOqFaXRZzgkXUI5iIrrrw1T_d-uni16hYqKTfMS8xVlnl3mRoyBXXNe2UECyvinyOI" alt="Indian Railways Official Logo" class="h-8 w-auto"><div class="font-headline-md text-headline-md font-bold text-on-primary tracking-tight">RAILOPT</div></div>
+<div class="flex items-center gap-md">
+<span class="font-label-md text-label-md text-on-primary-container">15 May 2024 | 10:30:25</span>
+<div class="flex items-center gap-sm border-l border-primary-container pl-md ml-sm">
+<button class="w-8 h-8 flex items-center justify-center rounded-full hover:bg-primary-container transition-colors duration-200">
+<span class="material-symbols-outlined text-[20px]" data-icon="notifications">notifications</span>
+</button>
+<button class="w-8 h-8 flex items-center justify-center rounded-full hover:bg-primary-container transition-colors duration-200">
+<span class="material-symbols-outlined text-[20px]" data-icon="settings">settings</span>
+</button>
+<button class="w-8 h-8 flex items-center justify-center rounded-full hover:bg-primary-container transition-colors duration-200">
+<span class="material-symbols-outlined text-[20px]" data-icon="help">help</span>
+</button>
+<div class="flex items-center gap-xs ml-sm bg-primary-container px-sm py-xs rounded cursor-pointer hover:opacity-80 transition-opacity">
+<div class="w-6 h-6 rounded-full bg-surface-variant flex items-center justify-center text-primary text-xs font-bold">P</div>
+<span class="font-label-md text-label-md text-on-primary">Planner</span>
+<span class="material-symbols-outlined text-[16px]">arrow_drop_down</span>
+</div>
+</div>
+</div>
+</header>
+<!-- Canvas -->
+<div class="flex-1 overflow-auto p-container-margin">
+<!-- Page Header & Actions -->
+<div class="flex justify-between items-end mb-lg">
+<div>
+<h1 class="font-headline-lg text-headline-lg text-on-surface mb-xs">Reports &amp; Analytics</h1>
+<p class="font-body-md text-body-md text-on-surface-variant">Performance metrics and historical data analysis.</p>
+</div>
+<div class="flex items-center gap-sm">
+<div class="flex bg-surface-container-lowest border border-outline-variant rounded p-xs">
+<button class="px-md py-sm text-label-md font-label-md rounded bg-primary-container text-on-primary">Performance</button>
+<button class="px-md py-sm text-label-md font-label-md text-on-surface hover:bg-surface-container transition-colors rounded">Trends</button>
+<button class="px-md py-sm text-label-md font-label-md text-on-surface hover:bg-surface-container transition-colors rounded">Raw Data</button>
+</div>
+<button class="flex items-center gap-xs px-md py-[10px] bg-surface-container-lowest border border-outline-variant rounded hover:bg-surface-container transition-colors">
+<span class="material-symbols-outlined text-[18px]">download</span>
+<span class="font-label-md text-label-md">Export</span>
+</button>
+</div>
+</div>
+<!-- Filters Bar -->
+<div class="bg-surface-container-lowest border border-outline-variant p-md rounded-lg mb-lg flex gap-md items-end shadow-[0_4px_6px_rgba(0,0,0,0.05)]">
+<div class="flex-1">
+<label class="block font-label-md text-label-md text-on-surface-variant mb-xs">Date Range</label>
+<div class="flex items-center border border-outline-variant rounded px-sm py-xs bg-surface-container-lowest focus-within:border-primary-container focus-within:border-2 transition-all">
+<span class="material-symbols-outlined text-outline text-[18px] mr-sm">calendar_month</span>
+<input class="border-none bg-transparent p-0 w-full font-body-sm text-body-sm focus:ring-0 text-on-surface" type="text" value="01 May 2024 - 15 May 2024">
+</div>
+</div>
+<div class="flex-1">
+<label class="block font-label-md text-label-md text-on-surface-variant mb-xs">Division / Section</label>
+<div class="flex items-center border border-outline-variant rounded px-sm py-xs bg-surface-container-lowest focus-within:border-primary-container focus-within:border-2 transition-all">
+<select class="border-none bg-transparent p-0 w-full font-body-sm text-body-sm focus:ring-0 text-on-surface">
+<option>All Divisions</option>
+<option>Delhi (DLI)</option>
+<option>Ambala (UMB)</option>
+</select>
+</div>
+</div>
+<div class="flex-1">
+<label class="block font-label-md text-label-md text-on-surface-variant mb-xs">Department</label>
+<div class="flex items-center border border-outline-variant rounded px-sm py-xs bg-surface-container-lowest focus-within:border-primary-container focus-within:border-2 transition-all">
+<select class="border-none bg-transparent p-0 w-full font-body-sm text-body-sm focus:ring-0 text-on-surface">
+<option>All Departments</option>
+<option>Engineering</option>
+<option>S&amp;T</option>
+<option>Traction (TRD)</option>
+</select>
+</div>
+</div>
+<button class="px-lg py-[10px] bg-primary-container text-on-primary rounded font-label-md text-label-md hover:bg-primary transition-colors h-[38px] flex items-center">
+                    Apply Filters
+                </button>
+</div>
+<!-- Key Metrics Grid -->
+<div class="grid grid-cols-4 gap-md mb-lg">
+<!-- KPI 1 -->
+<div class="bg-surface-container-lowest border border-outline-variant p-md rounded-lg shadow-[0_4px_6px_rgba(0,0,0,0.05)]">
+<div class="text-on-surface-variant font-label-md text-label-md mb-sm flex items-center gap-xs">
+<span class="material-symbols-outlined text-[16px]">pie_chart</span>
+                        Block Utilization
+                    </div>
+<div class="flex items-end gap-sm">
+<div class="font-headline-lg text-headline-lg text-primary text-[32px]">87.4%</div>
+<div class="text-[12px] font-medium text-emerald-600 bg-emerald-50 px-xs py-[2px] rounded mb-1 flex items-center">
+<span class="material-symbols-outlined text-[12px]">trending_up</span> 2.1%
+                        </div>
+</div>
+<div class="text-[11px] text-on-surface-variant mt-xs">vs. previous 15 days</div>
+</div>
+<!-- KPI 2 -->
+<div class="bg-surface-container-lowest border border-outline-variant p-md rounded-lg shadow-[0_4px_6px_rgba(0,0,0,0.05)]">
+<div class="text-on-surface-variant font-label-md text-label-md mb-sm flex items-center gap-xs">
+<span class="material-symbols-outlined text-[16px]">check_circle</span>
+                        Job Completion Rate
+                    </div>
+<div class="flex items-end gap-sm">
+<div class="font-headline-lg text-headline-lg text-primary text-[32px]">92.1%</div>
+<div class="text-[12px] font-medium text-emerald-600 bg-emerald-50 px-xs py-[2px] rounded mb-1 flex items-center">
+<span class="material-symbols-outlined text-[12px]">trending_up</span> 0.5%
+                        </div>
+</div>
+<div class="text-[11px] text-on-surface-variant mt-xs">vs. target 90%</div>
+</div>
+<!-- KPI 3 -->
+<div class="bg-surface-container-lowest border border-outline-variant p-md rounded-lg shadow-[0_4px_6px_rgba(0,0,0,0.05)]">
+<div class="text-on-surface-variant font-label-md text-label-md mb-sm flex items-center gap-xs">
+<span class="material-symbols-outlined text-[16px]">timer</span>
+                        Mean Delay per Block
+                    </div>
+<div class="flex items-end gap-sm">
+<div class="font-headline-lg text-headline-lg text-primary text-[32px]">14m</div>
+<div class="text-[12px] font-medium text-red-600 bg-red-50 px-xs py-[2px] rounded mb-1 flex items-center">
+<span class="material-symbols-outlined text-[12px]">trending_up</span> 3m
+                        </div>
+</div>
+<div class="text-[11px] text-on-surface-variant mt-xs">Average overrun time</div>
+</div>
+<!-- KPI 4 -->
+<div class="bg-surface-container-lowest border border-outline-variant p-md rounded-lg shadow-[0_4px_6px_rgba(0,0,0,0.05)]">
+<div class="text-on-surface-variant font-label-md text-label-md mb-sm flex items-center gap-xs">
+<span class="material-symbols-outlined text-[16px]">warning</span>
+                        Critical Conflicts
+                    </div>
+<div class="flex items-end gap-sm">
+<div class="font-headline-lg text-headline-lg text-primary text-[32px]">12</div>
+<div class="text-[12px] font-medium text-emerald-600 bg-emerald-50 px-xs py-[2px] rounded mb-1 flex items-center">
+<span class="material-symbols-outlined text-[12px]">trending_down</span> 4
+                        </div>
+</div>
+<div class="text-[11px] text-on-surface-variant mt-xs">Requiring manual intervention</div>
+</div>
+</div>
+<!-- Main Bento Layout -->
+<div class="grid grid-cols-3 gap-md">
+<!-- Chart: Utilization by Department -->
+<div class="col-span-2 bg-surface-container-lowest border border-outline-variant rounded-lg p-md shadow-[0_4px_6px_rgba(0,0,0,0.05)] flex flex-col h-[360px]">
+<div class="flex justify-between items-center mb-md">
+<h3 class="font-headline-sm text-headline-sm text-on-surface">Block Time Requested vs. Approved</h3>
+<button class="text-outline hover:text-primary transition-colors">
+<span class="material-symbols-outlined text-[20px]">more_vert</span>
+</button>
+</div>
+<!-- Faux Bar Chart Area -->
+<div class="flex-1 relative border-l border-b border-outline-variant flex items-end pl-sm pb-sm gap-lg">
+<!-- Y-Axis Labels -->
+<div class="absolute left-[-30px] top-0 bottom-sm flex flex-col justify-between text-[10px] text-outline font-data-mono h-full pb-sm">
+<span class="">100h</span>
+<span class="">75h</span>
+<span class="">50h</span>
+<span class="">25h</span>
+<span class="">0h</span>
+</div>
+<!-- Grid Lines -->
+<div class="absolute inset-0 border-b border-surface-variant top-1/4 w-full h-[1px]"></div>
+<div class="absolute inset-0 border-b border-surface-variant top-2/4 w-full h-[1px]"></div>
+<div class="absolute inset-0 border-b border-surface-variant top-3/4 w-full h-[1px]"></div>
+<!-- Chart Bars -->
+<div class="flex-1 flex flex-col justify-end items-center group relative z-10 h-full">
+<div class="w-full flex justify-center gap-1 items-end h-[80%]">
+<div class="w-8 bg-surface-variant rounded-t"></div>
+<div class="w-8 bg-primary-container rounded-t h-[90%]"></div>
+</div>
+<div class="text-[11px] font-label-md mt-sm text-on-surface-variant">Engineering</div>
+</div>
+<div class="flex-1 flex flex-col justify-end items-center group relative z-10 h-full">
+<div class="w-full flex justify-center gap-1 items-end h-[60%]">
+<div class="w-8 bg-surface-variant rounded-t"></div>
+<div class="w-8 bg-primary-container rounded-t h-[95%]"></div>
+</div>
+<div class="text-[11px] font-label-md mt-sm text-on-surface-variant">S&amp;T</div>
+</div>
+<div class="flex-1 flex flex-col justify-end items-center group relative z-10 h-full">
+<div class="w-full flex justify-center gap-1 items-end h-[75%]">
+<div class="w-8 bg-surface-variant rounded-t"></div>
+<div class="w-8 bg-primary-container rounded-t h-[85%]"></div>
+</div>
+<div class="text-[11px] font-label-md mt-sm text-on-surface-variant">Traction</div>
+</div>
+<div class="flex-1 flex flex-col justify-end items-center group relative z-10 h-full">
+<div class="w-full flex justify-center gap-1 items-end h-[40%]">
+<div class="w-8 bg-surface-variant rounded-t"></div>
+<div class="w-8 bg-primary-container rounded-t h-[70%]"></div>
+</div>
+<div class="text-[11px] font-label-md mt-sm text-on-surface-variant">TRD</div>
+</div>
+</div>
+<!-- Legend -->
+<div class="flex justify-center gap-md mt-sm">
+<div class="flex items-center gap-xs text-[11px] font-label-md">
+<div class="w-3 h-3 bg-surface-variant rounded-sm"></div> Requested
+                        </div>
+<div class="flex items-center gap-xs text-[11px] font-label-md">
+<div class="w-3 h-3 bg-primary-container rounded-sm"></div> Approved
+                        </div>
+</div>
+</div>
+<!-- Section Performance List -->
+<div class="col-span-1 bg-surface-container-lowest border border-outline-variant rounded-lg p-md shadow-[0_4px_6px_rgba(0,0,0,0.05)] flex flex-col h-[360px]">
+<div class="flex justify-between items-center mb-md">
+<h3 class="font-headline-sm text-headline-sm text-on-surface">Section Efficiency</h3>
+<span class="text-[11px] text-on-surface-variant">Completion %</span>
+</div>
+<div class="flex-1 overflow-y-auto pr-sm space-y-md">
+<!-- Item 1 -->
+<div>
+<div class="flex justify-between text-body-sm font-label-md mb-xs">
+<span class="">NDLS - GZB</span>
+<span class="text-emerald-700">96%</span>
+</div>
+<div class="w-full bg-surface-variant rounded-full h-1.5">
+<div class="bg-emerald-600 h-1.5 rounded-full" style="width: 96%"></div>
+</div>
+<div class="text-[10px] text-on-surface-variant mt-1">45/47 blocks completed</div>
+</div>
+<!-- Item 2 -->
+<div>
+<div class="flex justify-between text-body-sm font-label-md mb-xs">
+<span class="">GZB - MTC</span>
+<span class="text-emerald-700">92%</span>
+</div>
+<div class="w-full bg-surface-variant rounded-full h-1.5">
+<div class="bg-emerald-500 h-1.5 rounded-full" style="width: 92%"></div>
+</div>
+<div class="text-[10px] text-on-surface-variant mt-1">38/41 blocks completed</div>
+</div>
+<!-- Item 3 -->
+<div>
+<div class="flex justify-between text-body-sm font-label-md mb-xs">
+<span class="">MTC - TDL</span>
+<span class="text-amber-600">78%</span>
+</div>
+<div class="w-full bg-surface-variant rounded-full h-1.5">
+<div class="bg-amber-500 h-1.5 rounded-full" style="width: 78%"></div>
+</div>
+<div class="text-[10px] text-on-surface-variant mt-1">28/36 blocks completed</div>
+</div>
+<!-- Item 4 -->
+<div>
+<div class="flex justify-between text-body-sm font-label-md mb-xs">
+<span class="">DLI - RE</span>
+<span class="text-red-600">65%</span>
+</div>
+<div class="w-full bg-surface-variant rounded-full h-1.5">
+<div class="bg-red-500 h-1.5 rounded-full" style="width: 65%"></div>
+</div>
+<div class="text-[10px] text-on-surface-variant mt-1">15/23 blocks completed</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</main>
+
+
+
+<script type="module" src="/static/js/app.js"></script>
+</body></html>

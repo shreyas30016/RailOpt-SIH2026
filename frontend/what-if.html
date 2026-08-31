@@ -1,0 +1,326 @@
+<!DOCTYPE html><html lang="en"><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<title>RAILOPT - What-if Analysis</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "surface-variant": "#dae4ef",
+                        "primary": "#001e40",
+                        "tertiary": "#141f2f",
+                        "on-error-container": "#93000a",
+                        "on-surface-variant": "#43474f",
+                        "secondary": "#5a5f62",
+                        "surface-dim": "#d1dbe6",
+                        "surface": "#f6f9ff",
+                        "error-container": "#ffdad6",
+                        "secondary-fixed": "#dfe3e7",
+                        "surface-container-lowest": "#ffffff",
+                        "secondary-container": "#dce0e4",
+                        "outline": "#737780",
+                        "primary-fixed": "#d5e3ff",
+                        "on-tertiary": "#ffffff",
+                        "outline-variant": "#c3c6d1",
+                        "background": "#f6f9ff",
+                        "on-secondary-container": "#5e6367",
+                        "secondary-fixed-dim": "#c3c7cb",
+                        "on-secondary-fixed-variant": "#43474b",
+                        "on-primary": "#ffffff",
+                        "on-surface": "#131d24",
+                        "on-error": "#ffffff",
+                        "error": "#ba1a1a",
+                        "surface-container": "#e5effa",
+                        "surface-container-low": "#ecf5ff",
+                        "on-tertiary-container": "#919cb2",
+                        "primary-fixed-dim": "#a7c8ff",
+                        "surface-bright": "#f6f9ff",
+                        "on-tertiary-fixed-variant": "#3c475a",
+                        "on-background": "#131d24",
+                        "on-secondary": "#ffffff",
+                        "primary-container": "#003366",
+                        "inverse-surface": "#28313a",
+                        "on-primary-fixed-variant": "#1f477b",
+                        "surface-tint": "#3a5f94",
+                        "surface-container-high": "#dfe9f4",
+                        "inverse-on-surface": "#e8f2fd",
+                        "on-tertiary-fixed": "#111c2c",
+                        "on-secondary-fixed": "#171c1f",
+                        "tertiary-container": "#293446",
+                        "tertiary-fixed-dim": "#bcc7dd",
+                        "on-primary-fixed": "#001b3c",
+                        "on-primary-container": "#799dd6",
+                        "tertiary-fixed": "#d8e3fa",
+                        "surface-container-highest": "#dae4ef",
+                        "inverse-primary": "#a7c8ff"
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.125rem",
+                        "lg": "0.25rem",
+                        "xl": "0.5rem",
+                        "full": "0.75rem"
+                    },
+                    spacing: {
+                        "lg": "24px",
+                        "table-cell-padding": "8px 12px",
+                        "base": "4px",
+                        "container-margin": "24px",
+                        "xs": "4px",
+                        "xl": "32px",
+                        "sm": "8px",
+                        "md": "16px"
+                    },
+                    fontFamily: {
+                        "body-lg": ["Inter"],
+                        "body-sm": ["Inter"],
+                        "data-mono": ["JetBrains Mono"],
+                        "label-md": ["Inter"],
+                        "headline-lg": ["Inter"],
+                        "headline-md": ["Inter"],
+                        "body-md": ["Inter"],
+                        "headline-sm": ["Inter"]
+                    },
+                    fontSize: {
+                        "body-lg": ["16px", { "lineHeight": "24px", "fontWeight": "400" }],
+                        "body-sm": ["12px", { "lineHeight": "16px", "fontWeight": "400" }],
+                        "data-mono": ["13px", { "lineHeight": "18px", "fontWeight": "400" }],
+                        "label-md": ["12px", { "lineHeight": "16px", "letterSpacing": "0.02em", "fontWeight": "600" }],
+                        "headline-lg": ["24px", { "lineHeight": "32px", "fontWeight": "700" }],
+                        "headline-md": ["20px", { "lineHeight": "28px", "fontWeight": "600" }],
+                        "body-md": ["14px", { "lineHeight": "20px", "fontWeight": "400" }],
+                        "headline-sm": ["16px", { "lineHeight": "24px", "fontWeight": "600" }]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        body {
+            background-color: #f6f9ff;
+            color: #131d24;
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+    </style>
+</head>
+<body class="font-body-lg text-on-background h-screen flex flex-col overflow-hidden">
+<!-- TopNavBar -->
+<header class="flex justify-between items-center px-lg w-full fixed top-0 z-50 bg-primary h-16 border-b border-outline-variant">
+<div class="flex items-center gap-sm">
+<img src="https://lh3.googleusercontent.com/aida-public/AB6AXuAsBkV1EB3sdA1w9rmrxuZcCE0N8QEumD4ptyz2W_zu6PmYInV4-AvANnFFWC0zJVXDa-d0oxAzQpnDZFSwn00dK1WOvqVwVaR1D-KiMK254eYrGYfCV-AisIa0HcjN5aifuigIlJuJ-VnU82Q_Rp_FNWJpe68J3nQbPteH7bTJ-zMguITOzmBOqFaXRZzgkXUI5iIrrrw1T_d-uni16hYqKTfMS8xVlnl3mRoyBXXNe2UECyvinyOI" alt="Indian Railways Official Logo" class="h-10 w-10 object-cover rounded-sm">
+<div class="flex items-baseline gap-sm">
+<span class="font-headline-md text-headline-md font-bold text-on-primary tracking-tight">INDIAN RAILWAYS</span>
+<span class="text-on-primary opacity-80 text-[12px] font-medium tracking-wide">AI-Powered Block Planning System</span>
+</div>
+</div>
+<div class="flex items-center gap-lg">
+<div class="text-on-primary opacity-90 text-[13px] font-medium data-mono tracking-wider">
+                15 May 2024 | 10:30:25
+            </div>
+<div class="flex items-center gap-md">
+<button class="text-on-primary opacity-80 hover:bg-primary-container p-sm rounded-full transition-colors duration-200">
+<span class="material-symbols-outlined text-[20px]" data-icon="notifications">notifications</span>
+</button>
+<button class="text-on-primary opacity-80 hover:bg-primary-container p-sm rounded-full transition-colors duration-200">
+<span class="material-symbols-outlined text-[20px]" data-icon="settings">settings</span>
+</button>
+</div>
+<div class="flex items-center gap-sm bg-primary-container px-md py-sm rounded-full border border-outline-variant border-opacity-30 cursor-pointer hover:bg-opacity-80 transition-all">
+<img class="w-6 h-6 rounded-full object-cover" data-alt="A small circular avatar placeholder image showing a professional planner in a corporate setting. The mood is serious and efficient, reflecting a high-tech control room environment with soft, cool lighting. The style is modern corporate headshot." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAr3aTB0TBwQFx70MUbyhWY7MhVDUU9NymVcbdFGV2QC6uu-9cGdXifFHVD3_jCmPquVeTeGpeb_YLKPw2BjOeD2rbzvEngY0WNuEaO6Wgo5HBnwa9kczvuNo58Wc_UZdmuPe20dpqO4XGGscsA89AiAlzYzzCVKivqrjBbqxM9hp2bMaT7U51OVuSLWv6yHq-IjWPS_cL8ulayiiwboPkk56OjmJipYVMRAA_5Z5EfgJoU_0mcgUB8">
+<span class="text-on-primary font-label-md text-label-md">Planner</span>
+<span class="material-symbols-outlined text-on-primary text-[16px]" data-icon="expand_more">expand_more</span>
+</div>
+</div>
+</header>
+<div class="flex flex-1 pt-16 overflow-hidden">
+<!-- SideNavBar -->
+<nav class="flex flex-col py-md w-[240px] h-full fixed left-0 top-16 z-40 bg-primary">
+<div class="flex flex-col gap-xs px-sm flex-1 mt-sm">
+<a class="flex items-center gap-md px-md py-[10px] rounded-lg text-on-primary-container opacity-70 hover:bg-primary-container hover:opacity-100 transition-all duration-150" href="#">
+<span class="material-symbols-outlined text-[20px]" data-icon="dashboard">dashboard</span>
+<span class="font-label-md text-label-md">Dashboard</span>
+</a>
+<a class="flex items-center gap-md px-md py-[10px] rounded-lg text-on-primary-container opacity-70 hover:bg-primary-container hover:opacity-100 transition-all duration-150" href="#">
+<span class="material-symbols-outlined text-[20px]" data-icon="pending_actions">pending_actions</span>
+<span class="font-label-md text-label-md">Maintenance Requests</span>
+</a>
+<a class="flex items-center gap-md px-md py-[10px] rounded-lg text-on-primary-container opacity-70 hover:bg-primary-container hover:opacity-100 transition-all duration-150" href="#">
+<span class="material-symbols-outlined text-[20px]" data-icon="edit_calendar">edit_calendar</span>
+<span class="font-label-md text-label-md">Block Planning</span>
+</a>
+<a class="flex items-center gap-md px-md py-[10px] rounded-lg text-on-primary-container opacity-70 hover:bg-primary-container hover:opacity-100 transition-all duration-150" href="#">
+<span class="material-symbols-outlined text-[20px]" data-icon="view_timeline">view_timeline</span>
+<span class="font-label-md text-label-md">Gantt View</span>
+</a>
+<a class="flex items-center gap-md px-md py-[10px] rounded-lg bg-primary-container text-on-primary-container border-l-4 border-on-primary-container scale-[0.98] transition-transform" href="#">
+<span class="material-symbols-outlined text-[20px]" data-icon="query_stats">query_stats</span>
+<span class="font-label-md text-label-md">What-if Analysis</span>
+</a>
+<a class="flex items-center gap-md px-md py-[10px] rounded-lg text-on-primary-container opacity-70 hover:bg-primary-container hover:opacity-100 transition-all duration-150" href="#">
+<span class="material-symbols-outlined text-[20px]" data-icon="assessment">assessment</span>
+<span class="font-label-md text-label-md">Reports</span>
+</a>
+<a class="flex items-center gap-md px-md py-[10px] rounded-lg text-on-primary-container opacity-70 hover:bg-primary-container hover:opacity-100 transition-all duration-150" href="#">
+<span class="material-symbols-outlined text-[20px]" data-icon="database">database</span>
+<span class="font-label-md text-label-md">Master Data</span>
+</a>
+<a class="flex items-center gap-md px-md py-[10px] rounded-lg text-on-primary-container opacity-70 hover:bg-primary-container hover:opacity-100 transition-all duration-150" href="#">
+<span class="material-symbols-outlined text-[20px]" data-icon="admin_panel_settings">admin_panel_settings</span>
+<span class="font-label-md text-label-md">Administration</span>
+</a>
+</div>
+</nav>
+<!-- Main Content Canvas -->
+<main class="ml-[240px] flex-1 p-lg overflow-y-auto bg-surface">
+<div class="mb-lg">
+<h1 class="font-headline-lg text-headline-lg text-on-surface">What-if Analysis</h1>
+<p class="font-body-md text-body-md text-on-surface-variant mt-xs">Simulate scenarios and evaluate impact on the operational plan.</p>
+</div>
+<div class="grid grid-cols-12 gap-lg">
+<!-- Controls Panel -->
+<div class="col-span-12 xl:col-span-4 flex flex-col gap-lg">
+<div class="bg-surface-container-lowest rounded-xl border border-outline-variant p-lg shadow-sm">
+<h2 class="font-headline-sm text-headline-sm text-on-surface border-b border-outline-variant pb-sm mb-md">Scenario Selection</h2>
+<div class="flex flex-col gap-md">
+<label class="flex items-center gap-sm cursor-pointer group">
+<input checked="" class="text-primary-container focus:ring-primary-container border-outline w-4 h-4" name="scenario" type="radio">
+<span class="font-body-md text-body-md text-on-surface group-hover:text-primary transition-colors">Train Delay</span>
+</label>
+<label class="flex items-center gap-sm cursor-pointer group">
+<input class="text-primary-container focus:ring-primary-container border-outline w-4 h-4" name="scenario" type="radio">
+<span class="font-body-md text-body-md text-on-surface group-hover:text-primary transition-colors">Extend Maintenance Duration</span>
+</label>
+<label class="flex items-center gap-sm cursor-pointer group">
+<input class="text-primary-container focus:ring-primary-container border-outline w-4 h-4" name="scenario" type="radio">
+<span class="font-body-md text-body-md text-on-surface group-hover:text-primary transition-colors">Block Unavailability</span>
+</label>
+<label class="flex items-center gap-sm cursor-pointer group">
+<input class="text-primary-container focus:ring-primary-container border-outline w-4 h-4" name="scenario" type="radio">
+<span class="font-body-md text-body-md text-on-surface group-hover:text-primary transition-colors">Add New Maintenance Job</span>
+</label>
+</div>
+</div>
+<div class="bg-surface-container-lowest rounded-xl border border-outline-variant p-lg shadow-sm">
+<h2 class="font-headline-sm text-headline-sm text-on-surface border-b border-outline-variant pb-sm mb-md">Train Delay Scenario</h2>
+<div class="flex flex-col gap-md">
+<div class="flex flex-col gap-xs">
+<label class="font-label-md text-label-md text-on-surface-variant">Select Train</label>
+<div class="relative">
+<select class="w-full border border-outline-variant rounded-md px-md py-sm font-body-md text-on-surface appearance-none focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary bg-white">
+<option>12302 - NDLS to GZB</option>
+<option>12426 - GZB to MTC</option>
+</select>
+<span class="material-symbols-outlined absolute right-sm top-1/2 -translate-y-1/2 text-on-surface-variant pointer-events-none" data-icon="arrow_drop_down">arrow_drop_down</span>
+</div>
+</div>
+<div class="flex flex-col gap-xs">
+<label class="font-label-md text-label-md text-on-surface-variant">Delay (minutes)</label>
+<input class="w-full border border-outline-variant rounded-md px-md py-sm font-data-mono text-on-surface focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary bg-white" type="number" value="30">
+</div>
+<button class="w-full bg-primary-container hover:bg-opacity-90 text-on-primary font-label-md text-label-md py-sm rounded-md transition-colors mt-sm flex items-center justify-center gap-sm">
+<span class="material-symbols-outlined text-[18px]" data-icon="play_arrow">play_arrow</span>
+                                Run Scenario
+                            </button>
+</div>
+</div>
+</div>
+<!-- Results Panel -->
+<div class="col-span-12 xl:col-span-8 flex flex-col gap-lg">
+<div class="bg-surface-container-lowest rounded-xl border border-outline-variant p-lg shadow-sm">
+<div class="flex justify-between items-center border-b border-outline-variant pb-sm mb-md">
+<h2 class="font-headline-sm text-headline-sm text-on-surface">Re-optimized Plan Summary</h2>
+<span class="bg-green-100 text-green-800 font-label-md text-[11px] px-2 py-1 rounded-full border border-green-200">Feasible</span>
+</div>
+<div class="grid grid-cols-3 gap-md mb-md">
+<div class="flex flex-col">
+<span class="font-body-sm text-body-sm text-on-surface-variant mb-xs">Jobs Rescheduled</span>
+<div class="font-headline-lg text-headline-lg text-on-surface">2</div>
+</div>
+<div class="flex flex-col">
+<span class="font-body-sm text-body-sm text-on-surface-variant mb-xs">New Conflicts</span>
+<div class="font-headline-lg text-headline-lg text-on-surface">0</div>
+</div>
+<div class="flex flex-col">
+<span class="font-body-sm text-body-sm text-on-surface-variant mb-xs">Total Blocked Time</span>
+<div class="flex items-baseline gap-sm">
+<span class="font-headline-lg text-headline-lg text-on-surface">17.0 hrs</span>
+<span class="font-body-sm text-error font-medium flex items-center"><span class="material-symbols-outlined text-[14px]" data-icon="arrow_upward">arrow_upward</span> 3%</span>
+</div>
+</div>
+</div>
+<div class="bg-surface-container-low rounded-lg p-md flex items-start gap-md mb-md border border-outline-variant border-opacity-50">
+<span class="material-symbols-outlined text-primary-container mt-1" data-icon="info">info</span>
+<p class="font-body-sm text-body-sm text-on-surface">The plan has been automatically re-optimized considering the 30-minute delay for train 12302. All critical jobs remain scheduled, with minor adjustments to block J-01 and J-04 timings to resolve overlaps.</p>
+</div>
+<div class="flex justify-end">
+<button class="bg-primary-container hover:bg-opacity-90 text-on-primary font-label-md text-label-md py-sm px-lg rounded-md transition-colors flex items-center gap-sm">
+                                View Detailed Updated Plan
+                            </button>
+</div>
+</div>
+<!-- Simplified Timeline Comparison -->
+<div class="bg-surface-container-lowest rounded-xl border border-outline-variant p-lg shadow-sm flex-1 flex flex-col">
+<h2 class="font-headline-sm text-headline-sm text-on-surface border-b border-outline-variant pb-sm mb-md">Timeline Impact Preview (NDLS - GZB Section)</h2>
+<div class="flex-1 flex flex-col gap-lg">
+<!-- Original -->
+<div class="flex flex-col gap-sm">
+<span class="font-label-md text-label-md text-on-surface-variant uppercase">Original Plan</span>
+<div class="h-20 bg-surface-container rounded-md border border-outline-variant relative overflow-hidden">
+<!-- Time markers -->
+<div class="absolute top-0 w-full h-full border-l border-outline-variant border-opacity-20 left-[20%]"></div>
+<div class="absolute top-0 w-full h-full border-l border-outline-variant border-opacity-20 left-[40%]"></div>
+<div class="absolute top-0 w-full h-full border-l border-outline-variant border-opacity-20 left-[60%]"></div>
+<div class="absolute top-0 w-full h-full border-l border-outline-variant border-opacity-20 left-[80%]"></div>
+<!-- Blocks/Trains -->
+<div class="absolute top-2 left-[10%] w-[30%] h-6 bg-blue-600 rounded-sm flex items-center justify-center opacity-80">
+<span class="font-data-mono text-[10px] text-white">J-01 (Eng)</span>
+</div>
+<div class="absolute top-10 left-[45%] w-[15%] h-6 bg-gray-400 rounded-sm flex items-center justify-center opacity-70">
+<span class="font-data-mono text-[10px] text-white">Trn 12302</span>
+</div>
+<div class="absolute top-2 left-[65%] w-[25%] h-6 bg-blue-600 rounded-sm flex items-center justify-center opacity-80">
+<span class="font-data-mono text-[10px] text-white">J-04 (Eng)</span>
+</div>
+</div>
+</div>
+<!-- Simulated -->
+<div class="flex flex-col gap-sm">
+<span class="font-label-md text-label-md text-primary-container font-bold uppercase flex items-center gap-xs">Simulated Plan <span class="material-symbols-outlined text-[14px]" data-icon="science">science</span></span>
+<div class="h-20 bg-surface-container rounded-md border border-primary border-opacity-30 relative overflow-hidden bg-opacity-50">
+<!-- Time markers -->
+<div class="absolute top-0 w-full h-full border-l border-outline-variant border-opacity-20 left-[20%]"></div>
+<div class="absolute top-0 w-full h-full border-l border-outline-variant border-opacity-20 left-[40%]"></div>
+<div class="absolute top-0 w-full h-full border-l border-outline-variant border-opacity-20 left-[60%]"></div>
+<div class="absolute top-0 w-full h-full border-l border-outline-variant border-opacity-20 left-[80%]"></div>
+<!-- Blocks/Trains (Shifted) -->
+<div class="absolute top-2 left-[10%] w-[30%] h-6 bg-blue-600 rounded-sm flex items-center justify-center opacity-80">
+<span class="font-data-mono text-[10px] text-white">J-01 (Eng)</span>
+</div>
+<!-- Train delayed (shifted right) -->
+<div class="absolute top-10 left-[55%] w-[15%] h-6 bg-gray-400 rounded-sm flex items-center justify-center opacity-70 border border-dashed border-gray-600">
+<span class="font-data-mono text-[10px] text-white">Trn 12302 (Del)</span>
+</div>
+<!-- Block shifted right to avoid delayed train -->
+<div class="absolute top-2 left-[72%] w-[25%] h-6 bg-blue-600 rounded-sm flex items-center justify-center opacity-80 border-2 border-primary-container shadow-sm">
+<span class="font-data-mono text-[10px] text-white">J-04 (Shifted)</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</main>
+</div>
+
+
+
+<script type="module" src="/static/js/app.js"></script>
+</body></html>
