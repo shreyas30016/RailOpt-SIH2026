@@ -10,13 +10,13 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
 from sqlalchemy.orm import Session
 
-from .config import settings
-from .database import engine, Base, get_db, SessionLocal
-from .models.models import Department, OptimizationRun
-from .data.synthetic_seeder import seed_synthetic_data
-from .optimizer.solver import RailwayBlockOptimizer
+from backend.app.config import settings
+from backend.app.database import engine, Base, get_db, SessionLocal
+from backend.app.models.models import Department, OptimizationRun
+from backend.app.data.synthetic_seeder import seed_synthetic_data
+from backend.app.optimizer.solver import RailwayBlockOptimizer
 
-from .api import dashboard, maintenance, optimization, gantt, whatif, reports, trains
+from backend.app.api import dashboard, maintenance, optimization, gantt, whatif, reports, trains
 
 # Thread-safe initialization state
 _init_lock = threading.Lock()
