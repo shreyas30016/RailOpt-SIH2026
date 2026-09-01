@@ -1,7 +1,10 @@
 from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
-from .config import settings
+try:
+    from backend.app.config import settings
+except ImportError:
+    from .config import settings
 
 # Handle SQLite connect_args if using SQLite
 connect_args = {}

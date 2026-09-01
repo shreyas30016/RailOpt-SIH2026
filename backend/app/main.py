@@ -14,7 +14,6 @@ from backend.app.config import settings
 from backend.app.database import engine, Base, get_db, SessionLocal
 from backend.app.models.models import Department, OptimizationRun
 from backend.app.data.synthetic_seeder import seed_synthetic_data
-from backend.app.optimizer.solver import RailwayBlockOptimizer
 
 from backend.app.api import dashboard, maintenance, optimization, gantt, whatif, reports, trains
 
@@ -22,22 +21,25 @@ from backend.app.api import dashboard, maintenance, optimization, gantt, whatif,
 _init_lock = threading.Lock()
 _db_initialized = False
 
-def init_db():
-    """Initializes tables, seeds synthetic data, and performs initial baseline optimization."""
+def initialize_application_data(force: bool = False):
+    """
+    Safely creates required database tables and seeds synthetic demo data idempotently.
+    Never executes mathematical optimization or destructive actions during module import.
+    """
     global _db_initialized
     with _init_lock:
-        if _db_initialized:
+        if _db_initialized and not force:
             return
         Base.metadata.create_all(bind=engine)
         db = SessionLocal()
         try:
-            seed_synthetic_data(db)
-            if db.query(OptimizationRun).count() == 0:
-                optimizer = RailwayBlockOptimizer(db)
-                optimizer.run_optimization()
+            seed_synthetic_data(db, force=force)
             _db_initialized = True
         finally:
             db.close()
+
+# Alias for backwards compatibility
+init_db = initialize_application_data
 
 def auto_open_browser():
     time.sleep(1.2)
@@ -48,10 +50,13 @@ def auto_open_browser():
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # 1. Initialize DB safely on startup (NOT during module import)
-    init_db()
+    # 1. Initialize DB safely on application startup (NOT during module import)
+    try:
+        initialize_application_data()
+    except Exception as e:
+        print(f"[!] Warning: Application startup initialization notice: {e}")
     
-    # 2. Automatically open browser on interactive local runs
+    # 2. Automatically open browser only on interactive local runs
     is_serverless = bool(os.getenv("VERCEL") or os.getenv("AWS_LAMBDA_FUNCTION_NAME") or os.getenv("LAMBDA_TASK_ROOT"))
     if not is_serverless and os.getenv("NO_AUTO_BROWSER", "").lower() not in ("1", "true", "yes"):
         threading.Thread(target=auto_open_browser, daemon=True).start()
@@ -88,22 +93,18 @@ app.include_router(trains.router, prefix=settings.API_V1_STR)
 def direct_optimize(req: optimization.OptimizeRequest = optimization.OptimizeRequest(), db: Session = Depends(get_db)):
     return optimization.optimize_block_plan(req, db)
 
-# 6. Static files and Frontend routing
+# 6. Static files and Frontend routing (Safe read-only resolution)
 FRONTEND_DIR = Path(__file__).resolve().parent.parent.parent / "frontend"
-try:
-    FRONTEND_DIR.mkdir(exist_ok=True)
-except OSError:
-    pass
 
-if FRONTEND_DIR.exists():
+if FRONTEND_DIR.is_dir():
     app.mount("/static", StaticFiles(directory=str(FRONTEND_DIR)), name="static")
     assets_dir = FRONTEND_DIR / "assets"
-    if assets_dir.exists():
+    if assets_dir.is_dir():
         app.mount("/assets", StaticFiles(directory=str(assets_dir)), name="assets")
 
 def _serve_frontend_page(filename: str):
     file_path = FRONTEND_DIR / filename
-    if file_path.exists():
+    if file_path.is_file():
         return FileResponse(str(file_path))
     return {"status": "ok", "message": f"{filename} not found in frontend directory"}
 
