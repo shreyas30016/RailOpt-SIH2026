@@ -34,9 +34,11 @@ def test_create_maintenance_request_persists_and_updates_dashboard():
     assert baseline_res.status_code == 200
     baseline_jobs = baseline_res.json()["total_jobs"]
     
+    import uuid
+    unique_job_code = f"JOB-ENG-TEST-{uuid.uuid4().hex[:8]}"
     # 2. Create new maintenance request
     req_payload = {
-        "job_code": "JOB-ENG-TEST-DASHBOARD-01",
+        "job_code": unique_job_code,
         "title": "Turnout Packing and Alignment at Palwal",
         "department_code": "ENG",
         "section_code": "FDB-PWL",
@@ -50,7 +52,7 @@ def test_create_maintenance_request_persists_and_updates_dashboard():
     create_res = client.post("/api/maintenance/requests", json=req_payload)
     assert create_res.status_code == 200
     created_data = create_res.json()
-    assert created_data["job_code"] == "JOB-ENG-TEST-DASHBOARD-01"
+    assert created_data["job_code"] == unique_job_code
     
     # 3. Verify dashboard summary increments
     updated_res = client.get("/api/dashboard/summary")
