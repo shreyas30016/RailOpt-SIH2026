@@ -1,4 +1,5 @@
-from fastapi import APIRouter, Depends, HTTPException, Query
+import re
+from fastapi import APIRouter, Depends, HTTPException, Query, Header
 from sqlalchemy.orm import Session
 from typing import List, Optional, Dict, Any
 from pydantic import BaseModel
@@ -6,8 +7,54 @@ from ..database import get_db
 from ..models.models import MaintenanceJob, Department, Section, TrackLine
 from ..schemas.schemas import MaintenanceJobCreate, MaintenanceJobResponse, DepartmentResponse, SectionResponse
 from ..services.duration_predictor import duration_predictor
+from .auth import get_current_user, validate_department_scope, _decode_token
 
 router = APIRouter(prefix="/maintenance", tags=["Maintenance"])
+
+
+# ---------------------------------------------------------------------------
+# Server-side job code generation (authoritative — never trusts the client)
+# ---------------------------------------------------------------------------
+def _generate_job_code(db: Session, department_code: str) -> str:
+    """
+    Deterministically generate a UNIQUE job code for the given department
+    by scanning existing codes and taking the next sequence number.
+      ENG  -> JOB-ENG-<n>   (seed range 101-106)
+      TRD  -> JOB-TRD-<n>   (seed range 201-204)
+      S_T  -> JOB-ST-<n>    (seed range 301-305)
+      MECH -> JOB-MECH-<n>  (seed range 401)
+    """
+    dept_upper = (department_code or "ENG").upper()
+    prefix_groups = {
+        "ENG": ["ENG"],
+        "TRD": ["TRD"],
+        "S_T": ["ST", "S_T", "S&T"],
+        "MECH": ["MECH"],
+    }
+    prefixes = prefix_groups.get(dept_upper, [dept_upper])
+    base_seq = {"ENG": 100, "TRD": 200, "S_T": 300, "MECH": 400}.get(dept_upper, 100)
+
+    max_seq = 0
+    for j in db.query(MaintenanceJob.job_code).all():
+        code = (j[0] or "")
+        for p in prefixes:
+            marker = f"JOB-{p}-"
+            if code.startswith(marker):
+                m = re.match(rf"^{re.escape(marker)}(\d+)$", code)
+                if m:
+                    max_seq = max(max_seq, int(m.group(1)))
+    next_seq = max(max_seq + 1, base_seq + 1)
+    prefix = "ST" if dept_upper == "S_T" else dept_upper
+    return f"JOB-{prefix}-{next_seq}"
+
+
+class MaintenanceJobUpdate(BaseModel):
+    status: Optional[str] = None        # PENDING, APPROVED, DEFERRED, SCHEDULED, CANCELLED
+    urgency: Optional[str] = None       # CRITICAL, HIGH, MEDIUM, ROUTINE
+    priority: Optional[int] = None      # 1-5
+    duration_minutes: Optional[int] = None
+    description: Optional[str] = None
+    requested_date: Optional[str] = None
 
 
 class DurationPredictRequest(BaseModel):
@@ -55,8 +102,21 @@ def get_maintenance_requests(
     section: Optional[str] = Query(None, description="Filter by section code"),
     urgency: Optional[str] = Query(None, description="Filter by urgency (CRITICAL, HIGH, MEDIUM, ROUTINE)"),
     status: Optional[str] = Query(None, description="Filter by status (PENDING, SCHEDULED, DEFERRED)"),
+    authorization: Optional[str] = Header(None),
     db: Session = Depends(get_db)
 ):
+    # Server-side department scoping: field roles can ONLY ever see their own
+    # department's requests, regardless of the query parameter they pass.
+    user_role = ""
+    if authorization and authorization.startswith("Bearer "):
+        profile = _decode_token(authorization[len("Bearer "):].strip())
+        if isinstance(profile, dict):
+            user_role = profile.get("role", "").upper()
+    role_dept_map = {"ENGINEER": "ENG", "TRD_OFFICER": "TRD", "ST_OFFICER": "S_T"}
+    role_dept = role_dept_map.get(user_role)
+    if role_dept:
+        department = role_dept
+
     query = db.query(MaintenanceJob)
     if department:
         dept = db.query(Department).filter(Department.code == department).first()
@@ -98,7 +158,22 @@ def get_maintenance_requests(
     return results
 
 @router.post("/requests", response_model=MaintenanceJobResponse)
-def create_maintenance_request(job_in: MaintenanceJobCreate, db: Session = Depends(get_db)):
+def create_maintenance_request(
+    job_in: MaintenanceJobCreate,
+    current_user: dict = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    # Server-side department validation derived strictly from authenticated user token
+    validate_department_scope(current_user, job_in.department_code)
+
+    # Job code is generated authoritatively by the backend when not supplied,
+    # guaranteeing real, unique codes for every newly created record.
+    job_code = (job_in.job_code or "").strip() or _generate_job_code(db, job_in.department_code)
+
+    existing = db.query(MaintenanceJob).filter(MaintenanceJob.job_code == job_code).first()
+    if existing:
+        raise HTTPException(status_code=400, detail=f"Maintenance job with code '{job_code}' already exists.")
+
     dept = db.query(Department).filter(Department.code == job_in.department_code).first()
     if not dept:
         raise HTTPException(status_code=400, detail=f"Department '{job_in.department_code}' not found.")
@@ -115,7 +190,7 @@ def create_maintenance_request(job_in: MaintenanceJobCreate, db: Session = Depen
         ).first()
 
     new_job = MaintenanceJob(
-        job_code=job_in.job_code,
+        job_code=job_code,
         title=job_in.title,
         department_id=dept.id,
         section_id=sec.id,
@@ -158,3 +233,136 @@ def create_maintenance_request(job_in: MaintenanceJobCreate, db: Session = Depen
         latest_end_minute=new_job.latest_end_minute,
         description=new_job.description
     )
+
+
+@router.put("/requests/{job_id}", response_model=MaintenanceJobResponse)
+def update_maintenance_request(
+    job_id: str,
+    update_data: MaintenanceJobUpdate,
+    current_user: dict = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """
+    Update status, urgency, priority, or duration of a maintenance request.
+    Used by Approve / Defer / Edit actions in the frontend.
+    Supports lookup by numeric ID (e.g., 1) or job code (e.g., 'JOB-ENG-101').
+    Enforces server-side role and department permissions.
+    """
+    job = None
+    try:
+        job_id_int = int(job_id)
+        job = db.query(MaintenanceJob).filter(MaintenanceJob.id == job_id_int).first()
+    except (ValueError, TypeError):
+        pass
+    if not job:
+        job = db.query(MaintenanceJob).filter(MaintenanceJob.job_code == str(job_id)).first()
+
+    if not job:
+        raise HTTPException(status_code=404, detail=f"Maintenance job '{job_id}' not found.")
+
+    dept_code = job.department.code if job.department else "ENG"
+
+    # Status changes to APPROVED or DEFERRED require can_approve permission (Controller/Planner)
+    if update_data.status is not None:
+        if update_data.status in ("APPROVED", "DEFERRED", "SCHEDULED") and not current_user.get("can_approve", False):
+            role_name = current_user.get("role", "UNKNOWN")
+            raise HTTPException(
+                status_code=403,
+                detail=f"Permission denied: Role '{role_name}' is not authorized to approve or defer maintenance requests."
+            )
+        # Any status update by field roles must also belong to their designated department
+        validate_department_scope(current_user, dept_code)
+    else:
+        # Non-status updates (urgency, priority, duration, etc.) by field roles must belong to their department
+        validate_department_scope(current_user, dept_code)
+
+    # Apply only the fields that were provided
+    if update_data.status is not None:
+        valid_statuses = {"PENDING", "APPROVED", "DEFERRED", "SCHEDULED", "CANCELLED"}
+        if update_data.status not in valid_statuses:
+            raise HTTPException(status_code=400, detail=f"Invalid status '{update_data.status}'.")
+        job.status = update_data.status
+
+    if update_data.urgency is not None:
+        valid_urgency = {"CRITICAL", "HIGH", "MEDIUM", "ROUTINE"}
+        if update_data.urgency not in valid_urgency:
+            raise HTTPException(status_code=400, detail=f"Invalid urgency '{update_data.urgency}'.")
+        job.urgency = update_data.urgency
+
+    if update_data.priority is not None:
+        if not (1 <= update_data.priority <= 5):
+            raise HTTPException(status_code=400, detail="Priority must be between 1 and 5.")
+        job.priority = update_data.priority
+
+    if update_data.duration_minutes is not None:
+        if update_data.duration_minutes < 15:
+            raise HTTPException(status_code=400, detail="Duration must be at least 15 minutes.")
+        job.duration_minutes = update_data.duration_minutes
+
+    if update_data.description is not None:
+        job.description = update_data.description
+
+    if update_data.requested_date is not None:
+        job.requested_date = update_data.requested_date
+
+    db.commit()
+    db.refresh(job)
+
+    return MaintenanceJobResponse(
+        id=job.id,
+        job_code=job.job_code,
+        title=job.title,
+        department_code=job.department.code if job.department else "ENG",
+        department_name=job.department.name if job.department else "Civil Engineering",
+        section_code=job.section.code if job.section else "UNKNOWN",
+        track_line=job.track_line.line_code if job.track_line else "UP_MAIN",
+        duration_minutes=job.duration_minutes,
+        priority=job.priority,
+        urgency=job.urgency,
+        requires_power_block=job.requires_power_block,
+        requires_traffic_block=job.requires_traffic_block,
+        requires_speed_restriction=job.requires_speed_restriction,
+        speed_restriction_kmh=job.speed_restriction_kmh,
+        status=job.status,
+        requested_date=job.requested_date,
+        earliest_start_minute=job.earliest_start_minute,
+        latest_end_minute=job.latest_end_minute,
+        description=job.description
+    )
+
+
+@router.delete("/requests/{job_id}")
+def delete_maintenance_request(
+    job_id: str,
+    current_user: dict = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """
+    Delete a maintenance job by numeric ID or job code.
+    Used by the Delete action in the Maintenance Requests frontend table.
+    Enforces that field roles can only delete requests in their department.
+    """
+    job = None
+    try:
+        job_id_int = int(job_id)
+        job = db.query(MaintenanceJob).filter(MaintenanceJob.id == job_id_int).first()
+    except (ValueError, TypeError):
+        pass
+    if not job:
+        job = db.query(MaintenanceJob).filter(MaintenanceJob.job_code == str(job_id)).first()
+
+    if not job:
+        raise HTTPException(status_code=404, detail=f"Maintenance job '{job_id}' not found.")
+
+    dept_code = job.department.code if job.department else "ENG"
+    # Controllers / Planners can delete any request; Field roles can only delete within authorized department
+    validate_department_scope(current_user, dept_code)
+
+    db.delete(job)
+    db.commit()
+    return {
+        "status": "deleted",
+        "job_id": job_id,
+        "job_code": job.job_code,
+        "message": f"Maintenance job '{job.job_code}' has been permanently deleted."
+    }

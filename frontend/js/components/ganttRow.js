@@ -72,3 +72,34 @@ export function createGanttTrainRow({ train, totalHours = 24 }) {
         </div>
     `;
 }
+
+export function createGanttWindowRow({ window, totalHours = 24 }) {
+    const leftPct = (window.start_minute / (totalHours * 60)) * 100;
+    const durMin = Math.max(30, window.end_minute - window.start_minute);
+    const widthPct = (durMin / (totalHours * 60)) * 100;
+    const startStr = `${String(Math.floor(window.start_minute / 60)).padStart(2, '0')}:${String(window.start_minute % 60).padStart(2, '0')}`;
+    const endStr = `${String(Math.floor(window.end_minute / 60)).padStart(2, '0')}:${String(window.end_minute % 60).padStart(2, '0')}`;
+
+    const gridLines = Array.from({ length: totalHours }).map((_, i) => `
+        <div class="absolute top-0 bottom-0 border-r border-outline-variant border-opacity-20 pointer-events-none" style="left: ${(i / totalHours) * 100}%;"></div>
+    `).join("");
+
+    return `
+        <div class="flex border-b border-outline-variant border-opacity-30 min-h-[38px] bg-purple-50/30 hover:bg-purple-50/60 transition-colors">
+            <div class="w-64 p-2 font-data-mono text-[12px] font-semibold text-purple-900 border-r border-outline-variant flex items-center gap-1.5 bg-surface-container-low select-none">
+                <span class="material-symbols-outlined text-[16px] text-purple-700">schedule</span>
+                <span class="truncate font-bold">${window.window_code || 'WINDOW'}</span>
+                <span class="text-[10px] text-on-surface-variant truncate">(${window.section_code || ''})</span>
+            </div>
+            <div class="flex-1 relative overflow-hidden">
+                ${gridLines}
+                <div class="absolute top-1 bottom-1 rounded px-2 py-0.5 text-purple-800 bg-purple-100 border border-purple-300 text-[10px] font-bold shadow-sm flex items-center justify-between cursor-help"
+                     style="left: ${leftPct}%; width: ${widthPct}%;"
+                     title="Corridor Window ${window.window_code}: ${startStr} - ${endStr} (${window.window_type || 'NIGHT_LULL'})">
+                    <span class="truncate">${window.window_code}: ${startStr}–${endStr} (${window.window_type || 'LULL'})</span>
+                </div>
+            </div>
+        </div>
+    `;
+}
+

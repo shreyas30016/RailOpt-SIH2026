@@ -31,7 +31,9 @@ class SectionResponse(SectionBase):
 
 # Maintenance Job Schemas
 class MaintenanceJobCreate(BaseModel):
-    job_code: str
+    # Optional: when omitted, the backend generates a real unique code
+    # (e.g. JOB-ENG-107) derived from existing records for the department.
+    job_code: Optional[str] = None
     title: str
     department_code: str
     section_code: str
@@ -89,12 +91,21 @@ class TrainScheduleResponse(BaseModel):
         from_attributes = True
 
 # Optimization Request & Response Schemas
+class OptimizationObjectivesSchema(BaseModel):
+    minimize_passenger_delays: bool = True
+    train_delay_weight: float = Field(default=1.0, ge=0.1, le=5.0)
+    maximize_shadow_blocks: bool = True
+    shadow_block_weight: float = Field(default=1.0, ge=0.1, le=5.0)
+    prioritize_urgent_maintenance: bool = True
+    urgency_weight: float = Field(default=1.0, ge=0.1, le=5.0)
+
 class OptimizationParams(BaseModel):
     corridor: Optional[str] = "Delhi-Agra Mainline"
     date: Optional[str] = "2026-09-01"
     time_window_start_min: int = 0
     time_window_end_min: int = 1440
-    max_solver_time_sec: int = 15
+    max_solver_time_sec: int = Field(default=15, ge=5, le=60)
+    optimization_objectives: Optional[OptimizationObjectivesSchema] = None
     minimize_passenger_delays: bool = True
     maximize_shadow_blocks: bool = True
     allow_train_speed_restrictions: bool = True
@@ -133,6 +144,16 @@ class UnscheduledJobDetail(BaseModel):
     next_feasible_window: Optional[Dict[str, Any]] = None
     suggested_alternative: Optional[str] = None
 
+class PlanQualityMetrics(BaseModel):
+    scheduled_jobs_pct: float
+    total_maintenance_hours: float
+    train_delay_total_min: int
+    block_utilization_pct: float
+    shadow_block_synergy_pct: float
+    objective_score: float
+    solver_time_seconds: float
+    baseline_comparison: Dict[str, Any] = {}
+
 class OptimizationResponse(BaseModel):
     run_id: int
     timestamp: str
@@ -150,6 +171,8 @@ class OptimizationResponse(BaseModel):
     unscheduled_jobs: List[UnscheduledJobDetail]
     conflicts_resolved: List[Dict[str, Any]]
     explanations: List[Dict[str, Any]]
+    plan_quality: Optional[PlanQualityMetrics] = None
+    applied_objectives: Optional[Dict[str, Any]] = None
 
 # What-If Simulation Schemas
 class WhatIfRequest(BaseModel):

@@ -51,3 +51,41 @@ def test_train_delay_simulation_via_adapter():
     assert vb is not None
     assert vb["delay_minutes"] == 15
     assert vb["status"] == "DELAYED"
+
+
+def test_replay_payload_metadata_and_phases():
+    from collections import Counter
+    adapter = TrainDataAdapter()
+    result = adapter.get_movements(force_refresh=True)
+    assert result["mode"] == "timetable_replay"
+    assert result["timezone"] == "Asia/Kolkata"
+    assert result["as_of"]
+    assert "phase" in result["movements"][0]
+    phases = Counter(m["phase"] for m in result["movements"])
+    # Fleet is scheduled so that several trains are always active at any hour
+    assert phases.get("RUNNING", 0) + phases.get("PRE_DEP", 0) >= 2, phases
+
+
+def test_replay_movement_advances_and_delay_drift_is_bounded():
+    import time
+    p1 = MockTrainDataProvider()
+    m1 = {m.train_id: m for m in p1.get_live_train_movements()}
+    time.sleep(1.5)
+    m2 = {m.train_id: m for m in p1.get_live_train_movements()}
+    running = [tid for tid, m in m1.items() if m.phase == "RUNNING"]
+    assert running, "expected at least one running train in the replay"
+    # Positions of a running train must never go backwards and must advance over time
+    for tid in running:
+        a, b = m1[tid].progress_pct, m2[tid].progress_pct
+        assert 0.0 <= a <= 100.0 and 0.0 <= b <= 100.0
+        assert b >= a
+    # Any delay drift for an on-time (base 0) premium train stays zero
+    vb = m1["22436"]
+    assert vb.delay_minutes == 0 and vb.status == "ON_TIME"
+
+
+def test_replay_source_label_always_disclosed():
+    adapter = TrainDataAdapter()
+    result = adapter.get_movements(force_refresh=True)
+    assert "Synthetic" in result["source"] or "Live" in result["source"]
+    assert result["is_simulated"] is True  # no live provider configured in tests

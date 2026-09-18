@@ -1,103 +1,79 @@
-# SIH26027 Railway Block Planning — Project Rules & Governance
+# RailOpt — Project Rules
 
-**One-Sentence Product Definition:**
-> *"A railway-aware decision-support system that combines maintenance demand, train movements, and validated operational constraints to generate, explain, and dynamically replan efficient maintenance block schedules."*
+## 1. Product identity
+RailOpt is an AI-assisted railway maintenance block-planning and decision-support system.
 
----
+It should help an operational team:
+- collect maintenance demands;
+- understand train/track conflicts;
+- generate a feasible block plan;
+- compare alternatives;
+- understand why the optimizer made a decision;
+- simulate disruptions;
+- review and approve the recommended plan.
 
-## 1. Project Goal
-Build a professional prototype for SIH 2026 Problem Statement **SIH26027 — AI-Powered Automatic Block Planning to Maximize Asset Availability for Train Operations on Indian Railways**.
-- **Product Category**: Railway maintenance decision-support and optimization system.
-- **Departments Coordinated**: Civil Engineering (Permanent Way), Traction Distribution (TRD / OHE), and Signal & Telecommunication (S&T).
-- **Core Chain**:
-  $$\text{Maintenance Demand} + \text{Train / Operating Windows} + \text{Validated Railway Constraints}$$
-  $$\downarrow$$
-  $$\text{Feasible Plans} \rightarrow \text{Optimized Block Plan} \rightarrow \text{Explainable Recommendation} \rightarrow \text{Human Review} \rightarrow \text{Dynamic Replanning}$$
+## 2. What must stay real
+Preserve:
+- FastAPI backend;
+- SQLAlchemy data model;
+- SQLite/PostgreSQL compatibility where already implemented;
+- OR-Tools CP-SAT optimizer;
+- railway rule configuration;
+- maintenance CRUD;
+- live-train adapter/fallback;
+- What-If differential re-optimization;
+- Gantt rendering;
+- decision explanation;
+- reports/analytics;
+- automated tests.
 
----
+## 3. Synthetic data policy
+Realistic synthetic seed data is acceptable for offline judging:
+- sections;
+- track lines;
+- maintenance jobs;
+- train movements;
+- block windows.
 
-## 2. Source of Truth & Data Honesty
-- Official Scope based on SIH26027 description (BDMS, TMS/SMMS/TDMS, COA, train timetable, goods-train forecast, weekly/monthly planning).
-- **Labels Required on All Data & Rules**:
-  - Synthetic Data $\rightarrow$ `"Synthetic Demo Data"`
-  - Live Train Data $\rightarrow$ `"Live/Public Train Data"`
-  - Unvalidated Constraints $\rightarrow$ `"Prototype Constraint — Pending Domain Validation"`
-- Never claim direct integration with internal Indian Railways systems (TMS, SMMS, TDMS, COA, BDMS, NTES) unless authorized credentials/access are provided.
+Clearly label demo/synthetic data.
 
----
+## 4. Hardcoding policy
+### Allowed
+- role definitions;
+- division dictionaries;
+- fixed engineering/safety parameters;
+- application configuration;
+- synthetic seed fixtures;
+- UI labels.
 
-## 3. Core Feature Hierarchy
+### Not allowed
+- hardcoded KPI values presented as current database results;
+- static solver results replacing the solver;
+- static Gantt bars replacing API-driven schedule output;
+- static maintenance detail panels that ignore the selected request;
+- fake claims of live internal railway-system access.
 
-### P0 — Must Work (Rock Solid)
-1. Maintenance request management (ENG, TRD, S&T, MECH).
-2. Train movement & operating window representation.
-3. Railway constraint engine (Hard Safety vs Soft Optimization).
-4. Maintenance priority & urgency handling.
-5. Feasible block-plan generation via deterministic solver (Google OR-Tools CP-SAT).
-6. Optimization of the feasible plan.
-7. Gantt timeline visualization.
-8. Before-vs-after KPIs.
-9. Plan explanation (*"Why was this block chosen? Why was that deferred?"*).
+## 5. Optimization rule
+Do not casually modify safety constraints, buffer logic, shadow-block pairing, or solver mathematics.
 
-### P1 — High-Value Differentiation
-1. Multi-department job compatibility / Shadow Block bundling (ENG + TRD + S&T).
-2. Dynamic replanning on live events (Train delayed, block extended, emergency work inserted).
-3. What-if scenario simulation.
-4. Human-in-the-loop lock / edit / recalculate.
-5. Monthly $\rightarrow$ weekly $\rightarrow$ daily planning hierarchy.
+## 6. Authentication and authorization
+Authentication is a lightweight prototype.
 
-### P2 — Optional / Future
-1. Live/public train status adapter (already added with mock fallback).
-2. ML prediction for duration/risk/traffic where justified (*"AI predicts. Constraints protect. Optimization decides."*).
-3. Additional corridor scenarios (e.g. suburban).
+Authorization must be genuine:
+- frontend guards improve UX;
+- backend guards provide actual security;
+- protected mutations validate the authenticated session/token server-side;
+- role/division must not be trusted only from request payloads.
 
----
+## 7. UI rule
+Preserve the existing railway enterprise visual system and component style.
 
-## 4. Hard Constraints vs. Soft Objectives
+Prefer targeted fixes over redesigns.
 
-| Constraint Type | Definition | Action on Violation | Example Mathematical / Operational Formulation |
-|:---|:---|:---|:---|
-| **HARD Safety Constraints** | Non-negotiable physical, safety, resource, and power isolation boundaries | **Reject candidate plan** | Track occupancy exclusivity ($j_1 \cap j_2 = \emptyset$ unless shadow-paired); OHE power shutdown synchronization; machine resource exclusivity. |
-| **SOFT Optimization Objectives** | Operational preferences and efficiency bonuses | **Penalize / Reward objective function** | Minimize train delay minutes; maximize shadow block synergy; prioritize critical backlog; minimize corridor idle time. |
+## 8. Demo rule
+The strongest demo changes an input and produces a different computed outcome.
 
----
+Example:
+Train delay → What-If simulation → changed schedule → changed KPI/delta → explanation.
 
-## 5. Architecture & Technology Stack
-
-```
-   ┌────────────────────────────────────────────────────────┐
-   │             Presentation Layer (Stitch UI)              │
-   │   Operations Dashboard | Maintenance | Block Planning   │
-   │   Gantt Timeline | What-if Replanning | Plan Logic     │
-   └───────────────────────────▲────────────────────────────┘
-                               │ (Clean DOM & Component Library)
-   ┌───────────────────────────┴────────────────────────────┐
-   │                Data & Service Abstraction              │
-   │    dataService.js | trainDataService.js (Mock/Live)    │
-   └───────────────────────────▲────────────────────────────┘
-                               │ REST APIs (FastAPI)
-   ┌───────────────────────────┴────────────────────────────┐
-   │             Deterministic Optimization Engine          │
-   │   Google OR-Tools CP-SAT | Hard Constraints Engine     │
-   │   Decision Explainer Tree | Dynamic Replanner          │
-   └────────────────────────────────────────────────────────┘
-```
-
----
-
-## 6. 3-Minute Wednesday Selection Demo Flow
-
-1. **Dashboard**: Show maintenance demand from ENG, TRD, and S&T alongside live corridor status.
-2. **Maintenance Demands & Constraints**: Review priority backlog and safety constraints (*Pending Domain Validation*).
-3. **Generate Plan**: Execute deterministic CP-SAT optimizer ($<1.5\text{s}$) $\rightarrow$ View Gantt timeline with multi-department shadow blocks.
-4. **Explain Decision**: Click scheduled block $\rightarrow$ View *"Why this plan?"* mathematical reasoning tree.
-5. **Trigger Live Event**: Inject train delay ($+20\text{ min}$) or emergency track fracture.
-6. **Auto Replan**: View instant Before $\rightarrow$ After KPI delta, revised block timings, and conflict resolution audit.
-
----
-
-## 7. Open Domain Questions (Pending Railway Validation)
-- Exact combination rules for track machines (CSM tamping vs BCM screening vs Tower Wagon).
-- Safety buffer times between block release and first train entry.
-- Emergency track block preemption rules over scheduled passenger trains.
-- Actual departmental approval workflows between Sr.DEN, Sr.DEE(TRD), and Sr.DSTE.
+Avoid chatbot-first demos.

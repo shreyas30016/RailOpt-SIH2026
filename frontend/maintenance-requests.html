@@ -242,9 +242,10 @@
         <span class="font-headline-md text-headline-md font-bold text-on-primary tracking-tight uppercase">RAILOPT</span>
     </div>
     <div class="flex items-center gap-sm text-on-primary">
-        <button class="hover:bg-primary-container p-1.5 rounded-full"><span class="material-symbols-outlined text-[20px]">notifications</span></button>
-        <div class="flex items-center gap-1.5 bg-primary-container px-2.5 py-1 rounded-lg">
-            <span class="font-label-md text-label-md text-on-primary">Planner</span>
+        <button id="btn-mobile-notifications" class="hover:bg-primary-container p-1.5 rounded-full relative"><span class="material-symbols-outlined text-[20px]">notifications</span></button>
+        <button id="btn-mobile-logout" class="hover:bg-primary-container p-1.5 rounded-full text-red-300" title="Sign Out"><span class="material-symbols-outlined text-[20px]">logout</span></button>
+        <div id="mobile-user-profile" class="flex items-center gap-1.5 bg-primary-container px-2.5 py-1 rounded-lg cursor-pointer">
+            <span id="mobile-user-role" class="font-label-md text-label-md text-on-primary">—</span>
         </div>
     </div>
 </header>
@@ -253,22 +254,25 @@
 <header class="hidden md:flex justify-between items-center px-lg w-full h-16 bg-primary border-b border-primary-container z-30 fixed top-0 left-[240px] right-0" style="width: calc(100% - 240px);">
     <div class="flex items-center gap-sm">
         <span class="font-body-sm text-body-sm text-on-primary opacity-90 font-medium">AI-Powered Block Planning System</span>
-        <span class="text-xs bg-primary-container text-on-primary px-2 py-0.5 rounded text-[11px] border border-outline-variant/30">Northern / NCR Division</span>
+        <span id="header-division-badge" class="text-xs bg-primary-container text-on-primary px-2.5 py-0.5 rounded text-[11px] border border-outline-variant/30 font-medium">—</span>
     </div>
     <div class="flex items-center gap-lg">
-        <span class="font-label-md text-label-md text-on-primary opacity-80" id="header-datetime">31 Aug 2026 | 20:15:00</span>
+        <span class="font-label-md text-label-md text-on-primary opacity-80" id="header-datetime">01 Sep 2026 | 19:30:00</span>
         <div class="flex items-center gap-sm text-on-primary">
-            <button class="hover:bg-primary-container p-1.5 rounded-full transition-colors duration-200 relative" title="Notifications">
+            <button id="btn-header-notifications" class="hover:bg-primary-container p-1.5 rounded-full transition-colors duration-200 relative" title="Operational Alerts & Notifications">
                 <span class="material-symbols-outlined text-[20px]">notifications</span>
                 <span class="absolute top-1 right-1 w-2 h-2 bg-error rounded-full"></span>
             </button>
-            <a href="/constraints-logic" class="hover:bg-primary-container p-1.5 rounded-full transition-colors duration-200" title="Configuration & Rules">
+            <button id="btn-header-settings" class="hover:bg-primary-container p-1.5 rounded-full transition-colors duration-200" title="System Settings & Configuration">
                 <span class="material-symbols-outlined text-[20px]">settings</span>
-            </a>
+            </button>
+            <button id="btn-header-logout" class="hover:bg-red-600/30 p-1.5 rounded-full text-red-200 hover:text-red-100 transition-colors" title="Sign Out (Switch User)">
+                <span class="material-symbols-outlined text-[20px]">logout</span>
+            </button>
         </div>
-        <div class="flex items-center gap-2 bg-primary-container px-3 py-1.5 rounded-lg border border-outline-variant/20">
-            <div class="w-6 h-6 rounded-full bg-surface text-primary flex items-center justify-center font-bold text-xs">P</div>
-            <span class="font-label-md text-label-md text-on-primary font-medium">Planner</span>
+        <div id="header-user-profile" class="flex items-center gap-2 bg-primary-container px-3 py-1.5 rounded-lg border border-outline-variant/20 cursor-pointer hover:bg-opacity-80 transition-all select-none">
+            <div id="header-user-avatar" class="w-6 h-6 rounded-full bg-surface text-primary flex items-center justify-center font-bold text-xs">—</div>
+            <span id="header-user-role" class="font-label-md text-label-md text-on-primary font-medium">—</span>
             <span class="material-symbols-outlined text-[16px] text-on-primary opacity-70">expand_more</span>
         </div>
     </div>
@@ -279,9 +283,9 @@
 <div class="px-container-margin py-md border-b border-outline-variant bg-surface-container-lowest flex justify-between items-center shrink-0">
 <div>
 <h2 class="font-headline-lg text-headline-lg text-on-surface">Maintenance Requests</h2>
-<p class="font-body-sm text-body-sm text-on-surface-variant mt-1">Manage and approve track block requests across all departments.</p>
+<p class="font-body-sm text-body-sm text-on-surface-variant mt-1">Multi-department track possession requests (Engineering, S&amp;T, TRD/OHE, Mechanical).</p>
 </div>
-<button class="bg-primary-container text-on-primary px-4 py-2 rounded-lg font-label-md text-label-md flex items-center gap-2 hover:bg-primary transition-colors shadow-sm">
+<button onclick="window.triggerNewRequestModal && window.triggerNewRequestModal()" class="bg-primary-container text-on-primary px-4 py-2 rounded-lg font-label-md text-label-md flex items-center gap-2 hover:bg-primary transition-colors shadow-sm">
 <span class="material-symbols-outlined text-sm">add</span>
                     New Request
                 </button>
@@ -291,26 +295,39 @@
 <!-- Data List Section -->
 <div class="flex-1 flex flex-col h-full border-r border-outline-variant">
 <!-- Filters -->
-<div class="px-md py-sm bg-surface-container-lowest border-b border-outline-variant flex items-center gap-4 shrink-0">
+<div class="px-md py-sm bg-surface-container-lowest border-b border-outline-variant flex flex-wrap items-center gap-3 shrink-0">
 <div class="flex items-center gap-2">
 <span class="font-label-md text-label-md text-on-surface-variant uppercase text-[10px]">Department:</span>
-<div class="flex bg-surface-variant rounded-md p-0.5">
-<button class="px-3 py-1 rounded bg-surface-container-lowest text-on-surface font-label-md text-label-md shadow-sm">All</button>
-<button class="px-3 py-1 rounded text-on-surface-variant font-label-md text-label-md hover:bg-surface-container-lowest/50 transition-colors">Engineering</button>
-<button class="px-3 py-1 rounded text-on-surface-variant font-label-md text-label-md hover:bg-surface-container-lowest/50 transition-colors">S&amp;T</button>
-<button class="px-3 py-1 rounded text-on-surface-variant font-label-md text-label-md hover:bg-surface-container-lowest/50 transition-colors">Traction (TRD)</button>
+<div class="flex bg-surface-variant rounded-md p-0.5" id="dept-filter-tabs">
+<button class="dept-tab-btn px-3 py-1 rounded bg-surface-container-lowest text-on-surface font-label-md text-label-md shadow-sm" data-dept="ALL">All</button>
+<button class="dept-tab-btn px-3 py-1 rounded text-on-surface-variant font-label-md text-label-md hover:bg-surface-container-lowest/50 transition-colors" data-dept="ENG">Civil Eng</button>
+<button class="dept-tab-btn px-3 py-1 rounded text-on-surface-variant font-label-md text-label-md hover:bg-surface-container-lowest/50 transition-colors" data-dept="S_T">S&amp;T</button>
+<button class="dept-tab-btn px-3 py-1 rounded text-on-surface-variant font-label-md text-label-md hover:bg-surface-container-lowest/50 transition-colors" data-dept="TRD">Traction (TRD)</button>
+<button class="dept-tab-btn px-3 py-1 rounded text-on-surface-variant font-label-md text-label-md hover:bg-surface-container-lowest/50 transition-colors" data-dept="MECH">Mech</button>
 </div>
 </div>
-<div class="h-6 w-px bg-outline-variant mx-2"></div>
-<div class="flex items-center gap-2 flex-1">
+<div class="h-6 w-px bg-outline-variant hidden sm:block"></div>
+<div class="flex items-center gap-2 flex-1 min-w-[200px]">
 <div class="relative flex-1 max-w-xs">
 <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline text-[18px]">search</span>
-<input class="w-full pl-9 pr-3 py-1.5 text-body-sm border border-outline-variant rounded-md focus:border-primary-container focus:ring-1 focus:ring-primary-container bg-surface-container-lowest" placeholder="Search ID, Section, Location..." type="text">
+<input id="search-requests" class="w-full pl-9 pr-3 py-1.5 text-body-sm border border-outline-variant rounded-md focus:border-primary-container focus:ring-1 focus:ring-primary-container bg-surface-container-lowest" placeholder="Search ID, title, section..." type="text">
 </div>
-<button class="flex items-center gap-1 px-3 py-1.5 border border-outline-variant rounded-md text-on-surface text-label-md hover:bg-surface-variant transition-colors bg-surface-container-lowest">
-<span class="material-symbols-outlined text-[16px]">filter_list</span>
-                                Filters
-                            </button>
+<select id="filter-section" class="px-2 py-1.5 text-body-sm border border-outline-variant rounded-md bg-surface-container-lowest text-on-surface focus:outline-none text-[12px]">
+<option value="ALL">All Sections</option>
+<option value="NDLS-TKD">NDLS–TKD</option>
+<option value="TKD-FDB">TKD–FDB</option>
+<option value="FDB-PWL">FDB–PWL</option>
+<option value="PWL-KDS">PWL–KDS</option>
+<option value="KDS-MTJ">KDS–MTJ</option>
+<option value="MTJ-AGC">MTJ–AGC</option>
+</select>
+<select id="filter-urgency" class="px-2 py-1.5 text-body-sm border border-outline-variant rounded-md bg-surface-container-lowest text-on-surface focus:outline-none text-[12px]">
+<option value="ALL">All Urgencies</option>
+<option value="CRITICAL">Critical</option>
+<option value="HIGH">High</option>
+<option value="MEDIUM">Medium</option>
+<option value="ROUTINE">Routine</option>
+</select>
 </div>
 </div>
 <!-- Table Container -->
@@ -318,289 +335,55 @@
 <table class="w-full text-left border-collapse dense-table">
 <thead class="sticky top-0 z-10 bg-surface-container-low shadow-[0_1px_0_0_#CBD5E0]">
 <tr>
-<th class="w-10 text-center">
-<input class="rounded border-outline-variant text-primary-container focus:ring-primary-container w-3.5 h-3.5" type="checkbox">
-</th>
-<th class="">Job ID</th>
-<th class="">Department</th>
-<th class="">Section</th>
-<th class="">Location</th>
-<th class="">Duration</th>
-<th class="">Priority</th>
-<th class="">Status</th>
-<th class="">Dependencies</th>
-<th class="w-10"></th>
+<th class="w-24">Job ID</th>
+<th class="">Title &amp; Description</th>
+<th class="w-24">Dept</th>
+<th class="w-32">Section</th>
+<th class="w-24">Duration</th>
+<th class="w-20">Safety</th>
+<th class="w-24">Urgency</th>
+<th class="w-28">Status</th>
+<th class="w-32 text-center">Actions</th>
 </tr>
 </thead>
-<tbody>
-<tr class="group cursor-pointer">
-<td class="text-center">
-<input class="rounded border-outline-variant text-primary-container focus:ring-primary-container w-3.5 h-3.5" type="checkbox">
-</td>
-<td class="font-medium text-primary-container">J-01</td>
-<td class="font-body-sm">Engineering</td>
-<td class="">NDLS - GZB</td>
-<td class="">KM 12/4-12/6</td>
-<td class="">120 mins</td>
-<td class=""><span class="pill pill-critical">Critical</span></td>
-<td class=""><span class="pill pill-pending">Pending</span></td>
-<td class="text-outline">—</td>
-<td>
-<button class="text-outline hover:text-on-surface opacity-0 group-hover:opacity-100 transition-opacity">
-<span class="material-symbols-outlined text-[18px]">more_vert</span>
-</button>
-</td>
-</tr>
-<tr class="group cursor-pointer">
-<td class="text-center">
-<input class="rounded border-outline-variant text-primary-container focus:ring-primary-container w-3.5 h-3.5" type="checkbox">
-</td>
-<td class="font-medium text-primary-container">J-02</td>
-<td class="font-body-sm">S&amp;T</td>
-<td class="">NDLS - GZB</td>
-<td class="">Signal S-245</td>
-<td class="">60 mins</td>
-<td class=""><span class="pill pill-high">High</span></td>
-<td class=""><span class="pill pill-pending">Pending</span></td>
-<td class="font-medium text-surface-tint">J-01</td>
-<td>
-<button class="text-outline hover:text-on-surface opacity-0 group-hover:opacity-100 transition-opacity">
-<span class="material-symbols-outlined text-[18px]">more_vert</span>
-</button>
-</td>
-</tr>
-<tr class="group cursor-pointer selected">
-<td class="text-center">
-<input checked="" class="rounded border-outline-variant text-primary-container focus:ring-primary-container w-3.5 h-3.5" type="checkbox">
-</td>
-<td class="font-medium text-primary-container">J-03</td>
-<td class="font-body-sm">Traction (TRD)</td>
-<td class="">NDLS - GZB</td>
-<td class="">OHE 12/15-12/17</td>
-<td class="">90 mins</td>
-<td class=""><span class="pill pill-high">High</span></td>
-<td class=""><span class="pill pill-pending">Pending</span></td>
-<td class="text-outline">—</td>
-<td>
-<button class="text-outline hover:text-on-surface opacity-100 transition-opacity">
-<span class="material-symbols-outlined text-[18px]">more_vert</span>
-</button>
-</td>
-</tr>
-<tr class="group cursor-pointer">
-<td class="text-center">
-<input class="rounded border-outline-variant text-primary-container focus:ring-primary-container w-3.5 h-3.5" type="checkbox">
-</td>
-<td class="font-medium text-primary-container">J-04</td>
-<td class="font-body-sm">Engineering</td>
-<td class="">GZB - MTC</td>
-<td class="">KM 45/1-45/3</td>
-<td class="">180 mins</td>
-<td class=""><span class="pill pill-medium">Medium</span></td>
-<td class=""><span class="pill pill-approved">Approved</span></td>
-<td class="text-outline">—</td>
-<td>
-<button class="text-outline hover:text-on-surface opacity-0 group-hover:opacity-100 transition-opacity">
-<span class="material-symbols-outlined text-[18px]">more_vert</span>
-</button>
-</td>
-</tr>
-<tr class="group cursor-pointer">
-<td class="text-center">
-<input class="rounded border-outline-variant text-primary-container focus:ring-primary-container w-3.5 h-3.5" type="checkbox">
-</td>
-<td class="font-medium text-primary-container">J-05</td>
-<td class="font-body-sm">S&amp;T</td>
-<td class="">GZB - MTC</td>
-<td class="">Signal S-678</td>
-<td class="">60 mins</td>
-<td class=""><span class="pill pill-medium">Medium</span></td>
-<td class=""><span class="pill pill-approved">Approved</span></td>
-<td class="font-medium text-surface-tint">J-04</td>
-<td>
-<button class="text-outline hover:text-on-surface opacity-0 group-hover:opacity-100 transition-opacity">
-<span class="material-symbols-outlined text-[18px]">more_vert</span>
-</button>
-</td>
-</tr>
-<tr class="group cursor-pointer">
-<td class="text-center">
-<input class="rounded border-outline-variant text-primary-container focus:ring-primary-container w-3.5 h-3.5" type="checkbox">
-</td>
-<td class="font-medium text-primary-container">J-06</td>
-<td class="font-body-sm">Traction (TRD)</td>
-<td class="">MTC - TDL</td>
-<td class="">OHE 78/2-78/4</td>
-<td class="">120 mins</td>
-<td class=""><span class="pill pill-high">High</span></td>
-<td class=""><span class="pill pill-pending">Pending</span></td>
-<td class="text-outline">—</td>
-<td>
-<button class="text-outline hover:text-on-surface opacity-0 group-hover:opacity-100 transition-opacity">
-<span class="material-symbols-outlined text-[18px]">more_vert</span>
-</button>
-</td>
-</tr>
-<tr class="group cursor-pointer">
-<td class="text-center">
-<input class="rounded border-outline-variant text-primary-container focus:ring-primary-container w-3.5 h-3.5" type="checkbox">
-</td>
-<td class="font-medium text-primary-container">J-07</td>
-<td class="font-body-sm">Engineering</td>
-<td class="">MTC - TDL</td>
-<td class="">KM 102/5-102/7</td>
-<td class="">180 mins</td>
-<td class=""><span class="pill pill-critical">Critical</span></td>
-<td class=""><span class="pill pill-pending">Pending</span></td>
-<td class="text-outline">—</td>
-<td>
-<button class="text-outline hover:text-on-surface opacity-0 group-hover:opacity-100 transition-opacity">
-<span class="material-symbols-outlined text-[18px]">more_vert</span>
-</button>
-</td>
-</tr>
-<tr class="group cursor-pointer">
-<td class="text-center">
-<input class="rounded border-outline-variant text-primary-container focus:ring-primary-container w-3.5 h-3.5" type="checkbox">
-</td>
-<td class="font-medium text-primary-container">J-08</td>
-<td class="font-body-sm">Traction (TRD)</td>
-<td class="">TDL - CNB</td>
-<td class="">OHE 145/1-145/2</td>
-<td class="">60 mins</td>
-<td class=""><span class="pill pill-medium">Medium</span></td>
-<td class=""><span class="pill pill-pending">Pending</span></td>
-<td class="text-outline">—</td>
-<td>
-<button class="text-outline hover:text-on-surface opacity-0 group-hover:opacity-100 transition-opacity">
-<span class="material-symbols-outlined text-[18px]">more_vert</span>
-</button>
-</td>
-</tr>
-<tr class="group cursor-pointer">
-<td class="text-center">
-<input class="rounded border-outline-variant text-primary-container focus:ring-primary-container w-3.5 h-3.5" type="checkbox">
-</td>
-<td class="font-medium text-primary-container">J-09</td>
-<td class="font-body-sm">Engineering</td>
-<td class="">TDL - CNB</td>
-<td class="">KM 160/1-160/5</td>
-<td class="">240 mins</td>
-<td class=""><span class="pill pill-critical">Critical</span></td>
-<td class=""><span class="pill pill-approved">Approved</span></td>
-<td class="text-outline">—</td>
-<td>
-<button class="text-outline hover:text-on-surface opacity-0 group-hover:opacity-100 transition-opacity">
-<span class="material-symbols-outlined text-[18px]">more_vert</span>
-</button>
-</td>
-</tr>
+<tbody id="requests-tbody">
+<!-- Populated dynamically via app.js -->
 </tbody>
 </table>
 </div>
 <!-- Table Pagination/Footer -->
 <div class="px-md py-sm bg-surface-container-lowest border-t border-outline-variant flex items-center justify-between shrink-0">
-<div class="text-body-sm text-on-surface-variant font-data-mono text-[11px]">
-                            Showing 1-9 of 42 requests
-                        </div>
+<div id="requests-count-badge" class="text-body-sm text-on-surface-variant font-data-mono text-[11px]">
+    Loading requests...
+</div>
 <div class="flex items-center gap-1">
-<button class="p-1 rounded text-outline hover:bg-surface-variant transition-colors disabled:opacity-50">
-<span class="material-symbols-outlined text-[18px]">chevron_left</span>
-</button>
-<span class="text-body-sm text-on-surface px-2">Page 1 of 5</span>
-<button class="p-1 rounded text-outline hover:bg-surface-variant transition-colors">
-<span class="material-symbols-outlined text-[18px]">chevron_right</span>
+<span class="text-body-sm text-on-surface-variant font-data-mono text-[11px] mr-2">Click any row for mathematical explanation</span>
+<button id="btn-footer-run-optimization" onclick="window.location.href='/block-planning'" class="px-3 py-1 bg-primary-container text-on-primary rounded text-[11px] font-bold hover:bg-opacity-90 transition-all flex items-center gap-1">
+    <span class="material-symbols-outlined text-[14px]">bolt</span> Run Optimization
 </button>
 </div>
 </div>
 </div>
+
 <!-- Detail Sidebar (Right) -->
-<div class="w-[320px] bg-surface-container-lowest flex flex-col h-full shrink-0 shadow-[-4px_0_15px_rgba(0,0,0,0.03)] z-10 relative">
-<!-- Sidebar Header -->
-<div class="px-md py-md border-b border-outline-variant flex items-start justify-between bg-surface-container-low shrink-0">
-<div>
-<div class="flex items-center gap-2 mb-1">
-<h3 class="font-headline-sm text-headline-sm text-on-surface">Job J-03</h3>
-<span class="pill pill-high">High</span>
-</div>
-<p class="font-body-sm text-body-sm text-on-surface-variant">OHE Maintenance &amp; Alignment</p>
-</div>
-<button class="text-outline hover:text-on-surface rounded p-1 hover:bg-surface-variant transition-colors">
-<span class="material-symbols-outlined text-[20px]">close</span>
-</button>
-</div>
-<!-- Details Content -->
-<div class="flex-1 overflow-y-auto p-md flex flex-col gap-6">
-<!-- Status Bar -->
-<div class="bg-surface-variant/50 rounded-lg p-3 border border-outline-variant/30">
-<div class="flex justify-between items-center mb-1">
-<span class="text-[10px] uppercase font-label-md text-on-surface-variant">Current Status</span>
-<span class="font-label-md text-surface-tint">Pending Review</span>
-</div>
-<div class="w-full bg-outline-variant/30 rounded-full h-1.5 mt-2">
-<div class="bg-surface-tint h-1.5 rounded-full w-1/3"></div>
-</div>
-</div>
-<!-- Info Grid -->
-<div class="grid grid-cols-2 gap-y-4 gap-x-2">
-<div>
-<div class="text-[10px] uppercase font-label-md text-on-surface-variant mb-1">Department</div>
-<div class="font-body-sm text-on-surface flex items-center gap-1">
-<span class="material-symbols-outlined text-[14px] text-outline">electrical_services</span>
-                                    Traction (TRD)
-                                </div>
-</div>
-<div>
-<div class="text-[10px] uppercase font-label-md text-on-surface-variant mb-1">Requested By</div>
-<div class="font-body-sm text-on-surface">SSE/TRD/GZB</div>
-</div>
-<div>
-<div class="text-[10px] uppercase font-label-md text-on-surface-variant mb-1">Section</div>
-<div class="font-body-sm text-on-surface font-data-mono text-[12px]">NDLS - GZB</div>
-</div>
-<div>
-<div class="text-[10px] uppercase font-label-md text-on-surface-variant mb-1">Location</div>
-<div class="font-body-sm text-on-surface font-data-mono text-[12px]">OHE 12/15-12/17</div>
-</div>
-<div>
-<div class="text-[10px] uppercase font-label-md text-on-surface-variant mb-1">Req. Duration</div>
-<div class="font-body-sm text-on-surface">90 mins</div>
-</div>
-<div>
-<div class="text-[10px] uppercase font-label-md text-on-surface-variant mb-1">Preferred Time</div>
-<div class="font-body-sm text-on-surface">02:00 - 05:00</div>
-</div>
-</div>
-<hr class="border-outline-variant/50">
-<!-- Description -->
-<div>
-<div class="text-[10px] uppercase font-label-md text-on-surface-variant mb-2">Description / Remarks</div>
-<p class="font-body-sm text-on-surface text-sm leading-relaxed">
-                                Routine alignment and tensioning of OHE catenary wire between mast 12/15 and 12/17. Requires power block on UP line.
-                            </p>
-</div>
-<!-- Map Placeholder -->
-<div>
-<div class="text-[10px] uppercase font-label-md text-on-surface-variant mb-2">Location Map</div>
-<div class="h-32 w-full rounded border border-outline-variant bg-surface-variant relative overflow-hidden" data-alt="A detailed, modern digital UI map snippet showing a railway line schematic between two stations (NDLS to GZB). The map uses a clean, light-mode palette with subtle grid lines on a soft grayish-blue background (#dae4ef). A specific section of the track is highlighted with a precise red marker and a glowing boundary, indicating a maintenance zone. The aesthetic is highly technical, precise, and utilitarian, suitable for an enterprise rail dashboard." data-location="New Delhi" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuAbbUBOAN12enl_Z8n4QBhEHJtppxpX9F5mJyBtz6dshZaRQmAW7b2Fe6_yRBXieEAKEtRll3ieST7I4r_7tRyCibT3RmBAC2Ny-PP4mOEyLTed1g85dEm9JnOpwI79RFohIZZuTSFovLmdNbUKpTq-O7DZPnV7hYPS0B13RVf_BT698MI2Pd5EEPu_Ur9cDjFY0FUZ8oIUwhlOVUlCaD2dCa2r2l7gHpbqL8fOTOUfVu0wFBya6M6o')">
-<div class="absolute inset-0 flex items-center justify-center opacity-50">
-<span class="material-symbols-outlined text-[48px] text-primary">map</span>
-</div>
-</div>
-</div>
-</div>
-<!-- Action Footer -->
-<div class="p-md border-t border-outline-variant bg-surface-container-low shrink-0 flex gap-2">
-<button class="flex-1 px-4 py-2 border border-outline-variant rounded bg-surface-container-lowest text-on-surface font-label-md hover:bg-surface-variant transition-colors">
-                            Reject
-                        </button>
-<button class="flex-1 px-4 py-2 rounded bg-primary-container text-on-primary font-label-md hover:bg-primary transition-colors shadow-sm">
-                            Approve
-                        </button>
-</div>
+<div id="request-detail-sidebar" class="w-[340px] bg-surface-container-lowest flex flex-col h-full shrink-0 border-l border-outline-variant z-10 relative">
+    <div class="px-md py-md border-b border-outline-variant bg-surface-container-low shrink-0">
+        <h3 class="font-headline-sm text-headline-sm text-on-surface font-bold">Request Details</h3>
+        <p class="font-body-sm text-body-sm text-on-surface-variant text-[12px]">Possession & Safety Clearance Inspector</p>
+    </div>
+    <div class="flex-1 flex flex-col items-center justify-center p-md text-center text-on-surface-variant gap-3">
+        <div class="w-12 h-12 rounded-full bg-surface-variant/40 flex items-center justify-center text-outline">
+            <span class="material-symbols-outlined text-[28px]">touch_app</span>
+        </div>
+        <h4 class="font-headline-sm text-on-surface font-bold text-[14px]">No Request Selected</h4>
+        <p class="text-body-sm text-[12px] max-w-xs text-on-surface-variant">
+            Click any maintenance request row in the table to view complete possession details, safety clearances, and operational actions.
+        </p>
+    </div>
 </div>
 </div>
 </main>
+
 </div>
 
 

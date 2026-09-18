@@ -1,4 +1,4 @@
-﻿"""
+"""
 Decision Explainer - SIH26027 Railway Block Planning
 Generates deterministic explanation trees for optimizer scheduling decisions.
 """
@@ -147,6 +147,28 @@ class DecisionExplainer:
                 )
             }
         ]
+
+        # Check active run objective parameters
+        from ..models.models import OptimizationRun
+        run = self.db.query(OptimizationRun).filter(OptimizationRun.id == sb.run_id).first()
+        if run and run.parameters_json:
+            try:
+                params = json.loads(run.parameters_json)
+                delay_w = params.get("train_delay_weight", 1.0)
+                shadow_w = params.get("shadow_block_weight", 1.0)
+                urg_w = params.get("urgency_weight", 1.0)
+                nodes.append({
+                    "step": 7,
+                    "title": "Optimization Trade-off Policy",
+                    "status": "POLICY_APPLIED",
+                    "detail": (
+                        f"Active Preferences: Train Delay Penalty ({delay_w}x), "
+                        f"Shadow Synergy ({shadow_w}x), Urgent Priority ({urg_w}x). "
+                        f"Deterministic CP-SAT solver balanced corridor availability against train punctuality."
+                    )
+                })
+            except Exception:
+                pass
 
         return {
             "job_code": job.job_code,

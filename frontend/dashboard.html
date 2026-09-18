@@ -210,9 +210,10 @@
         <span class="font-headline-md text-headline-md font-bold text-on-primary tracking-tight uppercase">RAILOPT</span>
     </div>
     <div class="flex items-center gap-sm text-on-primary">
-        <button class="hover:bg-primary-container p-1.5 rounded-full"><span class="material-symbols-outlined text-[20px]">notifications</span></button>
-        <div class="flex items-center gap-1.5 bg-primary-container px-2.5 py-1 rounded-lg">
-            <span class="font-label-md text-label-md text-on-primary">Planner</span>
+        <button id="btn-mobile-notifications" class="hover:bg-primary-container p-1.5 rounded-full relative"><span class="material-symbols-outlined text-[20px]">notifications</span></button>
+        <button id="btn-mobile-logout" class="hover:bg-primary-container p-1.5 rounded-full text-red-300" title="Sign Out"><span class="material-symbols-outlined text-[20px]">logout</span></button>
+        <div id="mobile-user-profile" class="flex items-center gap-1.5 bg-primary-container px-2.5 py-1 rounded-lg cursor-pointer">
+            <span id="mobile-user-role" class="font-label-md text-label-md text-on-primary">—</span>
         </div>
     </div>
 </header>
@@ -221,26 +222,30 @@
 <header class="hidden md:flex justify-between items-center px-lg w-full h-16 bg-primary border-b border-primary-container z-30 fixed top-0 left-[240px] right-0" style="width: calc(100% - 240px);">
     <div class="flex items-center gap-sm">
         <span class="font-body-sm text-body-sm text-on-primary opacity-90 font-medium">AI-Powered Block Planning System</span>
-        <span class="text-xs bg-primary-container text-on-primary px-2 py-0.5 rounded text-[11px] border border-outline-variant/30">Northern / NCR Division</span>
+        <span id="header-division-badge" class="text-xs bg-primary-container text-on-primary px-2.5 py-0.5 rounded text-[11px] border border-outline-variant/30 font-medium">—</span>
     </div>
     <div class="flex items-center gap-lg">
-        <span class="font-label-md text-label-md text-on-primary opacity-80" id="header-datetime">31 Aug 2026 | 20:15:00</span>
+        <span class="font-label-md text-label-md text-on-primary opacity-80" id="header-datetime">01 Sep 2026 | 19:30:00</span>
         <div class="flex items-center gap-sm text-on-primary">
-            <button class="hover:bg-primary-container p-1.5 rounded-full transition-colors duration-200 relative" title="Notifications">
+            <button id="btn-header-notifications" class="hover:bg-primary-container p-1.5 rounded-full transition-colors duration-200 relative" title="Operational Alerts & Notifications">
                 <span class="material-symbols-outlined text-[20px]">notifications</span>
                 <span class="absolute top-1 right-1 w-2 h-2 bg-error rounded-full"></span>
             </button>
-            <a href="/constraints-logic" class="hover:bg-primary-container p-1.5 rounded-full transition-colors duration-200" title="Configuration & Rules">
+            <button id="btn-header-settings" class="hover:bg-primary-container p-1.5 rounded-full transition-colors duration-200" title="System Settings & Configuration">
                 <span class="material-symbols-outlined text-[20px]">settings</span>
-            </a>
+            </button>
+            <button id="btn-header-logout" class="hover:bg-red-600/30 p-1.5 rounded-full text-red-200 hover:text-red-100 transition-colors" title="Sign Out (Switch User)">
+                <span class="material-symbols-outlined text-[20px]">logout</span>
+            </button>
         </div>
-        <div class="flex items-center gap-2 bg-primary-container px-3 py-1.5 rounded-lg border border-outline-variant/20">
-            <div class="w-6 h-6 rounded-full bg-surface text-primary flex items-center justify-center font-bold text-xs">P</div>
-            <span class="font-label-md text-label-md text-on-primary font-medium">Planner</span>
+        <div id="header-user-profile" class="flex items-center gap-2 bg-primary-container px-3 py-1.5 rounded-lg border border-outline-variant/20 cursor-pointer hover:bg-opacity-80 transition-all select-none">
+            <div id="header-user-avatar" class="w-6 h-6 rounded-full bg-surface text-primary flex items-center justify-center font-bold text-xs">—</div>
+            <span id="header-user-role" class="font-label-md text-label-md text-on-primary font-medium">—</span>
             <span class="material-symbols-outlined text-[16px] text-on-primary opacity-70">expand_more</span>
         </div>
     </div>
 </header>
+
 <main class="flex-1 md:ml-[240px] mt-16 p-container-margin md:p-lg bg-surface-container-lowest min-h-screen">
 
 <!-- Page Header -->

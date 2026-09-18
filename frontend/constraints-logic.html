@@ -193,9 +193,10 @@
         <span class="font-headline-md text-headline-md font-bold text-on-primary tracking-tight uppercase">RAILOPT</span>
     </div>
     <div class="flex items-center gap-sm text-on-primary">
-        <button class="hover:bg-primary-container p-1.5 rounded-full"><span class="material-symbols-outlined text-[20px]">notifications</span></button>
-        <div class="flex items-center gap-1.5 bg-primary-container px-2.5 py-1 rounded-lg">
-            <span class="font-label-md text-label-md text-on-primary">Planner</span>
+        <button id="btn-mobile-notifications" class="hover:bg-primary-container p-1.5 rounded-full relative"><span class="material-symbols-outlined text-[20px]">notifications</span></button>
+        <button id="btn-mobile-logout" class="hover:bg-primary-container p-1.5 rounded-full text-red-300" title="Sign Out"><span class="material-symbols-outlined text-[20px]">logout</span></button>
+        <div id="mobile-user-profile" class="flex items-center gap-1.5 bg-primary-container px-2.5 py-1 rounded-lg cursor-pointer">
+            <span id="mobile-user-role" class="font-label-md text-label-md text-on-primary">—</span>
         </div>
     </div>
 </header>
@@ -204,22 +205,25 @@
 <header class="hidden md:flex justify-between items-center px-lg w-full h-16 bg-primary border-b border-primary-container z-30 fixed top-0 left-[240px] right-0" style="width: calc(100% - 240px);">
     <div class="flex items-center gap-sm">
         <span class="font-body-sm text-body-sm text-on-primary opacity-90 font-medium">AI-Powered Block Planning System</span>
-        <span class="text-xs bg-primary-container text-on-primary px-2 py-0.5 rounded text-[11px] border border-outline-variant/30">Northern / NCR Division</span>
+        <span id="header-division-badge" class="text-xs bg-primary-container text-on-primary px-2.5 py-0.5 rounded text-[11px] border border-outline-variant/30 font-medium">—</span>
     </div>
     <div class="flex items-center gap-lg">
-        <span class="font-label-md text-label-md text-on-primary opacity-80" id="header-datetime">31 Aug 2026 | 20:15:00</span>
+        <span class="font-label-md text-label-md text-on-primary opacity-80" id="header-datetime">01 Sep 2026 | 19:30:00</span>
         <div class="flex items-center gap-sm text-on-primary">
-            <button class="hover:bg-primary-container p-1.5 rounded-full transition-colors duration-200 relative" title="Notifications">
+            <button id="btn-header-notifications" class="hover:bg-primary-container p-1.5 rounded-full transition-colors duration-200 relative" title="Operational Alerts & Notifications">
                 <span class="material-symbols-outlined text-[20px]">notifications</span>
                 <span class="absolute top-1 right-1 w-2 h-2 bg-error rounded-full"></span>
             </button>
-            <a href="/constraints-logic" class="hover:bg-primary-container p-1.5 rounded-full transition-colors duration-200" title="Configuration & Rules">
+            <button id="btn-header-settings" class="hover:bg-primary-container p-1.5 rounded-full transition-colors duration-200" title="System Settings & Configuration">
                 <span class="material-symbols-outlined text-[20px]">settings</span>
-            </a>
+            </button>
+            <button id="btn-header-logout" class="hover:bg-red-600/30 p-1.5 rounded-full text-red-200 hover:text-red-100 transition-colors" title="Sign Out (Switch User)">
+                <span class="material-symbols-outlined text-[20px]">logout</span>
+            </button>
         </div>
-        <div class="flex items-center gap-2 bg-primary-container px-3 py-1.5 rounded-lg border border-outline-variant/20">
-            <div class="w-6 h-6 rounded-full bg-surface text-primary flex items-center justify-center font-bold text-xs">P</div>
-            <span class="font-label-md text-label-md text-on-primary font-medium">Planner</span>
+        <div id="header-user-profile" class="flex items-center gap-2 bg-primary-container px-3 py-1.5 rounded-lg border border-outline-variant/20 cursor-pointer hover:bg-opacity-80 transition-all select-none">
+            <div id="header-user-avatar" class="w-6 h-6 rounded-full bg-surface text-primary flex items-center justify-center font-bold text-xs">—</div>
+            <span id="header-user-role" class="font-label-md text-label-md text-on-primary font-medium">—</span>
             <span class="material-symbols-outlined text-[16px] text-on-primary opacity-70">expand_more</span>
         </div>
     </div>
@@ -228,214 +232,117 @@
 
 <!-- Page Header -->
 <div class="mb-lg flex justify-between items-end">
-<div>
-<div class="flex items-center gap-sm text-on-surface-variant font-label-md text-label-md mb-xs">
-<a class="hover:text-primary transition-colors" href="#">Block Planning</a>
-<span class="material-symbols-outlined text-[14px]">chevron_right</span>
-<a class="hover:text-primary transition-colors" href="#">Plan P-2024-05-15-01</a>
-<span class="material-symbols-outlined text-[14px]">chevron_right</span>
-<span class="text-on-surface">Explanation &amp; Logic</span>
+    <div>
+        <div class="flex items-center gap-sm text-on-surface-variant font-label-md text-label-md mb-xs">
+            <a class="hover:text-primary transition-colors" href="/block-planning">Block Planning</a>
+            <span class="material-symbols-outlined text-[14px]">chevron_right</span>
+            <span class="text-on-surface">Corridor Safety Rules &amp; Logic</span>
+        </div>
+        <h1 class="font-headline-lg text-headline-lg text-on-surface flex items-center gap-sm">
+            Plan Logic &amp; Constraints
+            <span class="bg-primary-fixed text-on-primary-fixed-variant font-label-md text-label-md px-sm py-[2px] rounded-full border border-primary-fixed-dim inline-flex items-center gap-xs">
+                <span class="material-symbols-outlined text-[14px]">verified</span>
+                Domain Rules
+            </span>
+        </h1>
+    </div>
+    <button onclick="window.location.href='/reports'" class="px-md py-sm border border-outline bg-surface-container-lowest text-on-surface rounded font-label-md text-label-md hover:bg-surface-variant transition-colors flex items-center gap-sm">
+        <span class="material-symbols-outlined text-[18px]">assessment</span>
+        View Reports
+    </button>
 </div>
-<h1 class="font-headline-lg text-headline-lg text-on-surface flex items-center gap-sm">
-                        Plan Explanation &amp; Logic
-                        <span class="bg-primary-fixed text-on-primary-fixed-variant font-label-md text-label-md px-sm py-[2px] rounded-full border border-primary-fixed-dim inline-flex items-center gap-xs">
-<span class="material-symbols-outlined text-[14px]">verified</span>
-                            Optimized
-                        </span>
-</h1>
+
+<!-- Data source honesty banner -->
+<div class="mb-lg p-3 rounded-lg border border-amber-200 bg-amber-50 text-amber-900 text-[12px] flex items-start gap-2">
+    <span class="material-symbols-outlined text-[16px] text-amber-700 shrink-0 mt-0.5">info</span>
+    <span><strong>Data Source: Synthetic Demo Data (Delhi–Agra corridor).</strong> Rules are loaded live from the RailOpt backend configuration and the latest CP-SAT plan. No live internal railway system is connected.</span>
 </div>
-<div class="flex gap-sm">
-<button class="px-md py-sm border border-outline bg-surface-container-lowest text-on-surface rounded font-label-md text-label-md hover:bg-surface-variant transition-colors flex items-center gap-sm">
-<span class="material-symbols-outlined text-[18px]">download</span>
-                        Export Report
-                    </button>
-<button class="px-md py-sm bg-primary text-on-primary rounded font-label-md text-label-md hover:bg-primary-container transition-colors flex items-center gap-sm shadow-sm">
-<span class="material-symbols-outlined text-[18px]">arrow_back</span>
-                        Back to Plan
-                    </button>
-</div>
-</div>
-<!-- Bento Grid Layout -->
+
 <div class="grid grid-cols-12 gap-lg">
-<!-- Optimization Reason Narrative (Left Column) -->
-<div class="col-span-12 xl:col-span-7 space-y-lg">
-<div class="bg-surface-container-lowest rounded-lg border border-outline-variant p-lg shadow-sm">
-<div class="flex items-center gap-sm mb-md pb-sm border-b border-surface-variant">
-<span class="material-symbols-outlined text-primary">psychology</span>
-<h2 class="font-headline-md text-headline-md text-on-surface">Optimization Reasoning: Job J-01 vs J-04</h2>
+    <!-- Left Column: Rules & Explanations -->
+    <div class="col-span-12 xl:col-span-7 space-y-lg">
+        <div class="bg-surface-container-lowest rounded-lg border border-outline-variant p-lg shadow-sm">
+            <div class="flex items-center gap-sm mb-md pb-sm border-b border-surface-variant">
+                <span class="material-symbols-outlined text-primary">rule</span>
+                <h2 class="font-headline-md text-headline-md text-on-surface">Active Railway Safety &amp; Planning Rules</h2>
+                <span id="constraints-rule-count" class="ml-auto text-[11px] font-data-mono text-on-surface-variant">—</span>
+            </div>
+            <div id="constraints-rules-container" class="space-y-md">
+                <div class="p-4 text-center text-on-surface-variant font-medium">Loading rules…</div>
+            </div>
+        </div>
+
+        <div class="bg-surface-container-lowest rounded-lg border border-outline-variant p-lg shadow-sm">
+            <div class="flex justify-between items-center mb-md pb-sm border-b border-surface-variant gap-sm">
+                <div class="flex items-center gap-sm">
+                    <span class="material-symbols-outlined text-primary">psychology</span>
+                    <h2 class="font-headline-md text-headline-md text-on-surface">Latest Plan Decision Explanations</h2>
+                </div>
+                <span id="constraints-run-summary" class="text-[11px] font-data-mono text-on-surface-variant text-right max-w-[320px]">—</span>
+            </div>
+            <div id="constraints-explanations-container" class="space-y-md">
+                <div class="p-4 text-center text-on-surface-variant font-medium">Loading latest plan…</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Right Column: Hard Constraint Verification -->
+    <div class="col-span-12 xl:col-span-5 space-y-lg">
+        <div class="bg-surface-container-lowest rounded-lg border border-outline-variant p-lg shadow-sm">
+            <div class="flex justify-between items-center mb-md pb-sm border-b border-surface-variant">
+                <div class="flex items-center gap-sm">
+                    <span class="material-symbols-outlined text-primary">fact_check</span>
+                    <h2 class="font-headline-md text-headline-md text-on-surface">Hard Constraints Verification</h2>
+                </div>
+                <span class="bg-emerald-100 text-emerald-800 border border-emerald-200 font-label-md text-[10px] px-2 py-1 rounded-full uppercase tracking-wider">Enforced by CP-SAT</span>
+            </div>
+            <div class="overflow-x-auto">
+                <table class="w-full text-left border-collapse">
+                    <thead>
+                        <tr class="bg-surface-container-low border-b border-outline-variant">
+                            <th class="p-table-cell-padding font-label-md text-label-md text-on-surface-variant uppercase">Constraint Type</th>
+                            <th class="p-table-cell-padding font-label-md text-label-md text-on-surface-variant uppercase">Category</th>
+                            <th class="p-table-cell-padding font-label-md text-label-md text-on-surface-variant uppercase">Parameter</th>
+                            <th class="p-table-cell-padding font-label-md text-label-md text-on-surface-variant uppercase">Status</th>
+                        </tr>
+                    </thead>
+                    <tbody id="constraints-table-tbody" class="font-body-sm text-body-sm text-on-surface">
+                        <tr><td colspan="4" class="p-4 text-center text-on-surface-variant">Loading…</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="bg-surface-container-lowest rounded-lg border border-outline-variant p-lg shadow-sm">
+            <div class="flex items-center gap-sm mb-md pb-sm border-b border-surface-variant">
+                <span class="material-symbols-outlined text-primary">shield</span>
+                <h2 class="font-headline-md text-headline-md text-on-surface">Safety Invariants</h2>
+            </div>
+            <ul class="space-y-sm text-body-md text-on-surface-variant">
+                <li class="flex items-start gap-sm">
+                    <span class="material-symbols-outlined text-[18px] text-emerald-600 mt-[2px] shrink-0">check_circle</span>
+                    <span><strong>Track Line Non-Overlap:</strong> two possessions can never occupy the same track line simultaneously unless co-located as a validated shadow block.</span>
+                </li>
+                <li class="flex items-start gap-sm">
+                    <span class="material-symbols-outlined text-[18px] text-emerald-600 mt-[2px] shrink-0">check_circle</span>
+                    <span><strong>Machine / Resource Exclusivity:</strong> heavy machinery (tamping, DTS, tower wagons) is never double-booked.</span>
+                </li>
+                <li class="flex items-start gap-sm">
+                    <span class="material-symbols-outlined text-[18px] text-emerald-600 mt-[2px] shrink-0">check_circle</span>
+                    <span><strong>Train Headway Buffer:</strong> possessions maintain the configured safety buffer against protected passenger train windows.</span>
+                </li>
+                <li class="flex items-start gap-sm">
+                    <span class="material-symbols-outlined text-[18px] text-emerald-600 mt-[2px] shrink-0">check_circle</span>
+                    <span><strong>OHE / Power Isolation:</strong> 25kV traction shutdowns are synchronized with the traffic block they serve.</span>
+                </li>
+                <li class="flex items-start gap-sm">
+                    <span class="material-symbols-outlined text-[18px] text-emerald-600 mt-[2px] shrink-0">check_circle</span>
+                    <span><strong>Department Compatibility:</strong> only compatible departments may form shadow blocks per the configuration matrix.</span>
+                </li>
+            </ul>
+        </div>
+    </div>
 </div>
-<div class="prose prose-sm max-w-none text-on-surface-variant font-body-md text-body-md space-y-md">
-<p class="leading-relaxed">
-                                The AI planning engine prioritized <strong class="text-on-surface">Job J-01 (Engineering, NDLS-GZB)</strong> over <strong class="text-on-surface">Job J-04 (Engineering, GZB-MTC)</strong> during the critical 22:30 - 01:30 block window. This decision was driven by an analysis of projected train traffic density and cascading delay probabilities across the North Central sector.
-                            </p>
-<div class="bg-surface-container p-md rounded border border-surface-variant my-md">
-<h4 class="font-label-md text-label-md text-on-surface mb-sm flex items-center gap-xs">
-<span class="material-symbols-outlined text-[16px] text-error">warning</span>
-                                    Traffic Density Constraint
-                                </h4>
-<p class="font-body-sm text-body-sm text-on-surface-variant leading-relaxed">
-                                    Corridor Working Timetable and synthetic freight forecast data indicated a surge in freight movement (Train 12302 path) on the GZB-MTC section between 00:00 and 03:00. Allocating the block to J-04 would have necessitated a complete diversion of this freight traffic, resulting in an estimated cascading network delay of <span class="font-data-mono font-medium text-error">420 minutes</span>.
-                                </p>
-</div>
-<p class="leading-relaxed">
-                                By scheduling J-01 first, the system leverages a natural low-traffic window on the NDLS-GZB route. Job J-04 has been safely deferred to the 02:00 - 05:00 window, where traffic density drops by 65%, allowing for a single-line working protocol without severe operational disruption.
-                            </p>
-<div class="flex gap-md mt-lg pt-md border-t border-surface-variant">
-<div class="flex-1 bg-surface p-sm rounded border border-outline-variant">
-<div class="font-label-md text-label-md text-on-surface-variant mb-xs">J-01 Priority Score</div>
-<div class="font-headline-md text-headline-md text-primary flex items-baseline gap-xs">
-                                        94 <span class="font-body-sm text-body-sm text-on-surface-variant font-normal">/ 100</span>
-</div>
-</div>
-<div class="flex-1 bg-surface p-sm rounded border border-outline-variant">
-<div class="font-label-md text-label-md text-on-surface-variant mb-xs">J-04 Priority Score</div>
-<div class="font-headline-md text-headline-md text-on-surface flex items-baseline gap-xs">
-                                        72 <span class="font-body-sm text-body-sm text-on-surface-variant font-normal">/ 100</span>
-</div>
-</div>
-<div class="flex-1 bg-surface p-sm rounded border border-outline-variant">
-<div class="font-label-md text-label-md text-on-surface-variant mb-xs">Net Time Saved</div>
-<div class="font-headline-md text-headline-md text-green-700 flex items-baseline gap-xs">
-                                        18.5 <span class="font-body-sm text-body-sm text-on-surface-variant font-normal">hrs</span>
-</div>
-</div>
-</div>
-</div>
-</div>
-<!-- Hard Constraints Check Table -->
-<div class="bg-surface-container-lowest rounded-lg border border-outline-variant p-lg shadow-sm">
-<div class="flex justify-between items-center mb-md pb-sm border-b border-surface-variant">
-<div class="flex items-center gap-sm">
-<span class="material-symbols-outlined text-primary">fact_check</span>
-<h2 class="font-headline-md text-headline-md text-on-surface">Hard Constraints Verification</h2>
-</div>
-<span class="bg-green-100 text-green-800 border border-green-200 font-label-md text-[10px] px-2 py-1 rounded-full uppercase tracking-wider">All Cleared</span>
-</div>
-<div class="overflow-x-auto">
-<table class="w-full text-left border-collapse">
-<thead>
-<tr class="bg-surface-container-low border-b border-outline-variant">
-<th class="p-table-cell-padding font-label-md text-label-md text-on-surface-variant uppercase">Constraint Type</th>
-<th class="p-table-cell-padding font-label-md text-label-md text-on-surface-variant uppercase">Parameter</th>
-<th class="p-table-cell-padding font-label-md text-label-md text-on-surface-variant uppercase">Required</th>
-<th class="p-table-cell-padding font-label-md text-label-md text-on-surface-variant uppercase">Status</th>
-</tr>
-</thead>
-<tbody class="font-body-sm text-body-sm text-on-surface">
-<tr class="border-b border-surface-variant hover:bg-surface-bright transition-colors">
-<td class="p-table-cell-padding font-medium">Safety Clearance</td>
-<td class="p-table-cell-padding">Adjacent Line Speed Restriction</td>
-<td class="p-table-cell-padding font-data-mono">Max 30 Kmph</td>
-<td class="p-table-cell-padding">
-<span class="inline-flex items-center gap-xs text-green-700 font-medium">
-<span class="material-symbols-outlined text-[14px]">check_circle</span> Passed
-                                            </span>
-</td>
-</tr>
-<tr class="border-b border-surface-variant hover:bg-surface-bright transition-colors">
-<td class="p-table-cell-padding font-medium">Resource Availability</td>
-<td class="p-table-cell-padding">Track Machine (BCM)</td>
-<td class="p-table-cell-padding font-data-mono">Available 22:00+</td>
-<td class="p-table-cell-padding">
-<span class="inline-flex items-center gap-xs text-green-700 font-medium">
-<span class="material-symbols-outlined text-[14px]">check_circle</span> Passed
-                                            </span>
-</td>
-</tr>
-<tr class="border-b border-surface-variant hover:bg-surface-bright transition-colors">
-<td class="p-table-cell-padding font-medium">Power Isolation</td>
-<td class="p-table-cell-padding">Traction Power Cut (TRD)</td>
-<td class="p-table-cell-padding font-data-mono">OHE De-energized</td>
-<td class="p-table-cell-padding">
-<span class="inline-flex items-center gap-xs text-green-700 font-medium">
-<span class="material-symbols-outlined text-[14px]">check_circle</span> Passed
-                                            </span>
-</td>
-</tr>
-<tr class="hover:bg-surface-bright transition-colors">
-<td class="p-table-cell-padding font-medium">Crew Scheduling</td>
-<td class="p-table-cell-padding">Working Hours Limit</td>
-<td class="p-table-cell-padding font-data-mono">&lt; 8 Hrs Shift</td>
-<td class="p-table-cell-padding">
-<span class="inline-flex items-center gap-xs text-green-700 font-medium">
-<span class="material-symbols-outlined text-[14px]">check_circle</span> Passed
-                                            </span>
-</td>
-</tr>
-</tbody>
-</table>
-</div>
-</div>
-</div>
-<!-- Right Column -->
-<div class="col-span-12 xl:col-span-5 space-y-lg">
-<!-- Sensitivity Analysis -->
-<div class="bg-surface-container-lowest rounded-lg border border-outline-variant p-lg shadow-sm">
-<div class="flex items-center gap-sm mb-md pb-sm border-b border-surface-variant">
-<span class="material-symbols-outlined text-primary">ssid_chart</span>
-<h2 class="font-headline-md text-headline-md text-on-surface">Sensitivity Analysis</h2>
-</div>
-<p class="font-body-sm text-body-sm text-on-surface-variant mb-md">
-                            Impact on overall plan efficiency if manual override prioritizes Train 12302 (Freight) during the primary block window.
-                        </p>
-<div class="space-y-md">
-<!-- Metric 1 -->
-<div>
-<div class="flex justify-between font-label-md text-label-md mb-xs">
-<span class="text-on-surface">Overall Plan Degradation</span>
-<span class="text-error font-data-mono">-14.2%</span>
-</div>
-<div class="w-full bg-surface-variant rounded-full h-2">
-<div class="bg-error h-2 rounded-full" style="width: 14.2%"></div>
-</div>
-</div>
-<!-- Metric 2 -->
-<div>
-<div class="flex justify-between font-label-md text-label-md mb-xs">
-<span class="text-on-surface">Maintenance Jobs Delayed</span>
-<span class="text-on-surface-variant font-data-mono">3 Jobs</span>
-</div>
-<div class="w-full bg-surface-variant rounded-full h-2">
-<div class="bg-secondary h-2 rounded-full" style="width: 30%"></div>
-</div>
-</div>
-</div>
-<div class="mt-md p-sm bg-error-container text-on-error-container rounded border border-error/20 font-body-sm text-body-sm flex gap-sm items-start">
-<span class="material-symbols-outlined text-[18px] shrink-0 mt-0.5">info</span>
-<p class="">Forcing this prioritization would violate 'Resource Availability' constraints for BCM machine routing to MTC yard.</p>
-</div>
-</div>
-<!-- Visual Data / Mini Chart Placeholder -->
-<div class="bg-surface-container-lowest rounded-lg border border-outline-variant p-lg shadow-sm h-[280px] flex flex-col relative overflow-hidden">
-<div class="flex items-center gap-sm mb-sm relative z-10">
-<span class="material-symbols-outlined text-primary">insights</span>
-<h2 class="font-headline-sm text-headline-sm text-on-surface">Traffic Density Projection</h2>
-</div>
-<p class="font-body-sm text-body-sm text-on-surface-variant mb-md relative z-10">NDLS - GZB Section (22:00 - 06:00)</p>
-<!-- Abstract decorative representation of a chart to avoid image generation -->
-<div class="flex-1 w-full flex items-end gap-1 px-sm pb-sm relative z-10 opacity-70">
-<div class="w-1/12 bg-primary/20 h-[30%] rounded-t-sm"></div>
-<div class="w-1/12 bg-primary/30 h-[40%] rounded-t-sm"></div>
-<div class="w-1/12 bg-primary/40 h-[60%] rounded-t-sm"></div>
-<div class="w-1/12 bg-error/40 h-[90%] rounded-t-sm border-t-2 border-error"></div> <!-- Peak -->
-<div class="w-1/12 bg-error/30 h-[70%] rounded-t-sm"></div>
-<div class="w-1/12 bg-primary/20 h-[50%] rounded-t-sm"></div>
-<div class="w-1/12 bg-primary/10 h-[20%] rounded-t-sm border-t-2 border-green-500"></div> <!-- Optimal Block -->
-<div class="w-1/12 bg-primary/10 h-[15%] rounded-t-sm border-t-2 border-green-500"></div>
-<div class="w-1/12 bg-primary/10 h-[10%] rounded-t-sm border-t-2 border-green-500"></div>
-<div class="w-1/12 bg-primary/20 h-[30%] rounded-t-sm"></div>
-<div class="w-1/12 bg-primary/40 h-[50%] rounded-t-sm"></div>
-<div class="w-1/12 bg-primary/60 h-[80%] rounded-t-sm"></div>
-</div>
-<div class="absolute bottom-4 left-4 right-4 flex justify-between font-data-mono text-[10px] text-on-surface-variant z-10 border-t border-surface-variant pt-1">
-<span class="">22:00</span>
-<span class="text-green-700 font-bold">02:00 (J-04 Window)</span>
-<span class="">06:00</span>
-</div>
-</div>
-</div>
-</div>
-</main>
 </div>
 
 

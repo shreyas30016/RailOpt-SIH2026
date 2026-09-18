@@ -9,6 +9,7 @@ from ..models.models import OptimizationRun, ScheduledBlock, MaintenanceJob, Con
 from ..schemas.schemas import OptimizationParams, OptimizationResponse
 from ..optimizer.solver import RailwayBlockOptimizer
 from ..optimizer.explainer import DecisionExplainer
+from .auth import require_permission
 
 router = APIRouter(prefix="/optimization", tags=["Optimization"])
 
@@ -24,6 +25,7 @@ class OptimizeRequest(BaseModel):
 @router.post("")
 def optimize_block_plan(
     req: OptimizeRequest = OptimizeRequest(),
+    current_user: dict = Depends(require_permission("can_optimize")),
     db: Session = Depends(get_db)
 ):
     """
@@ -33,16 +35,54 @@ def optimize_block_plan(
     optimizer = RailwayBlockOptimizer(db)
     
     minimize_delays = True
+    train_delay_weight = 1.0
     maximize_shadows = True
+    shadow_block_weight = 1.0
+    prioritize_urgency = True
+    urgency_weight = 1.0
+
     if req.optimization_objectives:
-        minimize_delays = req.optimization_objectives.get("minimize_passenger_delays", True)
-        maximize_shadows = req.optimization_objectives.get("maximize_shadow_blocks", True)
+        objs = req.optimization_objectives
+        if isinstance(objs, dict):
+            minimize_delays = objs.get("minimize_passenger_delays", True)
+            train_delay_weight = float(objs.get("train_delay_weight", 1.0))
+            maximize_shadows = objs.get("maximize_shadow_blocks", True)
+            shadow_block_weight = float(objs.get("shadow_block_weight", 1.0))
+            prioritize_urgency = objs.get("prioritize_urgent_maintenance", True)
+            urgency_weight = float(objs.get("urgency_weight", 1.0))
+        else:
+            minimize_delays = getattr(objs, "minimize_passenger_delays", True)
+            train_delay_weight = float(getattr(objs, "train_delay_weight", 1.0))
+            maximize_shadows = getattr(objs, "maximize_shadow_blocks", True)
+            shadow_block_weight = float(getattr(objs, "shadow_block_weight", 1.0))
+            prioritize_urgency = getattr(objs, "prioritize_urgent_maintenance", True)
+            urgency_weight = float(getattr(objs, "urgency_weight", 1.0))
+
+    # Safe bounds validation
+    if train_delay_weight < 0.1 or train_delay_weight > 5.0 or \
+       shadow_block_weight < 0.1 or shadow_block_weight > 5.0 or \
+       urgency_weight < 0.1 or urgency_weight > 5.0 or \
+       req.max_solver_time_sec < 5 or req.max_solver_time_sec > 60:
+        raise HTTPException(
+            status_code=422,
+            detail="Optimization objective weights must be between 0.1 and 5.0, and solver time must be between 5 and 60 seconds."
+        )
 
     raw_result = optimizer.run_optimization(
         max_solver_time_sec=req.max_solver_time_sec,
         minimize_passenger_delays=minimize_delays,
-        maximize_shadow_blocks=maximize_shadows
+        train_delay_weight=train_delay_weight,
+        maximize_shadow_blocks=maximize_shadows,
+        shadow_block_weight=shadow_block_weight,
+        prioritize_urgent_maintenance=prioritize_urgency,
+        urgency_weight=urgency_weight
     )
+
+    # Critical (CRITICAL/HIGH urgency) coverage — computed from real run data
+    scheduled_codes = {sb.get("job_code") for sb in raw_result.get("scheduled_blocks", [])}
+    crit_jobs = db.query(MaintenanceJob).filter(MaintenanceJob.urgency.in_(["CRITICAL", "HIGH"])).all()
+    crit_jobs_total = len(crit_jobs)
+    crit_jobs_scheduled = sum(1 for j in crit_jobs if j.job_code in scheduled_codes)
 
     # Standardized response format matching SIH26027 specifications
     kpis = {
@@ -54,7 +94,9 @@ def optimize_block_plan(
         "block_utilization_pct": raw_result.get("block_utilization_pct", 0.0),
         "shadow_block_synergy_pct": raw_result.get("shadow_block_synergy_pct", 0.0),
         "objective_score": raw_result.get("objective_score", 0.0),
-        "solver_time_seconds": raw_result.get("solver_time_seconds", 0.0)
+        "solver_time_seconds": raw_result.get("solver_time_seconds", 0.0),
+        "critical_jobs_total": crit_jobs_total,
+        "critical_jobs_scheduled": crit_jobs_scheduled
     }
 
     block_assignments = []
@@ -96,6 +138,14 @@ def optimize_block_plan(
         "KPI_values": kpis,
         "reason_codes": raw_result.get("explanations", []),
         
+        # Plan quality scorecard & applied preferences
+        "plan_quality": raw_result.get("plan_quality"),
+        "applied_objectives": raw_result.get("applied_objectives"),
+
+        # Critical coverage aliases for the Block Planning scorecard
+        "critical_jobs_total": crit_jobs_total,
+        "critical_jobs_scheduled": crit_jobs_scheduled,
+
         # Backward-compatibility alias fields for existing UI screens
         "scheduled_blocks": raw_result.get("scheduled_blocks", []),
         "total_jobs": raw_result.get("total_jobs", 0),
@@ -116,7 +166,41 @@ def optimize_block_plan(
 def get_latest_optimization(db: Session = Depends(get_db)):
     latest_run = db.query(OptimizationRun).order_by(OptimizationRun.id.desc()).first()
     if not latest_run:
-        return optimize_block_plan(OptimizeRequest(), db)
+        # Read endpoint must NEVER trigger a solver run as a side effect.
+        # Return a clean, honest empty plan and let the UI prompt the operator
+        # to run optimization explicitly (POST /api/optimization/run).
+        return {
+            "status": "NO_RUNS",
+            "run_id": None,
+            "timestamp": None,
+            "optimized_plan": {"run_id": None, "status": "NO_RUNS", "solver": "Google OR-Tools CP-SAT"},
+            "scheduled_jobs": [],
+            "unscheduled_jobs": [],
+            "block_assignments": [],
+            "conflicts": [],
+            "KPI_values": {
+                "total_jobs_considered": 0, "scheduled_jobs_count": 0,
+                "unscheduled_jobs_count": 0, "total_maintenance_hours": 0.0,
+                "total_train_delay_minutes": 0, "block_utilization_pct": 0.0,
+                "shadow_block_synergy_pct": 0.0, "objective_score": 0.0,
+                "solver_time_seconds": 0.0
+            },
+            "reason_codes": [],
+            "plan_quality": None,
+            "applied_objectives": None,
+            "scheduled_blocks": [],
+            "total_jobs": 0,
+            "scheduled_jobs_count": 0,
+            "unscheduled_jobs_count": 0,
+            "total_maintenance_hours": 0.0,
+            "train_delay_total_min": 0,
+            "block_utilization_pct": 0.0,
+            "shadow_block_synergy_pct": 0.0,
+            "objective_score": 0.0,
+            "solver_time_seconds": 0.0,
+            "conflicts_resolved": [],
+            "explanations": []
+        }
 
     scheduled_blocks_db = db.query(ScheduledBlock).filter(ScheduledBlock.run_id == latest_run.id).all()
     scheduled_blocks = []
@@ -151,6 +235,12 @@ def get_latest_optimization(db: Session = Depends(get_db)):
             "affected_trains": [],
             "explanation": f"Scheduled in corridor window on {sb.section.code if sb.section else 'corridor'}."
         })
+
+    # Critical coverage from the active run
+    sched_codes = {j.job_code for j in [sb.job for sb in scheduled_blocks_db] if j}
+    crit_jobs = db.query(MaintenanceJob).filter(MaintenanceJob.urgency.in_(["CRITICAL", "HIGH"])).all()
+    crit_jobs_total = len(crit_jobs)
+    crit_jobs_scheduled = sum(1 for j in crit_jobs if j.job_code in sched_codes)
 
     # Unscheduled jobs
     sched_job_ids = {sb.job_id for sb in scheduled_blocks_db}
@@ -196,7 +286,9 @@ def get_latest_optimization(db: Session = Depends(get_db)):
         "block_utilization_pct": round(latest_run.block_utilization_pct, 1),
         "shadow_block_synergy_pct": round(latest_run.shadow_block_synergy_pct, 1),
         "objective_score": latest_run.objective_score or 0.0,
-        "solver_time_seconds": round(latest_run.solver_time_seconds, 2)
+        "solver_time_seconds": round(latest_run.solver_time_seconds, 2),
+        "critical_jobs_total": crit_jobs_total,
+        "critical_jobs_scheduled": crit_jobs_scheduled
     }
 
     return {
@@ -214,7 +306,9 @@ def get_latest_optimization(db: Session = Depends(get_db)):
         "conflicts": conflicts,
         "KPI_values": kpis,
         "reason_codes": explanations,
-        
+        "critical_jobs_total": crit_jobs_total,
+        "critical_jobs_scheduled": crit_jobs_scheduled,
+
         # Compatibility aliases
         "scheduled_blocks": scheduled_blocks,
         "total_jobs": len(all_jobs),

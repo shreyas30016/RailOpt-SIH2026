@@ -105,6 +105,22 @@ def seed_synthetic_data(db: Session, force: bool = False):
         TrainSchedule(train_number="CONRAJ-01", train_name="Container Cargo Special", train_type="FREIGHT", priority_weight=5, direction="DN", origin_station="TKD", destination_station="JNPT", departure_minute=90, arrival_minute=210), # 01:30 - 03:30
         TrainSchedule(train_number="BTPN-04", train_name="IOCL Petroleum Tanker Rake", train_type="FREIGHT", priority_weight=5, direction="UP", origin_station="MTJ", destination_station="TKD", departure_minute=150, arrival_minute=270), # 02:30 - 04:30
         TrainSchedule(train_number="BOXN-12", train_name="Thermal Coal Freight Rake", train_type="FREIGHT", priority_weight=5, direction="DN", origin_station="TKD", destination_station="AGC", departure_minute=620, arrival_minute=780), # 10:20 - 13:00
+        # --- Additional evening/overnight services & freight (keeps the active corridor
+        #     window populated at any demo hour for the clock-driven live replay) ---
+        TrainSchedule(train_number="12301", train_name="Howrah Rajdhani Express", train_type="RAJDHANI", priority_weight=35, direction="DN", origin_station="NDLS", destination_station="HWH", departure_minute=1305, arrival_minute=1435), # 21:45 - 23:55
+        TrainSchedule(train_number="12302", train_name="Howrah Rajdhani Express (Return)", train_type="RAJDHANI", priority_weight=35, direction="UP", origin_station="HWH", destination_station="NDLS", departure_minute=1300, arrival_minute=1430), # 21:40 - 23:50
+        TrainSchedule(train_number="12622", train_name="Tamil Nadu Express", train_type="EXPRESS", priority_weight=20, direction="DN", origin_station="NDLS", destination_station="MAS", departure_minute=1235, arrival_minute=1375), # 20:35 - 22:55
+        TrainSchedule(train_number="12650", train_name="Karnataka Sampark Kranti Express", train_type="EXPRESS", priority_weight=20, direction="DN", origin_station="NDLS", destination_station="SMVB", departure_minute=1120, arrival_minute=1250), # 18:40 - 20:50
+        TrainSchedule(train_number="12627", train_name="Karnataka Express", train_type="EXPRESS", priority_weight=20, direction="UP", origin_station="SMVB", destination_station="NDLS", departure_minute=1010, arrival_minute=1140), # 16:50 - 19:00
+        TrainSchedule(train_number="12137", train_name="Punjab Mail (UP)", train_type="EXPRESS", priority_weight=15, direction="UP", origin_station="CSMT", destination_station="FZR", departure_minute=555, arrival_minute=685), # 09:15 - 11:25
+        TrainSchedule(train_number="12904", train_name="Golden Temple Mail", train_type="EXPRESS", priority_weight=15, direction="DN", origin_station="ASR", destination_station="MMCT", departure_minute=700, arrival_minute=830), # 11:40 - 13:50
+        TrainSchedule(train_number="CONRAJ-02", train_name="Container Cargo Special (Night)", train_type="FREIGHT", priority_weight=5, direction="DN", origin_station="TKD", destination_station="JNPT", departure_minute=1210, arrival_minute=1350), # 20:10 - 22:30
+        TrainSchedule(train_number="BOXN-14", train_name="Thermal Coal Freight Rake (2)", train_type="FREIGHT", priority_weight=5, direction="DN", origin_station="TKD", destination_station="AGC", departure_minute=1150, arrival_minute=1300), # 19:10 - 21:40
+        TrainSchedule(train_number="BTPN-06", train_name="IOCL Petroleum Tanker Rake (Night)", train_type="FREIGHT", priority_weight=5, direction="UP", origin_station="MTJ", destination_station="TKD", departure_minute=1200, arrival_minute=1320), # 20:00 - 22:00
+        TrainSchedule(train_number="BOXN-16", train_name="Thermal Coal Freight Rake (3)", train_type="FREIGHT", priority_weight=5, direction="DN", origin_station="TKD", destination_station="AGC", departure_minute=210, arrival_minute=330), # 03:30 - 05:30
+        TrainSchedule(train_number="BOXN-18", train_name="Thermal Coal Freight Rake (4)", train_type="FREIGHT", priority_weight=5, direction="DN", origin_station="TKD", destination_station="AGC", departure_minute=1335, arrival_minute=1435), # 22:15 - 23:55
+        TrainSchedule(train_number="CONRAJ-03", train_name="Container Cargo Special (Late Night)", train_type="FREIGHT", priority_weight=5, direction="DN", origin_station="TKD", destination_station="JNPT", departure_minute=1360, arrival_minute=1439), # 22:40 - 23:59
+
     ]
     db.add_all(trains)
     db.commit()
@@ -428,4 +444,7 @@ def seed_synthetic_data(db: Session, force: bool = False):
     ]
     db.add_all(jobs)
     db.commit()
-    print("Database successfully seeded with 16 realistic multi-department jobs, 17 trains, and 6 block windows.")
+    _j = db.query(MaintenanceJob).count()
+    _t = db.query(TrainSchedule).count()
+    _w = db.query(BlockWindow).count()
+    print(f"Database successfully seeded with {_j} realistic multi-department jobs, {_t} trains, and {_w} block windows.")

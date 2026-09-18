@@ -52,10 +52,35 @@ export function renderDecisionAuditModal(auditData) {
         document.body.appendChild(modal);
     }
 
+    if (!auditData || auditData.error) {
+        const errorMsg = auditData?.error || "Decision audit explanation not available for this job code.";
+        modal.innerHTML = `
+            <div class="bg-surface-container-lowest border border-error/30 rounded-xl max-w-lg w-full p-lg shadow-2xl animate-scale-up">
+                <div class="flex justify-between items-center border-b border-outline-variant pb-md mb-md">
+                    <div class="flex items-center gap-2">
+                        <span class="material-symbols-outlined text-error text-[24px]">error</span>
+                        <h3 class="font-headline-sm text-on-surface font-bold">Decision Audit Notice</h3>
+                    </div>
+                    <button onclick="document.getElementById('explainer-modal').remove()" class="p-1 rounded-full hover:bg-surface text-on-surface">
+                        <span class="material-symbols-outlined">close</span>
+                    </button>
+                </div>
+                <div class="p-3 bg-red-50 border border-red-200 rounded-lg text-red-800 text-body-md mb-md">
+                    ${errorMsg}
+                </div>
+                <div class="flex justify-end pt-sm border-t border-outline-variant">
+                    <button onclick="document.getElementById('explainer-modal').remove()" class="px-4 py-2 bg-primary text-on-primary rounded font-label-md hover:bg-opacity-90">Close</button>
+                </div>
+            </div>
+        `;
+        return;
+    }
+
     const isSched = auditData.status === "SCHEDULED" || auditData.status === "SHADOW_PAIRED";
     const statusPill = isSched 
         ? `<span class="px-2.5 py-0.5 rounded text-[11px] font-bold bg-green-100 text-green-800">SCHEDULED</span>`
         : `<span class="px-2.5 py-0.5 rounded text-[11px] font-bold bg-red-100 text-red-800">DEFERRED</span>`;
+
 
     // Reason code badge for deferred jobs
     const reasonCodeBadge = (!isSched && auditData.reason_code) ?

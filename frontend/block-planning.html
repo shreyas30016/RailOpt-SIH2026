@@ -189,9 +189,10 @@
         <span class="font-headline-md text-headline-md font-bold text-on-primary tracking-tight uppercase">RAILOPT</span>
     </div>
     <div class="flex items-center gap-sm text-on-primary">
-        <button class="hover:bg-primary-container p-1.5 rounded-full"><span class="material-symbols-outlined text-[20px]">notifications</span></button>
-        <div class="flex items-center gap-1.5 bg-primary-container px-2.5 py-1 rounded-lg">
-            <span class="font-label-md text-label-md text-on-primary">Planner</span>
+        <button id="btn-mobile-notifications" class="hover:bg-primary-container p-1.5 rounded-full relative"><span class="material-symbols-outlined text-[20px]">notifications</span></button>
+        <button id="btn-mobile-logout" class="hover:bg-primary-container p-1.5 rounded-full text-red-300" title="Sign Out"><span class="material-symbols-outlined text-[20px]">logout</span></button>
+        <div id="mobile-user-profile" class="flex items-center gap-1.5 bg-primary-container px-2.5 py-1 rounded-lg cursor-pointer">
+            <span id="mobile-user-role" class="font-label-md text-label-md text-on-primary">—</span>
         </div>
     </div>
 </header>
@@ -200,168 +201,355 @@
 <header class="hidden md:flex justify-between items-center px-lg w-full h-16 bg-primary border-b border-primary-container z-30 fixed top-0 left-[240px] right-0" style="width: calc(100% - 240px);">
     <div class="flex items-center gap-sm">
         <span class="font-body-sm text-body-sm text-on-primary opacity-90 font-medium">AI-Powered Block Planning System</span>
-        <span class="text-xs bg-primary-container text-on-primary px-2 py-0.5 rounded text-[11px] border border-outline-variant/30">Northern / NCR Division</span>
+        <span id="header-division-badge" class="text-xs bg-primary-container text-on-primary px-2.5 py-0.5 rounded text-[11px] border border-outline-variant/30 font-medium">—</span>
     </div>
     <div class="flex items-center gap-lg">
-        <span class="font-label-md text-label-md text-on-primary opacity-80" id="header-datetime">31 Aug 2026 | 20:15:00</span>
+        <span class="font-label-md text-label-md text-on-primary opacity-80" id="header-datetime">01 Sep 2026 | 19:30:00</span>
         <div class="flex items-center gap-sm text-on-primary">
-            <button class="hover:bg-primary-container p-1.5 rounded-full transition-colors duration-200 relative" title="Notifications">
+            <button id="btn-header-notifications" class="hover:bg-primary-container p-1.5 rounded-full transition-colors duration-200 relative" title="Operational Alerts & Notifications">
                 <span class="material-symbols-outlined text-[20px]">notifications</span>
                 <span class="absolute top-1 right-1 w-2 h-2 bg-error rounded-full"></span>
             </button>
-            <a href="/constraints-logic" class="hover:bg-primary-container p-1.5 rounded-full transition-colors duration-200" title="Configuration & Rules">
+            <button id="btn-header-settings" class="hover:bg-primary-container p-1.5 rounded-full transition-colors duration-200" title="System Settings & Configuration">
                 <span class="material-symbols-outlined text-[20px]">settings</span>
-            </a>
+            </button>
+            <button id="btn-header-logout" class="hover:bg-red-600/30 p-1.5 rounded-full text-red-200 hover:text-red-100 transition-colors" title="Sign Out (Switch User)">
+                <span class="material-symbols-outlined text-[20px]">logout</span>
+            </button>
         </div>
-        <div class="flex items-center gap-2 bg-primary-container px-3 py-1.5 rounded-lg border border-outline-variant/20">
-            <div class="w-6 h-6 rounded-full bg-surface text-primary flex items-center justify-center font-bold text-xs">P</div>
-            <span class="font-label-md text-label-md text-on-primary font-medium">Planner</span>
+        <div id="header-user-profile" class="flex items-center gap-2 bg-primary-container px-3 py-1.5 rounded-lg border border-outline-variant/20 cursor-pointer hover:bg-opacity-80 transition-all select-none">
+            <div id="header-user-avatar" class="w-6 h-6 rounded-full bg-surface text-primary flex items-center justify-center font-bold text-xs">—</div>
+            <span id="header-user-role" class="font-label-md text-label-md text-on-primary font-medium">—</span>
             <span class="material-symbols-outlined text-[16px] text-on-primary opacity-70">expand_more</span>
         </div>
     </div>
 </header>
 <main class="flex-1 md:ml-[240px] mt-16 p-container-margin md:p-lg bg-surface-container-lowest min-h-screen">
 
-<div class="flex justify-between items-center mb-lg">
-<h1 class="font-headline-lg text-headline-lg text-on-surface">Generate Optimal Plan</h1>
+<!-- Page Header with Action Buttons -->
+<div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-md">
+    <div>
+        <h1 class="font-headline-lg text-headline-lg text-on-surface font-bold">Block Planning &amp; Optimization</h1>
+        <p class="text-body-sm text-on-surface-variant font-data-mono">Delhi–Agra Mainline Corridor | Google OR-Tools CP-SAT Solver</p>
+    </div>
+    <div class="flex items-center gap-2">
+        <button id="btn-run-optimization" class="bg-primary-container hover:bg-primary text-on-primary font-bold text-label-md px-4 py-2.5 rounded-lg transition-all shadow-sm flex items-center gap-2 cursor-pointer active:scale-95">
+            <span class="material-symbols-outlined text-[20px]">bolt</span>
+            <span id="btn-opt-label">Run CP-SAT Optimization</span>
+        </button>
+        <button id="btn-view-gantt" onclick="window.location.href='/gantt-view'" class="bg-surface-tint hover:bg-opacity-90 text-on-primary font-bold text-label-md px-4 py-2.5 rounded-lg transition-all shadow-sm flex items-center gap-2 cursor-pointer">
+            <span class="material-symbols-outlined text-[20px]">view_timeline</span>
+            <span>View in Gantt</span>
+        </button>
+    </div>
 </div>
-<!-- Success Banner -->
-<div class="bg-surface-container-low border border-[#CBD5E0] rounded-xl p-md flex justify-between items-center mb-lg">
-<div class="flex items-start gap-md">
-<span class="material-symbols-outlined text-[24px] text-[#16a34a] icon-fill mt-xs">check_circle</span>
-<div>
-<h2 class="font-headline-sm text-headline-sm text-on-surface mb-xs">Optimal Plan Generated Successfully</h2>
-<p class="font-body-sm text-body-sm text-outline">Plan ID: P-2024-05-15-01 | Generated at: 10:29 AM</p>
+
+<!-- Optimization Preferences & Solver Controls -->
+<div id="solver-controls-panel" class="bg-surface-container-lowest border border-outline-variant rounded-xl p-md md:p-lg mb-lg shadow-sm">
+    <div class="flex flex-col md:flex-row md:items-center justify-between gap-3 border-b border-outline-variant pb-md mb-md">
+        <div class="flex items-center gap-2.5">
+            <span class="material-symbols-outlined text-primary-container text-[24px]">tune</span>
+            <div>
+                <h2 class="font-headline-sm text-headline-sm text-on-surface font-bold">Optimization Preferences &amp; Plan Priorities</h2>
+                <p class="text-body-sm text-on-surface-variant text-[12px]">Fine-tune CP-SAT mathematical trade-offs without compromising hard railway safety constraints</p>
+            </div>
+        </div>
+        <div class="flex items-center gap-2">
+            <button id="btn-reset-preferences" class="px-3 py-1.5 border border-outline-variant rounded-lg text-on-surface hover:bg-surface text-label-md font-semibold text-[12px] flex items-center gap-1.5 transition-colors" title="Reset all objective weights to standard operational baseline">
+                <span class="material-symbols-outlined text-[16px]">restart_alt</span>
+                <span>Reset Defaults</span>
+            </button>
+            <button id="btn-run-solver-panel" class="bg-primary-container hover:bg-primary text-on-primary font-bold text-label-md px-4 py-1.5 rounded-lg transition-all shadow-sm flex items-center gap-1.5 text-[12px] cursor-pointer">
+                <span class="material-symbols-outlined text-[18px]">bolt</span>
+                <span>Solve with Active Priorities</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- 3 Business Objectives Grid -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-md mb-md">
+        <!-- Objective 1: Train Delay Minimization -->
+        <div class="p-3.5 bg-surface-container-low rounded-xl border border-outline-variant/60 flex flex-col justify-between">
+            <div>
+                <div class="flex items-center justify-between mb-1.5">
+                    <span class="font-label-md text-on-surface font-bold text-[13px] flex items-center gap-1.5">
+                        <span class="material-symbols-outlined text-emerald-700 text-[18px]">schedule</span>
+                        <span>Passenger Train Delay Minimization</span>
+                    </span>
+                    <label class="relative inline-flex items-center cursor-pointer">
+                        <input id="pref-opt-delay-toggle" type="checkbox" checked class="sr-only peer">
+                        <div class="w-9 h-5 bg-slate-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-emerald-600"></div>
+                    </label>
+                </div>
+                <p class="text-body-sm text-on-surface-variant text-[11px] leading-relaxed mb-3">
+                    Penalizes disruption to Mail/Express &amp; Premium passenger trains. Higher weights force maintenance into low-density lull hours.
+                </p>
+            </div>
+            <div>
+                <div class="flex justify-between items-center text-[11px] font-data-mono mb-1">
+                    <span class="text-on-surface-variant">Penalty Weight</span>
+                    <span id="pref-opt-delay-label" class="font-bold text-emerald-800 bg-emerald-100 px-2 py-0.5 rounded">1.0x (Standard)</span>
+                </div>
+                <input id="pref-opt-delay-slider" type="range" min="0.5" max="3.0" step="0.5" value="1.0" class="w-full h-1.5 bg-outline-variant/40 rounded-lg appearance-none cursor-pointer accent-emerald-600">
+            </div>
+        </div>
+
+        <!-- Objective 2: Shadow Block Synergy -->
+        <div class="p-3.5 bg-surface-container-low rounded-xl border border-outline-variant/60 flex flex-col justify-between">
+            <div>
+                <div class="flex items-center justify-between mb-1.5">
+                    <span class="font-label-md text-on-surface font-bold text-[13px] flex items-center gap-1.5">
+                        <span class="material-symbols-outlined text-indigo-700 text-[18px]">bolt</span>
+                        <span>Shadow Block Synergy</span>
+                    </span>
+                    <label class="relative inline-flex items-center cursor-pointer">
+                        <input id="pref-opt-shadow-toggle" type="checkbox" checked class="sr-only peer">
+                        <div class="w-9 h-5 bg-slate-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-indigo-600"></div>
+                    </label>
+                </div>
+                <p class="text-body-sm text-on-surface-variant text-[11px] leading-relaxed mb-3">
+                    Rewards co-locating Civil Engineering, Traction (OHE), and S&amp;T works in shared possession slots to maximize track availability.
+                </p>
+            </div>
+            <div>
+                <div class="flex justify-between items-center text-[11px] font-data-mono mb-1">
+                    <span class="text-on-surface-variant">Synergy Bonus</span>
+                    <span id="pref-opt-shadow-label" class="font-bold text-indigo-800 bg-indigo-100 px-2 py-0.5 rounded">1.0x (Standard)</span>
+                </div>
+                <input id="pref-opt-shadow-slider" type="range" min="0.5" max="3.0" step="0.5" value="1.0" class="w-full h-1.5 bg-outline-variant/40 rounded-lg appearance-none cursor-pointer accent-indigo-600">
+            </div>
+        </div>
+
+        <!-- Objective 3: Urgent Maintenance Priority -->
+        <div class="p-3.5 bg-surface-container-low rounded-xl border border-outline-variant/60 flex flex-col justify-between">
+            <div>
+                <div class="flex items-center justify-between mb-1.5">
+                    <span class="font-label-md text-on-surface font-bold text-[13px] flex items-center gap-1.5">
+                        <span class="material-symbols-outlined text-amber-700 text-[18px]">priority_high</span>
+                        <span>Urgent Maintenance Priority</span>
+                    </span>
+                    <label class="relative inline-flex items-center cursor-pointer">
+                        <input id="pref-opt-urgency-toggle" type="checkbox" checked class="sr-only peer">
+                        <div class="w-9 h-5 bg-slate-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-amber-600"></div>
+                    </label>
+                </div>
+                <p class="text-body-sm text-on-surface-variant text-[11px] leading-relaxed mb-3">
+                    Applies mathematical preference multiplier to Critical &amp; High urgency safety possessions (e.g. rail fractures, signal overhauls).
+                </p>
+            </div>
+            <div>
+                <div class="flex justify-between items-center text-[11px] font-data-mono mb-1">
+                    <span class="text-on-surface-variant">Urgency Priority</span>
+                    <span id="pref-opt-urgency-label" class="font-bold text-amber-800 bg-amber-100 px-2 py-0.5 rounded">1.0x (Standard)</span>
+                </div>
+                <input id="pref-opt-urgency-slider" type="range" min="0.5" max="3.0" step="0.5" value="1.0" class="w-full h-1.5 bg-outline-variant/40 rounded-lg appearance-none cursor-pointer accent-amber-600">
+            </div>
+        </div>
+    </div>
+
+    <!-- Execution Settings (Separated cleanly) -->
+    <div class="pt-3 border-t border-outline-variant/60 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-[12px]">
+        <div class="flex items-center gap-2 text-on-surface-variant">
+            <span class="material-symbols-outlined text-[18px] text-outline">timer</span>
+            <span class="font-bold text-on-surface">Solver Execution Budget:</span>
+            <select id="pref-opt-solver-budget" class="border border-outline-variant rounded-md px-2.5 py-1 text-xs font-data-mono bg-surface-container-lowest text-on-surface font-semibold focus:outline-none focus:border-primary">
+                <option value="5">5s — Fast Exploration / Interactive Preview</option>
+                <option value="15" selected>15s — Balanced (Recommended Operational)</option>
+                <option value="30">30s — Deep Combinatorial Search</option>
+                <option value="60">60s — Complete Global Exhaustive</option>
+            </select>
+        </div>
+        <div class="text-[11px] text-on-surface-variant font-data-mono flex items-center gap-1.5">
+            <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+            <span>Safety Constraints: <strong class="text-primary">Hard Invariant</strong> (Non-bypassable)</span>
+        </div>
+    </div>
 </div>
+
+<!-- Plan Status Banner -->
+<div id="bp-plan-status-banner" class="bg-surface-container-low border border-outline-variant/60 rounded-xl p-md flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-lg shadow-sm">
+    <div class="flex items-start gap-md">
+        <span class="material-symbols-outlined text-[28px] text-emerald-600 icon-fill mt-xs shrink-0">check_circle</span>
+        <div>
+            <div class="flex items-center gap-2">
+                <h2 class="font-headline-sm text-headline-sm text-on-surface" id="bp-status-title">Active Block Plan Loaded</h2>
+                <span id="bp-status-badge" class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800">OPTIMAL</span>
+            </div>
+            <p class="font-body-sm text-body-sm text-on-surface-variant font-data-mono mt-0.5" id="bp-plan-meta">No plan loaded — run optimization to generate a plan.</p>
+        </div>
+    </div>
+    <div class="flex items-center gap-2 text-body-sm text-on-surface-variant font-data-mono text-[12px]">
+        <span>Corridor: <strong>199.5 km (6 Sections)</strong></span>
+    </div>
 </div>
-<button class="bg-primary-container hover:bg-primary text-on-primary font-label-md text-label-md px-lg py-sm rounded transition-colors shadow-sm">View Plan</button>
-</div>
+
 <!-- Metrics Row -->
-<div class="grid grid-cols-5 gap-md mb-lg">
-<!-- Metric 1 -->
-<div class="bg-surface-container-lowest border border-[#CBD5E0] rounded-lg p-md">
-<h3 class="font-label-md text-label-md text-outline mb-sm uppercase tracking-wide">Jobs Scheduled</h3>
-<div class="flex items-end justify-between">
-<span class="font-headline-lg text-headline-lg text-on-surface">10/12</span>
-<span class="font-body-sm text-body-sm text-[#16a34a] font-medium">83%</span>
+<div class="grid grid-cols-2 md:grid-cols-5 gap-md mb-lg">
+    <!-- Metric 1: Jobs Scheduled -->
+    <div class="bg-surface-container-lowest border border-outline-variant/60 rounded-lg p-md shadow-sm">
+        <h3 class="font-label-md text-label-md text-on-surface-variant mb-sm uppercase tracking-wide text-[11px]">Jobs Scheduled</h3>
+        <div class="flex items-end justify-between">
+            <span id="bp-jobs-scheduled" class="font-headline-lg text-[26px] font-bold text-primary">—</span>
+            <span id="bp-jobs-pct" class="font-body-sm text-emerald-700 font-bold text-[13px]">—</span>
+        </div>
+    </div>
+
+    <!-- Metric 2: Blocks Utilized -->
+    <div class="bg-surface-container-lowest border border-outline-variant/60 rounded-lg p-md shadow-sm">
+        <h3 class="font-label-md text-label-md text-on-surface-variant mb-sm uppercase tracking-wide text-[11px]">Blocks Utilized</h3>
+        <div class="flex items-end justify-between">
+            <span id="bp-blocks-utilized" class="font-headline-lg text-[26px] font-bold text-primary">—</span>
+            <span id="bp-blocks-pct" class="font-body-sm text-emerald-700 font-bold text-[13px]">—</span>
+        </div>
+    </div>
+
+    <!-- Metric 3: Total Blocked Time -->
+    <div class="bg-surface-container-lowest border border-outline-variant/60 rounded-lg p-md shadow-sm">
+        <h3 class="font-label-md text-label-md text-on-surface-variant mb-sm uppercase tracking-wide text-[11px]">Blocked Time</h3>
+        <div class="flex items-end justify-between">
+            <span id="bp-total-time" class="font-headline-lg text-[26px] font-bold text-primary">— <span class="text-[13px] font-normal text-outline">hrs</span></span>
+            <span id="bp-vs-manual" class="font-body-sm text-emerald-700 font-bold text-[11px] flex items-center">—</span>
+        </div>
+    </div>
+
+    <!-- Metric 4: Shadow Synergy -->
+    <div class="bg-surface-container-lowest border border-outline-variant/60 rounded-lg p-md shadow-sm">
+        <h3 class="font-label-md text-label-md text-on-surface-variant mb-sm uppercase tracking-wide text-[11px]">Shadow Synergy</h3>
+        <div class="flex items-end justify-between">
+            <span id="bp-conflicts-resolved" class="font-headline-lg text-[26px] font-bold text-primary">—</span>
+            <span class="font-body-sm text-indigo-700 font-bold text-[11px]">Bundled</span>
+        </div>
+    </div>
+
+    <!-- Metric 5: Critical Covered -->
+    <div class="bg-surface-container-lowest border border-outline-variant/60 rounded-lg p-md shadow-sm col-span-2 md:col-span-1">
+        <h3 class="font-label-md text-label-md text-on-surface-variant mb-sm uppercase tracking-wide text-[11px]">Critical Covered</h3>
+        <div class="flex items-end justify-between">
+            <span id="bp-critical-covered" class="font-headline-lg text-[26px] font-bold text-primary">—</span>
+            <span class="font-body-sm text-emerald-700 font-bold text-[13px]">—</span>
+        </div>
+    </div>
 </div>
+
+<!-- Scheduled Blocks Table -->
+<div class="bg-surface-container-lowest border border-outline-variant/60 rounded-lg shadow-sm mb-lg overflow-hidden">
+    <div class="p-md border-b border-outline-variant flex justify-between items-center bg-surface-container-low">
+        <div>
+            <h3 class="font-headline-sm text-headline-sm text-on-surface">Scheduled Corridor Possessions</h3>
+            <p class="text-[11px] text-on-surface-variant font-data-mono">Deterministic CP-SAT solver output with shadow block synergies</p>
+        </div>
+        <button onclick="window.location.href='/gantt-view'" class="text-surface-tint text-label-md font-bold hover:underline cursor-pointer flex items-center gap-1">
+            <span>Open in Interactive Gantt</span>
+            <span class="material-symbols-outlined text-[16px]">arrow_forward</span>
+        </button>
+    </div>
+    <div class="overflow-x-auto">
+        <table class="w-full text-left border-collapse dense-table" id="scheduled-blocks-table">
+            <thead>
+                <tr>
+                    <th>Block ID</th>
+                    <th>Job Title &amp; Dept</th>
+                    <th>Section &amp; Track</th>
+                    <th>Start Window</th>
+                    <th>End Window</th>
+                    <th>Duration</th>
+                    <th>Synergy</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody id="scheduled-blocks-tbody">
+                <!-- Populated dynamically via app.js -->
+            </tbody>
+        </table>
+    </div>
 </div>
-<!-- Metric 2 -->
-<div class="bg-surface-container-lowest border border-[#CBD5E0] rounded-lg p-md">
-<h3 class="font-label-md text-label-md text-outline mb-sm uppercase tracking-wide">Blocks Utilized</h3>
-<div class="flex items-end justify-between">
-<span class="font-headline-lg text-headline-lg text-on-surface">4/5</span>
-<span class="font-body-sm text-body-sm text-[#16a34a] font-medium">80%</span>
-</div>
-</div>
-<!-- Metric 3 -->
-<div class="bg-surface-container-lowest border border-[#CBD5E0] rounded-lg p-md">
-<h3 class="font-label-md text-label-md text-outline mb-sm uppercase tracking-wide">Total Blocked Time</h3>
-<div class="flex items-end justify-between">
-<span class="font-headline-lg text-headline-lg text-on-surface">16.5 <span class="text-body-lg text-outline">hrs</span></span>
-<span class="font-body-sm text-body-sm text-[#16a34a] font-medium flex items-center"><span class="material-symbols-outlined text-[14px]">arrow_downward</span> 28% vs Manual</span>
-</div>
-</div>
-<!-- Metric 4 -->
-<div class="bg-surface-container-lowest border border-[#CBD5E0] rounded-lg p-md">
-<h3 class="font-label-md text-label-md text-outline mb-sm uppercase tracking-wide">Conflicts Resolved</h3>
-<div class="flex items-end justify-between">
-<span class="font-headline-lg text-headline-lg text-on-surface">2/2</span>
-<span class="font-body-sm text-body-sm text-[#16a34a] font-medium">100%</span>
-</div>
-</div>
-<!-- Metric 5 -->
-<div class="bg-surface-container-lowest border border-[#CBD5E0] rounded-lg p-md">
-<h3 class="font-label-md text-label-md text-outline mb-sm uppercase tracking-wide">Critical Jobs Covered</h3>
-<div class="flex items-end justify-between">
-<span class="font-headline-lg text-headline-lg text-on-surface">3/3</span>
-<span class="font-body-sm text-body-sm text-[#16a34a] font-medium">100%</span>
-</div>
-</div>
-</div>
-<!-- Bottom Panels -->
-<div class="grid grid-cols-2 gap-lg">
-<!-- Why this plan -->
-<div class="bg-surface-container-lowest border border-[#CBD5E0] rounded-lg p-md">
-<h3 class="font-headline-sm text-headline-sm text-on-surface mb-md">Why this plan is optimal?</h3>
-<ul class="space-y-sm">
-<li class="flex items-start gap-sm">
-<span class="material-symbols-outlined text-[18px] text-[#16a34a] mt-[2px]">check</span>
-<span class="font-body-md text-body-md text-on-surface-variant">No conflict with train movements</span>
-</li>
-<li class="flex items-start gap-sm">
-<span class="material-symbols-outlined text-[18px] text-[#16a34a] mt-[2px]">check</span>
-<span class="font-body-md text-body-md text-on-surface-variant">Maximum utilization of available blocks</span>
-</li>
-<li class="flex items-start gap-sm">
-<span class="material-symbols-outlined text-[18px] text-[#16a34a] mt-[2px]">check</span>
-<span class="font-body-md text-body-md text-on-surface-variant">Compatible jobs combined to reduce blocked time</span>
-</li>
-<li class="flex items-start gap-sm">
-<span class="material-symbols-outlined text-[18px] text-[#16a34a] mt-[2px]">check</span>
-<span class="font-body-md text-body-md text-on-surface-variant">Critical jobs prioritized</span>
-</li>
-<li class="flex items-start gap-sm">
-<span class="material-symbols-outlined text-[18px] text-[#16a34a] mt-[2px]">check</span>
-<span class="font-body-md text-body-md text-on-surface-variant">Resource and dependency constraints satisfied</span>
-</li>
-</ul>
-</div>
-<!-- Plan Comparison -->
-<div class="bg-surface-container-lowest border border-[#CBD5E0] rounded-lg p-md">
-<h3 class="font-headline-sm text-headline-sm text-on-surface mb-md">Plan Comparison</h3>
-<div class="flex justify-end gap-md mb-md font-body-sm text-body-sm text-outline">
-<div class="flex items-center gap-xs"><div class="w-3 h-3 bg-surface-variant rounded-sm"></div> Manual Plan</div>
-<div class="flex items-center gap-xs"><div class="w-3 h-3 bg-primary-container rounded-sm"></div> AI Plan (RAILOPT)</div>
-</div>
-<div class="space-y-md">
-<!-- Row 1 -->
-<div class="grid grid-cols-[150px_1fr_40px_40px] items-center gap-sm">
-<span class="font-body-sm text-body-sm text-on-surface-variant">Total Blocked Time (hrs)</span>
-<div class="flex flex-col gap-[2px]">
-<div class="h-4 bg-surface-variant rounded-r flex items-center justify-end pr-xs text-[10px] text-on-surface-variant w-[80%]">22.8</div>
-<div class="h-4 bg-primary-container rounded-r flex items-center justify-end pr-xs text-[10px] text-on-primary w-[60%]">16.5</div>
-</div>
-<span class="font-data-mono text-data-mono text-outline text-right">22.8</span>
-<span class="font-data-mono text-data-mono text-on-surface font-semibold text-right">16.5</span>
-</div>
-<!-- Row 2 -->
-<div class="grid grid-cols-[150px_1fr_40px_40px] items-center gap-sm">
-<span class="font-body-sm text-body-sm text-on-surface-variant">Number of Blocks</span>
-<div class="flex flex-col gap-[2px]">
-<div class="h-4 bg-surface-variant rounded-r flex items-center justify-end pr-xs text-[10px] text-on-surface-variant w-[60%]">6</div>
-<div class="h-4 bg-primary-container rounded-r flex items-center justify-end pr-xs text-[10px] text-on-primary w-[40%]">4</div>
-</div>
-<span class="font-data-mono text-data-mono text-outline text-right">6</span>
-<span class="font-data-mono text-data-mono text-on-surface font-semibold text-right">4</span>
-</div>
-<!-- Row 3 -->
-<div class="grid grid-cols-[150px_1fr_40px_40px] items-center gap-sm">
-<span class="font-body-sm text-body-sm text-on-surface-variant">Jobs Completed</span>
-<div class="flex flex-col gap-[2px]">
-<div class="h-4 bg-surface-variant rounded-r flex items-center justify-end pr-xs text-[10px] text-on-surface-variant w-[80%]">8</div>
-<div class="h-4 bg-primary-container rounded-r flex items-center justify-end pr-xs text-[10px] text-on-primary w-[100%]">10</div>
-</div>
-<span class="font-data-mono text-data-mono text-outline text-right">8</span>
-<span class="font-data-mono text-data-mono text-on-surface font-semibold text-right">10</span>
-</div>
-<!-- Row 4 -->
-<div class="grid grid-cols-[150px_1fr_40px_40px] items-center gap-sm">
-<span class="font-body-sm text-body-sm text-on-surface-variant">Conflicts</span>
-<div class="flex flex-col gap-[2px]">
-<div class="h-4 bg-error-container rounded-r flex items-center justify-end pr-xs text-[10px] text-error w-[20%]">2</div>
-<div class="h-4 bg-[#16a34a] rounded-r flex items-center justify-end pr-xs text-[10px] text-white w-[2%]">0</div>
-</div>
-<span class="font-data-mono text-data-mono text-outline text-right">2</span>
-<span class="font-data-mono text-data-mono text-on-surface font-semibold text-right">0</span>
-</div>
-</div>
-</div>
+
+<!-- Unscheduled Jobs Alert Section (if any) -->
+<div id="unscheduled-jobs-list" class="mb-lg"></div>
+
+<!-- Bottom Panels: Why Optimal & Plan Comparison -->
+<div class="grid grid-cols-1 md:grid-cols-2 gap-lg">
+    <!-- Why this plan -->
+    <div class="bg-surface-container-lowest border border-outline-variant/60 rounded-lg p-md shadow-sm">
+        <h3 class="font-headline-sm text-headline-sm text-on-surface mb-md flex items-center gap-2">
+            <span class="material-symbols-outlined text-emerald-600 text-[20px]">psychology</span>
+            <span>Why this plan is mathematically optimal?</span>
+        </h3>
+        <ul class="space-y-sm text-body-md text-on-surface-variant">
+            <li class="flex items-start gap-sm">
+                <span class="material-symbols-outlined text-[18px] text-emerald-600 mt-[2px] shrink-0">check_circle</span>
+                <span><strong>Zero Passenger Train Conflict:</strong> Protected movement windows for Vande Bharat, Rajdhani, and Express services strictly reserved.</span>
+            </li>
+            <li class="flex items-start gap-sm">
+                <span class="material-symbols-outlined text-[18px] text-emerald-600 mt-[2px] shrink-0">check_circle</span>
+                <span><strong>Multi-Department Shadow Synergy:</strong> Compatible S&amp;T, TRD/OHE and Civil Engineering jobs are co-located into shared possession windows to minimize corridor blockage.</span>
+            </li>
+            <li class="flex items-start gap-sm">
+                <span class="material-symbols-outlined text-[18px] text-emerald-600 mt-[2px] shrink-0">check_circle</span>
+                <span><strong>Safety Isolation Guaranteed:</strong> 25kV OHE traction power shut-down permits scheduled synchronously with track possessions.</span>
+            </li>
+            <li class="flex items-start gap-sm">
+                <span class="material-symbols-outlined text-[18px] text-emerald-600 mt-[2px] shrink-0">check_circle</span>
+                <span><strong>Critical Safety Work Prioritized:</strong> CRITICAL/HIGH urgency jobs receive elevated objective weight and are admitted ahead of routine demands where a safe window exists.</span>
+            </li>
+        </ul>
+    </div>
+
+    <!-- Plan Comparison -->
+    <div class="bg-surface-container-lowest border border-outline-variant/60 rounded-lg p-md shadow-sm">
+        <div class="flex justify-between items-center mb-md">
+            <h3 class="font-headline-sm text-headline-sm text-on-surface font-bold">Plan Quality &amp; Baseline Comparison</h3>
+            <div class="flex items-center gap-3 text-body-sm text-on-surface-variant text-[11px]">
+                <div class="flex items-center gap-1"><span class="w-2.5 h-2.5 bg-surface-variant rounded-xs inline-block"></span> Manual Baseline</div>
+                <div class="flex items-center gap-1"><span class="w-2.5 h-2.5 bg-primary-container rounded-xs inline-block"></span> CP-SAT Optimized</div>
+            </div>
+        </div>
+        <div class="space-y-md">
+            <!-- Row 1: Blocked Time -->
+            <div class="grid grid-cols-[140px_1fr_45px_45px] items-center gap-sm">
+                <span class="text-body-sm text-on-surface-variant text-[12px] font-medium">Blocked Time</span>
+                <div class="flex flex-col gap-[2px]">
+                    <div id="bp-comp-maint-manual-bar" class="h-3.5 bg-surface-variant rounded-r flex items-center justify-end pr-xs text-[9px] text-on-surface-variant w-[85%] font-data-mono">—</div>
+                    <div id="bp-comp-maint-ai-bar" class="h-3.5 bg-primary-container rounded-r flex items-center justify-end pr-xs text-[9px] text-on-primary w-[58%] font-data-mono">—</div>
+                </div>
+                <span id="bp-comp-maint-manual-val" class="font-data-mono text-[11px] text-outline text-right">—</span>
+                <span id="bp-comp-maint-ai-val" class="font-data-mono text-[11px] text-primary font-bold text-right">—</span>
+            </div>
+            <!-- Row 2: Jobs Scheduled -->
+            <div class="grid grid-cols-[140px_1fr_45px_45px] items-center gap-sm">
+                <span class="text-body-sm text-on-surface-variant text-[12px] font-medium">Jobs Scheduled</span>
+                <div class="flex flex-col gap-[2px]">
+                    <div id="bp-comp-jobs-manual-bar" class="h-3.5 bg-surface-variant rounded-r flex items-center justify-end pr-xs text-[9px] text-on-surface-variant w-[68%] font-data-mono">—</div>
+                    <div id="bp-comp-jobs-ai-bar" class="h-3.5 bg-primary-container rounded-r flex items-center justify-end pr-xs text-[9px] text-on-primary w-[100%] font-data-mono">—</div>
+                </div>
+                <span id="bp-comp-jobs-manual-val" class="font-data-mono text-[11px] text-outline text-right">—</span>
+                <span id="bp-comp-jobs-ai-val" class="font-data-mono text-[11px] text-primary font-bold text-right">—</span>
+            </div>
+            <!-- Row 3: Train Delay -->
+            <div class="grid grid-cols-[140px_1fr_45px_45px] items-center gap-sm">
+                <span class="text-body-sm text-on-surface-variant text-[12px] font-medium">Train Delay</span>
+                <div class="flex flex-col gap-[2px]">
+                    <div id="bp-comp-delay-manual-bar" class="h-3.5 bg-rose-200 rounded-r flex items-center justify-end pr-xs text-[9px] text-rose-900 w-[90%] font-data-mono">—</div>
+                    <div id="bp-comp-delay-ai-bar" class="h-3.5 bg-emerald-600 rounded-r flex items-center justify-end pr-xs text-[9px] text-white w-[30%] font-data-mono">—</div>
+                </div>
+                <span id="bp-comp-delay-manual-val" class="font-data-mono text-[11px] text-outline text-right">—</span>
+                <span id="bp-comp-delay-ai-val" class="font-data-mono text-[11px] text-emerald-700 font-bold text-right">—</span>
+            </div>
+            <!-- Row 4: Shadow Synergy -->
+            <div class="grid grid-cols-[140px_1fr_45px_45px] items-center gap-sm">
+                <span class="text-body-sm text-on-surface-variant text-[12px] font-medium">Shadow Synergy</span>
+                <div class="flex flex-col gap-[2px]">
+                    <div id="bp-comp-synergy-manual-bar" class="h-3.5 bg-surface-variant rounded-r flex items-center justify-end pr-xs text-[9px] text-on-surface-variant w-[20%] font-data-mono">—</div>
+                    <div id="bp-comp-synergy-ai-bar" class="h-3.5 bg-indigo-600 rounded-r flex items-center justify-end pr-xs text-[9px] text-white w-[68%] font-data-mono">—</div>
+                </div>
+                <span id="bp-comp-synergy-manual-val" class="font-data-mono text-[11px] text-outline text-right">—</span>
+                <span id="bp-comp-synergy-ai-val" class="font-data-mono text-[11px] text-indigo-700 font-bold text-right">—</span>
+            </div>
+        </div>
+    </div>
 </div>
 </main>
 </div>
 
-
-
 <script type="module" src="/static/js/app.js"></script>
-</body></html>
+</body></html>

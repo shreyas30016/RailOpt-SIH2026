@@ -216,9 +216,10 @@
         <span class="font-headline-md text-headline-md font-bold text-on-primary tracking-tight uppercase">RAILOPT</span>
     </div>
     <div class="flex items-center gap-sm text-on-primary">
-        <button class="hover:bg-primary-container p-1.5 rounded-full"><span class="material-symbols-outlined text-[20px]">notifications</span></button>
-        <div class="flex items-center gap-1.5 bg-primary-container px-2.5 py-1 rounded-lg">
-            <span class="font-label-md text-label-md text-on-primary">Planner</span>
+        <button id="btn-mobile-notifications" class="hover:bg-primary-container p-1.5 rounded-full relative"><span class="material-symbols-outlined text-[20px]">notifications</span></button>
+        <button id="btn-mobile-logout" class="hover:bg-primary-container p-1.5 rounded-full text-red-300" title="Sign Out"><span class="material-symbols-outlined text-[20px]">logout</span></button>
+        <div id="mobile-user-profile" class="flex items-center gap-1.5 bg-primary-container px-2.5 py-1 rounded-lg cursor-pointer">
+            <span id="mobile-user-role" class="font-label-md text-label-md text-on-primary">—</span>
         </div>
     </div>
 </header>
@@ -227,22 +228,25 @@
 <header class="hidden md:flex justify-between items-center px-lg w-full h-16 bg-primary border-b border-primary-container z-30 fixed top-0 left-[240px] right-0" style="width: calc(100% - 240px);">
     <div class="flex items-center gap-sm">
         <span class="font-body-sm text-body-sm text-on-primary opacity-90 font-medium">AI-Powered Block Planning System</span>
-        <span class="text-xs bg-primary-container text-on-primary px-2 py-0.5 rounded text-[11px] border border-outline-variant/30">Northern / NCR Division</span>
+        <span id="header-division-badge" class="text-xs bg-primary-container text-on-primary px-2.5 py-0.5 rounded text-[11px] border border-outline-variant/30 font-medium">—</span>
     </div>
     <div class="flex items-center gap-lg">
-        <span class="font-label-md text-label-md text-on-primary opacity-80" id="header-datetime">31 Aug 2026 | 20:15:00</span>
+        <span class="font-label-md text-label-md text-on-primary opacity-80" id="header-datetime">01 Sep 2026 | 19:30:00</span>
         <div class="flex items-center gap-sm text-on-primary">
-            <button class="hover:bg-primary-container p-1.5 rounded-full transition-colors duration-200 relative" title="Notifications">
+            <button id="btn-header-notifications" class="hover:bg-primary-container p-1.5 rounded-full transition-colors duration-200 relative" title="Operational Alerts & Notifications">
                 <span class="material-symbols-outlined text-[20px]">notifications</span>
                 <span class="absolute top-1 right-1 w-2 h-2 bg-error rounded-full"></span>
             </button>
-            <a href="/constraints-logic" class="hover:bg-primary-container p-1.5 rounded-full transition-colors duration-200" title="Configuration & Rules">
+            <button id="btn-header-settings" class="hover:bg-primary-container p-1.5 rounded-full transition-colors duration-200" title="System Settings & Configuration">
                 <span class="material-symbols-outlined text-[20px]">settings</span>
-            </a>
+            </button>
+            <button id="btn-header-logout" class="hover:bg-red-600/30 p-1.5 rounded-full text-red-200 hover:text-red-100 transition-colors" title="Sign Out (Switch User)">
+                <span class="material-symbols-outlined text-[20px]">logout</span>
+            </button>
         </div>
-        <div class="flex items-center gap-2 bg-primary-container px-3 py-1.5 rounded-lg border border-outline-variant/20">
-            <div class="w-6 h-6 rounded-full bg-surface text-primary flex items-center justify-center font-bold text-xs">P</div>
-            <span class="font-label-md text-label-md text-on-primary font-medium">Planner</span>
+        <div id="header-user-profile" class="flex items-center gap-2 bg-primary-container px-3 py-1.5 rounded-lg border border-outline-variant/20 cursor-pointer hover:bg-opacity-80 transition-all select-none">
+            <div id="header-user-avatar" class="w-6 h-6 rounded-full bg-surface text-primary flex items-center justify-center font-bold text-xs">—</div>
+            <span id="header-user-role" class="font-label-md text-label-md text-on-primary font-medium">—</span>
             <span class="material-symbols-outlined text-[16px] text-on-primary opacity-70">expand_more</span>
         </div>
     </div>
@@ -252,159 +256,144 @@
 <div class="flex-1 overflow-auto flex flex-col gap-md">
 <!-- Header Section -->
 <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-md shrink-0">
-<div>
-<h2 class="font-headline-md text-headline-md text-on-surface">Block Plan - Gantt View</h2>
+    <div>
+        <h2 class="font-headline-md text-headline-md text-on-surface">Block Plan - Gantt View</h2>
+        <p class="font-body-sm text-on-surface-variant text-[12px] mt-0.5">24-Hour Corridor Possession Schedule & Train Movement Synchronization</p>
+    </div>
+    <!-- Controls -->
+    <div class="flex flex-wrap items-center gap-sm bg-surface-container-lowest p-xs rounded-lg border border-outline-variant">
+        <!-- Optimization Run Selector -->
+        <div class="flex items-center gap-xs px-sm py-1 border-r border-outline-variant">
+            <span class="font-label-md text-outline text-[11px] uppercase">Plan Run</span>
+            <select id="select-optimization-run" class="border-none bg-transparent text-body-sm font-semibold text-primary focus:ring-0 p-0 cursor-pointer max-w-[220px]">
+                <option value="">Loading active run...</option>
+            </select>
+        </div>
+        <!-- Section Filter -->
+        <div class="flex items-center gap-xs px-sm py-1 border-r border-outline-variant">
+            <span class="font-label-md text-outline text-[11px] uppercase">Section</span>
+            <select id="select-gantt-section" class="border-none bg-transparent text-body-sm font-medium focus:ring-0 p-0 cursor-pointer">
+                <option value="ALL">All Sections (Delhi–Agra)</option>
+                <option value="NDLS-TKD">NDLS-TKD</option>
+                <option value="TKD-FDB">TKD-FDB</option>
+                <option value="FDB-PWL">FDB-PWL</option>
+                <option value="PWL-KDS">PWL-KDS</option>
+                <option value="KDS-MTJ">KDS-MTJ</option>
+                <option value="MTJ-AGC">MTJ-AGC</option>
+            </select>
+        </div>
+        <!-- View Hours Filter -->
+        <div class="flex items-center gap-xs px-sm py-1 border-r border-outline-variant">
+            <span class="font-label-md text-outline text-[11px] uppercase">Horizon</span>
+            <select id="select-gantt-view-hours" class="border-none bg-transparent text-body-sm font-medium focus:ring-0 p-0 cursor-pointer">
+                <option value="24">24 Hours</option>
+                <option value="12">12 Hours</option>
+                <option value="8">8 Hours</option>
+            </select>
+        </div>
+        <!-- Date -->
+        <div class="flex items-center gap-xs px-sm py-1 border-r border-outline-variant">
+            <span class="font-label-md text-outline text-[11px] uppercase">Date</span>
+            <input class="border-none bg-transparent text-body-sm font-medium focus:ring-0 p-0 w-[110px] cursor-pointer" type="date" value="2026-09-01">
+        </div>
+        <!-- Refresh Button -->
+        <button id="btn-refresh-gantt" class="flex items-center gap-xs px-sm py-1 text-primary hover:bg-surface-variant rounded transition-colors" title="Reload Timeline Data">
+            <span class="material-symbols-outlined text-[18px]">refresh</span>
+            <span class="font-label-md text-[12px]">Refresh</span>
+        </button>
+    </div>
 </div>
-<!-- Controls -->
-<div class="flex flex-wrap items-center gap-sm bg-surface-container-lowest p-xs rounded-lg border border-outline-variant">
-<div class="flex items-center gap-xs px-sm py-1 border-r border-outline-variant">
-<span class="font-label-md text-outline">Date</span>
-<input class="border-none bg-transparent text-body-sm font-medium focus:ring-0 p-0 w-[110px] cursor-pointer" type="date" value="2024-05-15">
-</div>
-<div class="flex items-center gap-xs px-sm py-1 border-r border-outline-variant">
-<span class="font-label-md text-outline">View</span>
-<select class="border-none bg-transparent text-body-sm font-medium focus:ring-0 p-0 cursor-pointer">
-<option>24 Hours</option>
-<option>12 Hours</option>
-<option>8 Hours</option>
-</select>
-</div>
-<button class="flex items-center gap-xs px-sm py-1 text-primary-container hover:bg-surface-variant rounded transition-colors">
-<span class="material-symbols-outlined text-[18px]">filter_alt</span>
-<span class="font-label-md">Filters</span>
-</button>
-</div>
-</div>
+
 <!-- Gantt Chart Container -->
-<div class="flex-1 bg-surface-container-lowest border border-outline-variant rounded-lg flex flex-col overflow-hidden min-h-[500px]">
-<!-- Time Axis Header -->
-<div class="flex border-b border-outline-variant bg-[#F8FAFC] shrink-0 sticky top-0 z-10">
-<div class="w-[180px] p-sm font-label-md text-outline flex items-center border-r border-outline-variant shrink-0 bg-[#F8FAFC]">
-                        Track / Resource
-                    </div>
-<div class="flex-1 flex text-[10px] font-data-mono text-outline uppercase relative">
-<!-- 24 Hour Grid Headers -->
-<div class="flex-1 border-r border-time-grid p-xs">20:00</div>
-<div class="flex-1 border-r border-time-grid p-xs">22:00</div>
-<div class="flex-1 border-r border-time-grid p-xs bg-error-container/20 text-error font-medium relative">
-                            00:00
-                            <div class="absolute w-[1px] h-full bg-error top-0 left-0 -ml-[1px]"></div>
-</div>
-<div class="flex-1 border-r border-time-grid p-xs">02:00</div>
-<div class="flex-1 border-r border-time-grid p-xs">04:00</div>
-<div class="flex-1 border-r border-time-grid p-xs">06:00</div>
-<div class="flex-1 border-r border-time-grid p-xs">08:00</div>
-<div class="flex-1 border-r border-time-grid p-xs">10:00</div>
-<div class="flex-1 border-r border-time-grid p-xs">12:00</div>
-<div class="flex-1 border-r border-time-grid p-xs">14:00</div>
-<div class="flex-1 border-r border-time-grid p-xs">16:00</div>
-<div class="flex-1 p-xs">18:00</div>
-<!-- Current Time Indicator -->
-<div class="absolute top-0 bottom-0 w-[2px] bg-primary z-20" style="left: 60.5%;">
-<div class="absolute -top-[4px] -left-[3px] w-2 h-2 rounded-full bg-primary"></div>
-</div>
-</div>
-</div>
-<!-- Gantt Body -->
-<div class="flex-1 overflow-y-auto relative flex">
-<!-- Row Headers (Fixed Left) -->
-<div class="w-[180px] shrink-0 border-r border-outline-variant bg-surface-container-lowest z-10 flex flex-col font-label-md text-on-surface">
-<div class="h-16 flex items-center px-sm border-b border-outline-variant bg-surface">Train Movements</div>
-<div class="h-16 flex items-center px-sm border-b border-outline-variant">Engineering</div>
-<div class="h-16 flex items-center px-sm border-b border-outline-variant">S&amp;T</div>
-<div class="h-16 flex items-center px-sm border-b border-outline-variant">Traction (TRD)</div>
-<div class="h-16 flex items-center px-sm border-b border-outline-variant bg-surface-dim/30">Available Blocks</div>
-</div>
-<!-- Gantt Grid Area -->
-<div class="flex-1 relative gantt-grid flex flex-col min-w-[800px]">
-<!-- Current Time Line extending through grid -->
-<div class="absolute top-0 bottom-0 w-[1px] bg-primary/30 border-l border-dashed border-primary z-0 pointer-events-none" style="left: 60.5%;"></div>
-<!-- Row: Train Movements -->
-<div class="h-16 border-b border-outline-variant relative group">
-<!-- Train 12302 -->
-<div class="absolute top-1/2 -translate-y-1/2 h-8 bg-train-gray rounded text-white font-data-mono text-[10px] flex items-center justify-center cursor-help hover:opacity-90 transition-opacity" style="left: 5%; width: 12%;">
-                                12302
-                            </div>
-<!-- Train 12426 -->
-<div class="absolute top-1/2 -translate-y-1/2 h-8 bg-train-gray rounded text-white font-data-mono text-[10px] flex items-center justify-center cursor-help hover:opacity-90 transition-opacity" style="left: 28%; width: 15%;">
-                                12426
-                            </div>
-<!-- Train 12009 -->
-<div class="absolute top-1/2 -translate-y-1/2 h-8 bg-train-gray rounded text-white font-data-mono text-[10px] flex items-center justify-center cursor-help hover:opacity-90 transition-opacity" style="left: 80%; width: 10%;">
-                                12009
-                            </div>
-</div>
-<!-- Row: Engineering -->
-<div class="h-16 border-b border-outline-variant relative">
-<!-- Block J-01 -->
-<div class="absolute top-1/2 -translate-y-1/2 h-8 bg-engineering-blue rounded text-white font-label-md text-[11px] flex items-center px-xs cursor-pointer hover:brightness-110 transition-all border border-black/10 shadow-sm" style="left: 15%; width: 18%;">
-                                J-01
-                            </div>
-<!-- Block J-04 -->
-<div class="absolute top-1/2 -translate-y-1/2 h-8 bg-engineering-blue rounded text-white font-label-md text-[11px] flex items-center px-xs cursor-pointer hover:brightness-110 transition-all border border-black/10 shadow-sm" style="left: 65%; width: 15%;">
-                                J-04
-                            </div>
-</div>
-<!-- Row: S&T -->
-<div class="h-16 border-b border-outline-variant relative">
-<!-- Block J-02 -->
-<div class="absolute top-1/2 -translate-y-1/2 h-8 bg-st-green rounded text-white font-label-md text-[11px] flex items-center px-xs cursor-pointer hover:brightness-110 transition-all border border-black/10 shadow-sm" style="left: 12%; width: 25%;">
-                                J-02
-                            </div>
-<!-- Block J-05 -->
-<div class="absolute top-1/2 -translate-y-1/2 h-8 bg-st-green rounded text-white font-label-md text-[11px] flex items-center px-xs cursor-pointer hover:brightness-110 transition-all border border-black/10 shadow-sm" style="left: 55%; width: 12%;">
-                                J-05
-                            </div>
-</div>
-<!-- Row: Traction (TRD) -->
-<div class="h-16 border-b border-outline-variant relative">
-<!-- Block J-03 -->
-<div class="absolute top-1/2 -translate-y-1/2 h-8 bg-traction-orange rounded text-white font-label-md text-[11px] flex items-center px-xs cursor-pointer hover:brightness-110 transition-all border border-black/10 shadow-sm" style="left: 18%; width: 20%;">
-                                J-03
-                            </div>
-<!-- Block J-06 -->
-<div class="absolute top-1/2 -translate-y-1/2 h-8 bg-traction-orange rounded text-white font-label-md text-[11px] flex items-center px-xs cursor-pointer hover:brightness-110 transition-all border border-black/10 shadow-sm" style="left: 60%; width: 15%;">
-                                J-06
-                            </div>
-<!-- Conflict Indicator (Dashed border around J-03 overlapping with something) -->
-<div class="absolute top-1/2 -translate-y-1/2 h-10 border-2 border-dashed border-error rounded pointer-events-none" style="left: 28%; width: 10%;"></div>
-</div>
-<!-- Row: Available Blocks -->
-<div class="h-16 border-b border-outline-variant bg-surface-dim/10 relative">
-<div class="absolute top-1/2 -translate-y-1/2 h-6 bg-block-purple/40 border border-block-purple/60 rounded text-block-purple font-data-mono text-[9px] flex items-center justify-center" style="left: 5%; width: 10%;">B-01</div>
-<div class="absolute top-1/2 -translate-y-1/2 h-6 bg-block-purple/40 border border-block-purple/60 rounded text-block-purple font-data-mono text-[9px] flex items-center justify-center" style="left: 28%; width: 12%;">B-02</div>
-<div class="absolute top-1/2 -translate-y-1/2 h-6 bg-block-purple/40 border border-block-purple/60 rounded text-block-purple font-data-mono text-[9px] flex items-center justify-center" style="left: 45%; width: 10%;">B-03</div>
-<div class="absolute top-1/2 -translate-y-1/2 h-6 bg-block-purple/40 border border-block-purple/60 rounded text-block-purple font-data-mono text-[9px] flex items-center justify-center" style="left: 65%; width: 8%;">B-04</div>
-<div class="absolute top-1/2 -translate-y-1/2 h-6 bg-block-purple/40 border border-block-purple/60 rounded text-block-purple font-data-mono text-[9px] flex items-center justify-center" style="left: 80%; width: 10%;">B-05</div>
-</div>
-</div>
-</div>
-<!-- Legend Footer -->
-<div class="p-sm bg-surface flex flex-wrap items-center gap-lg border-t border-outline-variant shrink-0 text-[11px] font-medium text-on-surface-variant">
-<div class="flex items-center gap-xs">
-<div class="w-4 h-3 bg-engineering-blue rounded-sm"></div>
-<span class="">Engineering</span>
-</div>
-<div class="flex items-center gap-xs">
-<div class="w-4 h-3 bg-st-green rounded-sm"></div>
-<span class="">S&amp;T</span>
-</div>
-<div class="flex items-center gap-xs">
-<div class="w-4 h-3 bg-traction-orange rounded-sm"></div>
-<span class="">Traction (TRD)</span>
-</div>
-<div class="flex items-center gap-xs ml-auto border-l border-outline-variant pl-lg">
-<div class="w-4 h-3 bg-train-gray rounded-sm"></div>
-<span class="">Train Movement</span>
-</div>
-<div class="flex items-center gap-xs">
-<div class="w-4 h-3 bg-block-purple/40 border border-block-purple/60 rounded-sm"></div>
-<span class="">Block Window</span>
-</div>
-</div>
+<div id="gantt-chart-container" class="flex-1 bg-surface-container-lowest border border-outline-variant rounded-lg flex flex-col overflow-hidden min-h-[540px]">
+    <!-- Time Axis Header -->
+    <div class="flex border-b border-outline-variant bg-[#F8FAFC] shrink-0 sticky top-0 z-20">
+        <div class="w-64 p-sm font-data-mono text-xs font-bold text-primary flex items-center border-r border-outline-variant shrink-0 bg-[#F8FAFC] uppercase tracking-wider">
+            Track Line / Resource
+        </div>
+        <div id="gantt-time-axis" class="flex-1 flex text-[10px] font-data-mono text-outline uppercase relative">
+            <!-- 24 Hour Dynamic Time Headers -->
+            <div class="flex-1 border-r border-outline-variant/30 p-xs text-center font-bold">00:00</div>
+            <div class="flex-1 border-r border-outline-variant/30 p-xs text-center font-bold">02:00</div>
+            <div class="flex-1 border-r border-outline-variant/30 p-xs text-center font-bold">04:00</div>
+            <div class="flex-1 border-r border-outline-variant/30 p-xs text-center font-bold">06:00</div>
+            <div class="flex-1 border-r border-outline-variant/30 p-xs text-center font-bold">08:00</div>
+            <div class="flex-1 border-r border-outline-variant/30 p-xs text-center font-bold">10:00</div>
+            <div class="flex-1 border-r border-outline-variant/30 p-xs text-center font-bold">12:00</div>
+            <div class="flex-1 border-r border-outline-variant/30 p-xs text-center font-bold">14:00</div>
+            <div class="flex-1 border-r border-outline-variant/30 p-xs text-center font-bold">16:00</div>
+            <div class="flex-1 border-r border-outline-variant/30 p-xs text-center font-bold">18:00</div>
+            <div class="flex-1 border-r border-outline-variant/30 p-xs text-center font-bold">20:00</div>
+            <div class="flex-1 border-r border-outline-variant/30 p-xs text-center font-bold">22:00</div>
+            <div class="flex-1 p-xs text-center font-bold">24:00</div>
+            <!-- Current Time Indicator Line -->
+            <div class="absolute top-0 bottom-0 w-[2px] bg-primary z-30" style="left: 60.5%;" title="Current Time Marker">
+                <div class="absolute -top-[4px] -left-[3px] w-2 h-2 rounded-full bg-primary"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Gantt Body -->
+    <div id="gantt-body" class="flex-1 overflow-y-auto overflow-x-hidden flex flex-col relative min-w-[900px]">
+        <!-- Dynamic content injected by app.js: initGanttView() -->
+        <div id="gantt-loading" class="flex flex-col items-center justify-center p-12 text-on-surface-variant gap-3">
+            <span class="material-symbols-outlined text-[36px] text-primary animate-spin">progress_activity</span>
+            <span class="font-body-md text-body-md font-medium">Loading synchronized corridor timeline...</span>
+        </div>
+    </div>
+
+    <!-- Empty State -->
+    <div id="gantt-empty" class="hidden flex flex-col items-center justify-center p-12 text-center text-on-surface-variant gap-3 bg-surface-container-low">
+        <span class="material-symbols-outlined text-[48px] text-outline">timeline</span>
+        <h3 class="font-headline-sm text-on-surface font-bold">No Optimization Run Found</h3>
+        <p class="text-body-md max-w-md">Run the CP-SAT optimization engine in Block Planning to generate a feasible deconflicted maintenance timeline.</p>
+        <button onclick="window.location.href='/block-planning'" class="mt-2 px-4 py-2 bg-primary text-on-primary rounded-lg font-label-md hover:bg-opacity-90 flex items-center gap-2">
+            <span class="material-symbols-outlined text-[18px]">play_arrow</span>
+            Go to Block Planning
+        </button>
+    </div>
+
+    <!-- Error State -->
+    <div id="gantt-error" class="hidden flex flex-col items-center justify-center p-12 text-center text-error gap-3 bg-red-50">
+        <span class="material-symbols-outlined text-[48px]">error</span>
+        <h3 class="font-headline-sm font-bold">Failed to Load Timeline Data</h3>
+        <p id="gantt-error-msg" class="text-body-md text-red-700 max-w-md">An error occurred while fetching corridor block assignments.</p>
+        <button onclick="window.location.reload()" class="mt-2 px-4 py-2 bg-red-700 text-white rounded-lg font-label-md hover:bg-red-800">
+            Retry
+        </button>
+    </div>
+
+    <!-- Legend Footer -->
+    <div class="p-sm bg-surface flex flex-wrap items-center gap-lg border-t border-outline-variant shrink-0 text-[11px] font-medium text-on-surface-variant">
+        <div class="flex items-center gap-xs">
+            <div class="w-4 h-3 bg-[#003366] rounded-sm"></div>
+            <span>Civil Engineering (ENG)</span>
+        </div>
+        <div class="flex items-center gap-xs">
+            <div class="w-4 h-3 bg-cyan-700 rounded-sm"></div>
+            <span>Signal & Telecom (S&T)</span>
+        </div>
+        <div class="flex items-center gap-xs">
+            <div class="w-4 h-3 bg-amber-600 rounded-sm"></div>
+            <span>Traction (TRD / OHE)</span>
+        </div>
+        <div class="flex items-center gap-xs">
+            <div class="w-4 h-3 bg-emerald-600 rounded-sm flex items-center justify-center text-white"><span class="material-symbols-outlined text-[10px]">link</span></div>
+            <span class="text-emerald-800 font-bold">Shadow Block (Co-located Synergy)</span>
+        </div>
+        <div class="flex items-center gap-xs ml-auto border-l border-outline-variant pl-lg">
+            <div class="w-4 h-3 bg-blue-600 rounded-sm"></div>
+            <span>Train Movement</span>
+        </div>
+        <div class="flex items-center gap-xs">
+            <div class="w-4 h-3 bg-purple-100 border border-purple-300 rounded-sm"></div>
+            <span>Possession Lull Window</span>
+        </div>
+    </div>
 </div>
 </div>
 </main>
+
 
 
 

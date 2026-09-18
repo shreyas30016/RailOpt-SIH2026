@@ -1,380 +1,259 @@
 /**
  * RailOpt - Data & Optimization Service Layer
  * Clean abstraction separating presentation components from API / Mock data logic.
+ * Updated: Full CRUD for maintenance, auth login, train list, session helper.
  */
 
-import {
-    mockMaintenanceJobs,
-    mockTrainMovements,
-    mockBlockWindows,
-    mockConstraints,
-    mockOptimizedPlan,
-    mockPlanChange
-} from "../mockData.js";
+// NOTE: mockData.js is retained only for legacy/unused helper methods.
+// All live screens now hydrate strictly from the backend; offline fallbacks
+// carry ZERO fabricated business values.
 
 class DataService {
     constructor() {
         this.apiBase = "";
         this.useMockOnly = false; // Toggle or auto-fallback
+        this.lastFallback = null; // { endpoint, status, error } when an offline fallback was used
+    }
+
+    // Tag fallback payloads so the UI can honestly display "offline fallback" state.
+    _markFallback(payload, endpoint, info = "") {
+        if (payload && typeof payload === "object" && !Array.isArray(payload)) {
+            try { payload._fallback_source = "offline_fallback"; } catch {}
+        }
+        this.lastFallback = { endpoint, ...info };
+        return payload;
+    }
+
+    _getAuthToken() {
+        return localStorage.getItem("railopt_token") || "";
+    }
+
+    _getAuthHeaders() {
+        const headers = { "Content-Type": "application/json" };
+        const token = this._getAuthToken();
+        if (token) {
+            headers["Authorization"] = `Bearer ${token}`;
+        }
+        return headers;
     }
 
     async fetchWithFallback(url, mockFallback, options = {}) {
         if (this.useMockOnly) {
-            return mockFallback;
+            return this._markFallback(mockFallback, url, { status: 0, error: "mock-only mode" });
         }
         try {
-            const res = await fetch(url, options);
+            const headers = { ...(options.headers || {}) };
+            const token = this._getAuthToken();
+            if (token && !headers["Authorization"]) {
+                headers["Authorization"] = `Bearer ${token}`;
+            }
+            const mergedOptions = { ...options, headers };
+            const res = await fetch(url, mergedOptions);
             if (res.ok) {
                 return await res.json();
             }
-            console.warn(`API ${url} returned status ${res.status}, using mock fallback.`);
-            return mockFallback;
+            // SECURITY: never fall back on authentication/authorization failures.
+            // A 401/403 must surface as an error so the UI never masks a permission denial.
+            if (res.status === 401 || res.status === 403) {
+                const errPayload = await res.json().catch(() => ({}));
+                const err = new Error(errPayload.detail || `Authorization failed (${res.status})`);
+                err.status = res.status;
+                throw err;
+            }
+            console.warn(`API ${url} returned status ${res.status}, using offline demo fallback.`);
+            return this._markFallback(mockFallback, url, { status: res.status });
         } catch (err) {
-            console.warn(`Network fetch failed for ${url}, using mock fallback.`, err);
-            return mockFallback;
+            if (err && err.status) throw err; // 401/403 re-thrown, never masked
+            console.warn(`Network fetch failed for ${url}, using offline demo fallback.`, err);
+            return this._markFallback(mockFallback, url, { error: String(err && err.message || err) });
         }
     }
 
-    // 1. Dashboard Summary
-    async getDashboardSummary() {
-        const fallback = {
-            total_active_blocks: mockOptimizedPlan.scheduledJobsCount,
-            total_pending_requests: mockMaintenanceJobs.length,
-            planned_blocks_today: mockOptimizedPlan.scheduledJobsCount,
-            efficiency_pct: mockOptimizedPlan.blockUtilizationPct,
-            shadow_block_synergy_pct: mockOptimizedPlan.shadowBlockSynergyPct,
-            punctuality_impact_pct: 1.2,
-            urgent_queue: mockMaintenanceJobs.filter(j => j.urgency === "CRITICAL" || j.urgency === "HIGH").map(j => ({
-                id: j.id,
-                job_code: j.id,
-                title: j.title,
-                department_code: j.department,
-                department_name: j.departmentName,
-                section_code: j.section,
-                track_line: j.trackLine,
-                duration_minutes: j.durationMinutes,
-                priority: j.priority,
-                urgency: j.urgency,
-                requires_power_block: j.requiresPowerBlock,
-                requires_traffic_block: j.requiresTrafficBlock,
-                requires_speed_restriction: j.requiresSpeedRestriction,
-                speed_restriction_kmh: j.speedRestrictionKmh,
-                status: j.status,
-                requested_date: j.requestedDate,
-                earliest_start_minute: j.earliestStartMinute,
-                latest_end_minute: j.latestEndMinute,
-                description: j.description
-            })),
-            department_breakdown: {
-                "ENG": mockMaintenanceJobs.filter(j => j.department === "ENG").length,
-                "TRD": mockMaintenanceJobs.filter(j => j.department === "TRD").length,
-                "S_T": mockMaintenanceJobs.filter(j => j.department === "S_T").length,
-                "MECH": mockMaintenanceJobs.filter(j => j.department === "MECH").length
-            },
-            live_corridor_status: [
-                { section_code: "NDLS-TKD", name: "New Delhi - Tuglakabad", length_km: 15.5, max_speed_kmh: 130, status: "CLEAR", pending_jobs: 1 },
-                { section_code: "TKD-FDB", name: "Tuglakabad - Faridabad", length_km: 14.2, max_speed_kmh: 130, status: "ACTIVE_BLOCK", pending_jobs: 2 },
-                { section_code: "FDB-PWL", name: "Faridabad - Palwal", length_km: 32.0, max_speed_kmh: 160, status: "ACTIVE_BLOCK", pending_jobs: 3 },
-                { section_code: "PWL-KDS", name: "Palwal - Kosi Kalan", length_km: 42.0, max_speed_kmh: 160, status: "ACTIVE_BLOCK", pending_jobs: 2 },
-                { section_code: "KDS-MTJ", name: "Kosi Kalan - Mathura Jn", length_km: 44.5, max_speed_kmh: 160, status: "CLEAR", pending_jobs: 0 },
-                { section_code: "MTJ-AGC", name: "Mathura Jn - Agra Cantt", length_km: 53.8, max_speed_kmh: 160, status: "PLANNED", pending_jobs: 1 }
-            ]
-        };
+    // Mutation helper: never falls back, always surfaces the real error.
+    async fetchMutation(url, options) {
+        const headers = { ...(options.headers || {}) };
+        const token = this._getAuthToken();
+        if (token && !headers["Authorization"]) {
+            headers["Authorization"] = `Bearer ${token}`;
+        }
+        const res = await fetch(url, { ...options, headers });
+        if (res.ok) return await res.json();
+        const errPayload = await res.json().catch(() => ({}));
+        const err = new Error(errPayload.detail || `Request failed (${res.status})`);
+        err.status = res.status;
+        throw err;
+    }
 
+    // =========================================================================
+    // 1. Dashboard Summary
+    // =========================================================================
+    async getDashboardSummary() {
+        // Offline fallback carries ZERO fabricated KPIs — the UI renders "no data"
+        // state instead of pretending metrics exist.
+        const fallback = {
+            total_active_blocks: 0,
+            total_pending_requests: 0,
+            total_jobs: 0,
+            critical_jobs_count: 0,
+            planned_blocks_today: 0,
+            efficiency_pct: 0.0,
+            shadow_block_synergy_pct: 0.0,
+            punctuality_impact_pct: 0.0,
+            conflicts_count: 0,
+            conflicts_list: [],
+            upcoming_blocks: [],
+            urgent_queue: [],
+            department_breakdown: { ENG: 0, TRD: 0, S_T: 0, MECH: 0 },
+            live_corridor_status: [],
+            latest_optimization_summary: null,
+            live_trains_feed: null
+        };
         return await this.fetchWithFallback(`${this.apiBase}/api/dashboard/summary`, fallback);
     }
 
-    // 2. Maintenance Requests
+    // =========================================================================
+    // 2. Maintenance Requests — GET, POST, PUT, DELETE
+    // =========================================================================
     async getMaintenanceRequests(filters = {}) {
-        let fallback = [...mockMaintenanceJobs];
-        if (filters.department) {
-            fallback = fallback.filter(j => j.department === filters.department);
-        }
-        if (filters.urgency) {
-            fallback = fallback.filter(j => j.urgency === filters.urgency);
-        }
-        if (filters.section) {
-            fallback = fallback.filter(j => j.section === filters.section);
-        }
-
-        const normalizedFallback = fallback.map(j => ({
-            id: j.id,
-            job_code: j.id,
-            title: j.title,
-            department_code: j.department,
-            department_name: j.departmentName,
-            section_code: j.section,
-            track_line: j.trackLine,
-            duration_minutes: j.durationMinutes,
-            priority: j.priority,
-            urgency: j.urgency,
-            requires_power_block: j.requiresPowerBlock,
-            requires_traffic_block: j.requiresTrafficBlock,
-            requires_speed_restriction: j.requiresSpeedRestriction,
-            speed_restriction_kmh: j.speedRestrictionKmh,
-            status: j.status,
-            requested_date: j.requestedDate,
-            earliest_start_minute: j.earliestStartMinute,
-            latest_end_minute: j.latestEndMinute,
-            description: j.description
-        }));
-
-        let query = new URLSearchParams(filters).toString();
-        return await this.fetchWithFallback(`${this.apiBase}/api/maintenance/requests?${query}`, normalizedFallback);
+        // Offline fallback is an EMPTY list — the UI shows "no data" honestly
+        // instead of fabricating requests.
+        const query = new URLSearchParams(filters).toString();
+        return await this.fetchWithFallback(`${this.apiBase}/api/maintenance/requests?${query}`, []);
     }
 
     async createMaintenanceRequest(jobData) {
-        try {
-            const res = await fetch(`${this.apiBase}/api/maintenance/requests`, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                    job_code: jobData.job_code || jobData.id,
-                    title: jobData.title,
-                    department_code: jobData.department_code || jobData.department,
-                    section_code: jobData.section_code || jobData.section,
-                    track_line: jobData.track_line,
-                    duration_minutes: Number(jobData.duration_minutes),
-                    priority: Number(jobData.priority || 3),
-                    urgency: jobData.urgency || "MEDIUM",
-                    requires_power_block: Boolean(jobData.requires_power_block),
-                    requires_traffic_block: Boolean(jobData.requires_traffic_block),
-                    requires_speed_restriction: Boolean(jobData.requires_speed_restriction),
-                    speed_restriction_kmh: Number(jobData.speed_restriction_kmh || 30),
-                    requested_date: jobData.requested_date || new Date().toISOString().split("T")[0],
-                    earliest_start_minute: Number(jobData.earliest_start_minute || 0),
-                    latest_end_minute: Number(jobData.latest_end_minute || 1440),
-                    description: jobData.description || ""
-                })
-            });
-            if (res.ok) {
-                return await res.json();
-            }
-        } catch (err) {
-            console.warn("createMaintenanceRequest API error, continuing with client state:", err);
-        }
-        return jobData;
+        const res = await fetch(`${this.apiBase}/api/maintenance/requests`, {
+            method: "POST",
+            headers: this._getAuthHeaders(),
+            body: JSON.stringify({
+                job_code: jobData.job_code || jobData.id,
+                title: jobData.title,
+                department_code: jobData.department_code || jobData.department,
+                section_code: jobData.section_code || jobData.section,
+                track_line: jobData.track_line || "UP_MAIN",
+                duration_minutes: Number(jobData.duration_minutes),
+                priority: Number(jobData.priority || 3),
+                urgency: jobData.urgency || "MEDIUM",
+                requires_power_block: Boolean(jobData.requires_power_block),
+                requires_traffic_block: Boolean(jobData.requires_traffic_block !== false),
+                requires_speed_restriction: Boolean(jobData.requires_speed_restriction),
+                speed_restriction_kmh: Number(jobData.speed_restriction_kmh || 30),
+                requested_date: jobData.requested_date || new Date().toISOString().split("T")[0],
+                earliest_start_minute: Number(jobData.earliest_start_minute || 0),
+                latest_end_minute: Number(jobData.latest_end_minute || 1440),
+                description: jobData.description || ""
+            })
+        });
+        if (res.ok) return await res.json();
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err.detail || "Failed to create maintenance request.");
     }
 
-    // 3. Block Windows & Timetable
-    async getBlockWindows() {
-        return mockBlockWindows;
+
+    async updateMaintenanceRequest(jobId, updateData) {
+        const res = await fetch(`${this.apiBase}/api/maintenance/requests/${jobId}`, {
+            method: "PUT",
+            headers: this._getAuthHeaders(),
+            body: JSON.stringify(updateData)
+        });
+        if (res.ok) return await res.json();
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err.detail || `Update failed for job ${jobId}`);
     }
 
-    async getTrainMovements() {
-        return mockTrainMovements;
+    async deleteMaintenanceRequest(jobId) {
+        const res = await fetch(`${this.apiBase}/api/maintenance/requests/${jobId}`, {
+            method: "DELETE",
+            headers: this._getAuthHeaders()
+        });
+        if (res.ok) return await res.json();
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err.detail || `Delete failed for job ${jobId}`);
     }
 
-    // 4. Optimization Plan
+    // =========================================================================
+    // 3. Block Windows & Timetable (legacy helpers — no longer used by screens)
+    // =========================================================================
+    async getBlockWindows() { return []; }
+    async getTrainMovements() { return []; }
+
+    // =========================================================================
+    // 4. Optimization Plan — GET latest / run new
+    // =========================================================================
     async getOptimizedPlan() {
+        // Offline fallback is an empty NO_RUNS plan — never a fabricated schedule.
         const fallback = {
-            run_id: mockOptimizedPlan.runId,
-            timestamp: mockOptimizedPlan.timestamp,
-            status: mockOptimizedPlan.status,
-            total_jobs: mockOptimizedPlan.totalJobsConsidered,
-            scheduled_jobs_count: mockOptimizedPlan.scheduledJobsCount,
-            unscheduled_jobs_count: mockOptimizedPlan.unscheduledJobsCount,
-            total_maintenance_hours: mockOptimizedPlan.totalMaintenanceHours,
-            train_delay_total_min: mockOptimizedPlan.totalTrainDelayMinutes,
-            block_utilization_pct: mockOptimizedPlan.blockUtilizationPct,
-            shadow_block_synergy_pct: mockOptimizedPlan.shadowBlockSynergyPct,
-            objective_score: mockOptimizedPlan.objectiveScore,
-            solver_time_seconds: mockOptimizedPlan.solverTimeSeconds,
-            scheduled_blocks: mockOptimizedPlan.scheduledBlocks.map(b => ({
-                job_id: b.jobId,
-                job_code: b.jobId,
-                title: b.title,
-                department_code: b.department,
-                department_color: b.departmentColor,
-                section_code: b.section,
-                track_line: b.trackLine,
-                start_minute: b.startMinute,
-                end_minute: b.endMinute,
-                start_time_str: b.startTimeStr,
-                end_time_str: b.endTimeStr,
-                duration_minutes: b.durationMinutes,
-                is_shadow_block: b.isShadowBlock,
-                paired_job_codes: b.pairedJobIds,
-                resource_assigned: b.resourceAssigned,
-                affected_trains: b.affectedTrains,
-                explanation: b.decisionExplanation
-            })),
-            unscheduled_jobs: mockOptimizedPlan.unscheduledJobs,
-            conflicts_resolved: mockOptimizedPlan.conflictsResolved.map(c => ({
-                type: c.conflictType,
-                severity: c.severity,
-                description: c.description,
-                resolution: c.resolutionApplied
-            })),
-            explanations: mockOptimizedPlan.scheduledBlocks.map(b => ({
-                job_code: b.jobId,
-                decision: "SCHEDULED",
-                reason: b.decisionExplanation
-            }))
+            status: "NO_RUNS",
+            run_id: null,
+            timestamp: null,
+            total_jobs: 0,
+            scheduled_jobs_count: 0,
+            unscheduled_jobs_count: 0,
+            total_maintenance_hours: 0.0,
+            train_delay_total_min: 0,
+            block_utilization_pct: 0.0,
+            shadow_block_synergy_pct: 0.0,
+            objective_score: 0.0,
+            solver_time_seconds: 0.0,
+            scheduled_blocks: [],
+            unscheduled_jobs: [],
+            conflicts_resolved: [],
+            explanations: [],
+            plan_quality: null
         };
-
         return await this.fetchWithFallback(`${this.apiBase}/api/optimization/latest`, fallback);
     }
 
-    // 5. Trigger Optimization Solver
     async runOptimization(params = {}) {
-        const payload = {
-            max_solver_time_sec: params.maxSolverTimeSec || 15,
-            minimize_passenger_delays: params.minimizePassengerDelays !== false,
-            maximize_shadow_blocks: params.maximizeShadowBlocks !== false
+        const objectives = {
+            minimize_passenger_delays: params.minimizePassengerDelays !== undefined ? Boolean(params.minimizePassengerDelays) : true,
+            train_delay_weight: Number(params.trainDelayWeight !== undefined ? params.trainDelayWeight : 1.0),
+            maximize_shadow_blocks: params.maximizeShadowBlocks !== undefined ? Boolean(params.maximizeShadowBlocks) : true,
+            shadow_block_weight: Number(params.shadowBlockWeight !== undefined ? params.shadowBlockWeight : 1.0),
+            prioritize_urgent_maintenance: params.prioritizeUrgentMaintenance !== undefined ? Boolean(params.prioritizeUrgentMaintenance) : true,
+            urgency_weight: Number(params.urgencyWeight !== undefined ? params.urgencyWeight : 1.0)
         };
 
-        return await this.fetchWithFallback(`${this.apiBase}/api/optimization/run`, mockOptimizedPlan, {
+        const payload = {
+            max_solver_time_sec: Number(params.maxSolverTimeSec || params.solver_timeout_seconds || 15),
+            optimization_objectives: objectives
+        };
+
+        // Mutations NEVER fall back: permission denials (401/403) and solver errors
+        // must surface to the user honestly instead of fabricating a plan.
+        return await this.fetchMutation(`${this.apiBase}/api/optimization/run`, {
             method: "POST",
-            headers: { "Content-Type": "application/json" },
+            headers: this._getAuthHeaders(),
             body: JSON.stringify(payload)
         });
     }
 
-    // 6. Job Decision Audit / Explanation
+    // =========================================================================
+    // 5. Job Decision Audit / Explanation
+    // =========================================================================
     async getJobDecisionAudit(jobId) {
-        const job = mockMaintenanceJobs.find(j => j.id === jobId);
-        const block = mockOptimizedPlan.scheduledBlocks.find(b => b.jobId === jobId);
-
-        const fallback = {
+        // Offline fallback is a clean error notice — never a fabricated reasoning tree.
+        const errFallback = {
             job_code: jobId,
-            status: block ? "SCHEDULED" : "DEFERRED",
-            summary: block ? block.decisionExplanation : "Deferred due to high traffic density.",
-            reasoning_tree: block ? [
-                {
-                    step: 1,
-                    title: "Corridor Maintenance Window Check",
-                    status: "PASSED",
-                    detail: `Allocated within approved lull (${block.startTimeStr} - ${block.endTimeStr}) on ${block.section}.`
-                },
-                {
-                    step: 2,
-                    title: "Traction & Safety Power Isolation Check",
-                    status: "PASSED",
-                    detail: job?.requiresPowerBlock ? "Synchronized with Traction OHE power block." : "Standard track circuit protection verified."
-                },
-                {
-                    step: 3,
-                    title: "Machine Resource Allocation",
-                    status: "PASSED",
-                    detail: `Machine '${block.resourceAssigned || 'P-Way Gang'}' confirmed available with 0 conflicts.`
-                },
-                {
-                    step: 4,
-                    title: "Shadow Block Synergy Optimization",
-                    status: block.isShadowBlock ? "OPTIMIZED" : "STANDALONE",
-                    detail: block.isShadowBlock ? `Co-located with ${block.pairedJobIds.join(', ')} to maximize track availability.` : "Dedicated block allocated."
-                }
-            ] : [
-                {
-                    step: 1,
-                    title: "Track Section Capacity Check",
-                    status: "CONFLICT",
-                    detail: "Corridor capacity exceeded by higher priority passenger traffic."
-                }
-            ]
+            error: "Decision audit unavailable: the backend could not be reached. Run an optimization to generate explanations."
         };
-
-        return await this.fetchWithFallback(`${this.apiBase}/api/optimization/explanation/${jobId}`, fallback);
+        return await this.fetchWithFallback(`${this.apiBase}/api/optimization/explanation/${jobId}`, errFallback);
     }
 
-    // 6b. Data Mode Indicator
-    getDataMode() {
-        return { label: "DEMO DATA", color: "amber", isMock: true };
-    }
-
-    // 7. Gantt Timeline Data — accepts optional runId
+    // =========================================================================
+    // 6. Gantt Timeline Data — accepts optional runId
+    // =========================================================================
     async getGanttTimelineData(runId = null) {
-        const sections = [
-            { id: 1, code: "NDLS-TKD" },
-            { id: 2, code: "TKD-FDB" },
-            { id: 3, code: "FDB-PWL" },
-            { id: 4, code: "PWL-KDS" },
-            { id: 5, code: "KDS-MTJ" },
-            { id: 6, code: "MTJ-AGC" }
-        ];
-
-        const tracks = [];
-        sections.forEach(s => {
-            ["UP", "DN"].forEach(dir => {
-                const lineCode = `${s.code}_${dir}`;
-                const blocks = mockOptimizedPlan.scheduledBlocks
-                    .filter(b => b.trackLine === lineCode)
-                    .map(b => ({
-                        id: b.blockId,
-                        job_code: b.jobId,
-                        title: b.title,
-                        department: b.department,
-                        color: b.departmentColor,
-                        start_minute: b.startMinute,
-                        end_minute: b.endMinute,
-                        start_time_str: b.startTimeStr,
-                        end_time_str: b.endTimeStr,
-                        is_shadow: b.isShadowBlock,
-                        paired_jobs: b.pairedJobIds,
-                        resource: b.resourceAssigned
-                    }));
-
-                tracks.push({
-                    section_code: s.code,
-                    track_line_code: lineCode,
-                    line_type: dir,
-                    label: `${s.code} (${dir}_MAIN)`,
-                    blocks: blocks
-                });
-            });
-
-            if (["TKD-FDB", "FDB-PWL"].includes(s.code)) {
-                const lineCode = `${s.code}_3RD`;
-                const blocks = mockOptimizedPlan.scheduledBlocks
-                    .filter(b => b.trackLine === lineCode)
-                    .map(b => ({
-                        id: b.blockId,
-                        job_code: b.jobId,
-                        title: b.title,
-                        department: b.department,
-                        color: b.departmentColor,
-                        start_minute: b.startMinute,
-                        end_minute: b.endMinute,
-                        start_time_str: b.startTimeStr,
-                        end_time_str: b.endTimeStr,
-                        is_shadow: b.isShadowBlock,
-                        paired_jobs: b.pairedJobIds,
-                        resource: b.resourceAssigned
-                    }));
-
-                tracks.push({
-                    section_code: s.code,
-                    track_line_code: lineCode,
-                    line_type: "3RD",
-                    label: `${s.code} (3RD_LINE)`,
-                    blocks: blocks
-                });
-            }
-        });
-
+        // Offline fallback renders an EMPTY timeline — no fabricated bars/trains.
         const fallback = {
+            run_id: null,
+            status: "NO_RUNS",
+            available_runs: [],
             timeline_start_minute: 0,
             timeline_end_minute: 1440,
-            tracks: tracks,
-            trains: mockTrainMovements.map(t => ({
-                train_number: t.trainNumber,
-                train_name: t.trainName,
-                train_type: t.trainType,
-                priority: t.priorityWeight,
-                direction: t.direction,
-                departure_minute: t.departureMinute,
-                arrival_minute: t.arrivalMinute,
-                departure_time_str: t.departureTimeStr,
-                arrival_time_str: t.arrivalTimeStr
-            })),
-            windows: mockBlockWindows.map(w => ({
-                window_code: w.id,
-                section_code: w.section,
-                start_minute: w.startMinute,
-                end_minute: w.endMinute,
-                window_type: w.windowType
-            }))
+            tracks: [],
+            trains: [],
+            windows: []
         };
 
         const apiUrl = runId
@@ -383,54 +262,37 @@ class DataService {
         return await this.fetchWithFallback(apiUrl, fallback);
     }
 
-    // 8. What-If Simulation — supports TRAIN_DELAY, MAINTENANCE_OVERRUN, BLOCK_UNAVAILABLE
+    async getRailwayConstraints() {
+        // Empty rule set on offline fallback — the UI shows an honest "unavailable" state.
+        const fallback = { rules: [] };
+        return await this.fetchWithFallback(`${this.apiBase}/api/optimization/rules`, fallback);
+    }
+
+    // =========================================================================
+    // 7. What-If Simulation — TRAIN_DELAY, MAINTENANCE_OVERRUN, BLOCK_UNAVAILABLE, EMERGENCY_JOB
+    // =========================================================================
     async simulateWhatIf(scenarioParams) {
         const payload = {
-            scenario_name: scenarioParams.scenarioName || "What-If Scenario",
-            emergency_job: scenarioParams.emergencyJob || null,
-            simulated_train_delay_min: scenarioParams.trainDelayMin || 0,
-            delayed_train_number: scenarioParams.delayedTrainNumber || null,
-            blocked_section_code: scenarioParams.blockedSectionCode || null,
-            block_duration_extra_min: scenarioParams.blockDurationExtraMin || 0,
+            scenario_name: scenarioParams.scenario_name || scenarioParams.scenarioName || "What-If Scenario",
+            emergency_job: scenarioParams.emergency_job || scenarioParams.emergencyJob || null,
+            simulated_train_delay_min: scenarioParams.simulated_train_delay_min ?? scenarioParams.train_delay_min ?? scenarioParams.delay_minutes ?? scenarioParams.trainDelayMin ?? 0,
+            delayed_train_number: scenarioParams.delayed_train_number || scenarioParams.train_id || scenarioParams.delayedTrainNumber || null,
+            blocked_section_code: scenarioParams.blocked_section_code || scenarioParams.section_code || scenarioParams.blockedSectionCode || null,
+            block_duration_extra_min: scenarioParams.block_duration_extra_min ?? scenarioParams.extra_minutes ?? scenarioParams.blockDurationExtraMin ?? 0,
         };
-
-        const fallback = {
-            scenario_name: payload.scenario_name,
-            baseline_run_id: 101,
-            simulated_run: { scheduled_jobs_count: 15, unscheduled_jobs_count: 1, train_delay_total_min: 20 },
-            baseline_blocks: [],
-            new_blocks: [],
-            affected_jobs: [],
-            dropped_jobs: [],
-            gained_jobs: [],
-            delta_scheduled_jobs: scenarioParams.emergencyJob ? 1 : 0,
-            delta_train_delay_min: scenarioParams.trainDelayMin || 20,
-            delta_utilization_pct: 2.6,
-            delta_deferred_jobs: 0,
-            kpi_delta: {
-                scheduled: scenarioParams.emergencyJob ? 1 : 0,
-                train_delay_min: scenarioParams.trainDelayMin || 20,
-                utilization_pct: 2.6,
-                deferred: 0,
-            },
-            critical_alerts: mockPlanChange.criticalAlerts,
-            impact_summary: mockPlanChange.impactSummary,
-            disruptions_applied: {
-                emergency_job: scenarioParams.emergencyJob?.job_code || null,
-                train_delay_min: scenarioParams.trainDelayMin || null,
-                block_unavailable_section: scenarioParams.blockedSectionCode || null,
-                maintenance_overrun_min: scenarioParams.blockDurationExtraMin || null,
-            }
-        };
-
-        return await this.fetchWithFallback(`${this.apiBase}/api/whatif/simulate`, fallback, {
+        // What-If is a MUTATION-style solver call: it must never silently fall back
+        // to fabricated deltas. Permission denials and solver failures surface honestly.
+        return await this.fetchMutation(`${this.apiBase}/api/whatif/simulate`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify(payload)
         });
     }
 
-    // 9b. AI Preparation: Predict Maintenance Duration
+
+    // =========================================================================
+    // 8. Duration Prediction
+    // =========================================================================
     async predictMaintenanceDuration(jobData) {
         const payload = {
             department_code: jobData.department_code || "ENG",
@@ -445,41 +307,108 @@ class DataService {
             predictedDuration: jobData.duration_minutes || 180,
             lowerBound: Math.floor((jobData.duration_minutes || 180) * 0.8),
             upperBound: Math.ceil((jobData.duration_minutes || 180) * 1.25),
-            confidence: 0.55,
-            modelStatus: "DETERMINISTIC_BASELINE",
+            confidence: 0.55, modelStatus: "DETERMINISTIC_BASELINE",
             reasoning: "Mock fallback — deterministic baseline",
         };
         return await this.fetchWithFallback(`${this.apiBase}/api/maintenance/predict-duration`, fallback, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
+            method: "POST", headers: { "Content-Type": "application/json" },
             body: JSON.stringify(payload)
         });
     }
 
+    // =========================================================================
     // 9. Operational Reports & Analytics
-    async getOperationalReports() {
+    // =========================================================================
+    async getOperationalReports(filters = {}) {
+        const queryParams = new URLSearchParams();
+        if (filters.division && filters.division !== "ALL" && filters.division !== "All Divisions") {
+            queryParams.append("division", filters.division);
+        }
+        if (filters.department && filters.department !== "ALL" && filters.department !== "All Departments") {
+            queryParams.append("department", filters.department);
+        }
+        if (filters.section && filters.section !== "ALL" && filters.section !== "All Sections") {
+            queryParams.append("section", filters.section);
+        }
+        if (filters.dateRange) {
+            queryParams.append("date_range", filters.dateRange);
+        }
+
+        const qs = queryParams.toString() ? `?${queryParams.toString()}` : "";
+        // Offline fallback carries ZERO fabricated KPIs — the UI renders "no data"
+        // state instead of inventing report numbers.
         const fallback = {
             kpis: {
-                total_blocks_executed_ytd: 1420,
-                average_grant_ratio_pct: 95.8,
-                punctuality_loss_reduction_pct: 28.4,
-                shadow_block_savings_hours: 142.5,
-                safety_compliance_pct: 100.0
+                total_blocks_executed_ytd: 0,
+                average_grant_ratio_pct: 0.0,
+                block_utilization_pct: 0.0,
+                job_completion_rate_pct: 0.0,
+                mean_delay_per_block_min: 0.0,
+                critical_conflicts_resolved: 0,
+                shadow_block_synergy_pct: 0.0,
+                shadow_block_savings_hours: 0.0,
+                safety_compliance_pct: 0.0
             },
-            department_statistics: [
-                { code: "ENG", name: "Civil Engineering", requested: 4, scheduled: 4, grant_rate: 100.0, color: "#003366" },
-                { code: "TRD", name: "Traction Distribution", requested: 2, scheduled: 2, grant_rate: 100.0, color: "#d97706" },
-                { code: "S_T", name: "Signaling & Telecom", requested: 3, scheduled: 3, grant_rate: 100.0, color: "#0284c7" },
-                { code: "MECH", name: "Mechanical", requested: 1, scheduled: 1, grant_rate: 100.0, color: "#4b5563" }
-            ],
-            historical_optimization_runs: [
-                { run_id: 101, timestamp: "01 Sep 06:00", status: "OPTIMAL", scheduled: 10, train_delay_min: 92, utilization: 94.2, synergy: 70.0, solver_time_sec: 0.84 },
-                { run_id: 100, timestamp: "31 Aug 06:00", status: "OPTIMAL", scheduled: 9, train_delay_min: 75, utilization: 88.5, synergy: 66.7, solver_time_sec: 0.72 },
-                { run_id: 99, timestamp: "30 Aug 06:00", status: "FEASIBLE", scheduled: 8, train_delay_min: 110, utilization: 84.0, synergy: 50.0, solver_time_sec: 1.15 }
-            ]
+            corridor_context: "Delhi–Agra Mainline (Synthetic Demo Corridor) — backend offline",
+            active_filters: { division: "ALL", section: "ALL", department: "ALL" },
+            department_statistics: [],
+            section_statistics: [],
+            historical_optimization_runs: [],
+            raw_records: []
         };
+        return await this.fetchWithFallback(`${this.apiBase}/api/reports/analytics${qs}`, fallback);
+    }
 
-        return await this.fetchWithFallback(`${this.apiBase}/api/reports/analytics`, fallback);
+    // =========================================================================
+    // 10. Auth — Login
+    // =========================================================================
+    async loginUser(username, role, divisionCode) {
+        const res = await fetch(`${this.apiBase}/api/auth/login`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ username, role, division_code: divisionCode })
+        });
+        if (!res.ok) {
+            const err = await res.json().catch(() => ({}));
+            throw new Error(err.detail || "Login failed");
+        }
+        return await res.json();
+    }
+
+    // =========================================================================
+    // 11. Train list for what-if scenario select
+    // =========================================================================
+    async getTrainList() {
+        const fallback = [
+            { train_number: "12301", train_name: "Rajdhani Express (NDLS-HWH)", train_type: "RAJDHANI", direction: "DN" },
+            { train_number: "12302", train_name: "Rajdhani Express (HWH-NDLS)", train_type: "RAJDHANI", direction: "UP" },
+            { train_number: "22435", train_name: "Vande Bharat Express (NDLS-AGC)", train_type: "VANDE_BHARAT", direction: "DN" },
+            { train_number: "22436", train_name: "Vande Bharat Express (AGC-NDLS)", train_type: "VANDE_BHARAT", direction: "UP" },
+            { train_number: "12137", train_name: "Punjab Mail (NDLS-BCT)", train_type: "SUPERFAST", direction: "DN" },
+            { train_number: "12138", train_name: "Punjab Mail (BCT-NDLS)", train_type: "SUPERFAST", direction: "UP" },
+        ];
+        return await this.fetchWithFallback(`${this.apiBase}/api/trains/list`, fallback);
+    }
+
+    // =========================================================================
+    // Utility — Data mode indicator (reads division from session)
+    // =========================================================================
+    getDataMode() {
+        const user = this._getSession();
+        return {
+            label: "SYNTHETIC DEMO DATA",
+            color: "amber",
+            isMock: true,
+            division: user?.division_name || user?.division_code || "Indian Railways"
+        };
+    }
+
+    // Session helper — reads railopt_user from localStorage
+    _getSession() {
+        try {
+            const raw = localStorage.getItem("railopt_user");
+            return raw ? JSON.parse(raw) : null;
+        } catch { return null; }
     }
 }
 

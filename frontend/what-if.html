@@ -193,9 +193,10 @@
         <span class="font-headline-md text-headline-md font-bold text-on-primary tracking-tight uppercase">RAILOPT</span>
     </div>
     <div class="flex items-center gap-sm text-on-primary">
-        <button class="hover:bg-primary-container p-1.5 rounded-full"><span class="material-symbols-outlined text-[20px]">notifications</span></button>
-        <div class="flex items-center gap-1.5 bg-primary-container px-2.5 py-1 rounded-lg">
-            <span class="font-label-md text-label-md text-on-primary">Planner</span>
+        <button id="btn-mobile-notifications" class="hover:bg-primary-container p-1.5 rounded-full relative"><span class="material-symbols-outlined text-[20px]">notifications</span></button>
+        <button id="btn-mobile-logout" class="hover:bg-primary-container p-1.5 rounded-full text-red-300" title="Sign Out"><span class="material-symbols-outlined text-[20px]">logout</span></button>
+        <div id="mobile-user-profile" class="flex items-center gap-1.5 bg-primary-container px-2.5 py-1 rounded-lg cursor-pointer">
+            <span id="mobile-user-role" class="font-label-md text-label-md text-on-primary">—</span>
         </div>
     </div>
 </header>
@@ -204,170 +205,287 @@
 <header class="hidden md:flex justify-between items-center px-lg w-full h-16 bg-primary border-b border-primary-container z-30 fixed top-0 left-[240px] right-0" style="width: calc(100% - 240px);">
     <div class="flex items-center gap-sm">
         <span class="font-body-sm text-body-sm text-on-primary opacity-90 font-medium">AI-Powered Block Planning System</span>
-        <span class="text-xs bg-primary-container text-on-primary px-2 py-0.5 rounded text-[11px] border border-outline-variant/30">Northern / NCR Division</span>
+        <span id="header-division-badge" class="text-xs bg-primary-container text-on-primary px-2.5 py-0.5 rounded text-[11px] border border-outline-variant/30 font-medium">—</span>
     </div>
     <div class="flex items-center gap-lg">
-        <span class="font-label-md text-label-md text-on-primary opacity-80" id="header-datetime">31 Aug 2026 | 20:15:00</span>
+        <span class="font-label-md text-label-md text-on-primary opacity-80" id="header-datetime">01 Sep 2026 | 19:30:00</span>
         <div class="flex items-center gap-sm text-on-primary">
-            <button class="hover:bg-primary-container p-1.5 rounded-full transition-colors duration-200 relative" title="Notifications">
+            <button id="btn-header-notifications" class="hover:bg-primary-container p-1.5 rounded-full transition-colors duration-200 relative" title="Operational Alerts & Notifications">
                 <span class="material-symbols-outlined text-[20px]">notifications</span>
                 <span class="absolute top-1 right-1 w-2 h-2 bg-error rounded-full"></span>
             </button>
-            <a href="/constraints-logic" class="hover:bg-primary-container p-1.5 rounded-full transition-colors duration-200" title="Configuration & Rules">
+            <button id="btn-header-settings" class="hover:bg-primary-container p-1.5 rounded-full transition-colors duration-200" title="System Settings & Configuration">
                 <span class="material-symbols-outlined text-[20px]">settings</span>
-            </a>
+            </button>
+            <button id="btn-header-logout" class="hover:bg-red-600/30 p-1.5 rounded-full text-red-200 hover:text-red-100 transition-colors" title="Sign Out (Switch User)">
+                <span class="material-symbols-outlined text-[20px]">logout</span>
+            </button>
         </div>
-        <div class="flex items-center gap-2 bg-primary-container px-3 py-1.5 rounded-lg border border-outline-variant/20">
-            <div class="w-6 h-6 rounded-full bg-surface text-primary flex items-center justify-center font-bold text-xs">P</div>
-            <span class="font-label-md text-label-md text-on-primary font-medium">Planner</span>
+        <div id="header-user-profile" class="flex items-center gap-2 bg-primary-container px-3 py-1.5 rounded-lg border border-outline-variant/20 cursor-pointer hover:bg-opacity-80 transition-all select-none">
+            <div id="header-user-avatar" class="w-6 h-6 rounded-full bg-surface text-primary flex items-center justify-center font-bold text-xs">—</div>
+            <span id="header-user-role" class="font-label-md text-label-md text-on-primary font-medium">—</span>
             <span class="material-symbols-outlined text-[16px] text-on-primary opacity-70">expand_more</span>
         </div>
     </div>
 </header>
 <main class="flex-1 md:ml-[240px] mt-16 p-container-margin md:p-lg bg-surface-container-lowest min-h-screen">
 
-<div class="mb-lg">
-<h1 class="font-headline-lg text-headline-lg text-on-surface">What-if Analysis</h1>
-<p class="font-body-md text-body-md text-on-surface-variant mt-xs">Simulate scenarios and evaluate impact on the operational plan.</p>
+<!-- Page Header -->
+<div class="mb-lg flex flex-col md:flex-row md:items-center md:justify-between gap-sm">
+    <div>
+        <h1 class="font-headline-lg text-headline-lg text-on-surface">What-if Analysis</h1>
+        <p class="font-body-md text-body-md text-on-surface-variant mt-xs">Simulate disruption scenarios and trigger real re-optimization via CP-SAT solver.</p>
+    </div>
+    <div class="flex items-center gap-sm">
+        <span id="whatif-status-badge" class="text-xs bg-surface-container text-on-surface-variant px-3 py-1 rounded-full border border-outline-variant font-data-mono">
+            Awaiting scenario input
+        </span>
+    </div>
 </div>
+
 <div class="grid grid-cols-12 gap-lg">
-<!-- Controls Panel -->
+<!-- ========= Controls Panel ========= -->
 <div class="col-span-12 xl:col-span-4 flex flex-col gap-lg">
-<div class="bg-surface-container-lowest rounded-xl border border-outline-variant p-lg shadow-sm">
-<h2 class="font-headline-sm text-headline-sm text-on-surface border-b border-outline-variant pb-sm mb-md">Scenario Selection</h2>
-<div class="flex flex-col gap-md">
-<label class="flex items-center gap-sm cursor-pointer group">
-<input checked="" class="text-primary-container focus:ring-primary-container border-outline w-4 h-4" name="scenario" type="radio">
-<span class="font-body-md text-body-md text-on-surface group-hover:text-primary transition-colors">Train Delay</span>
-</label>
-<label class="flex items-center gap-sm cursor-pointer group">
-<input class="text-primary-container focus:ring-primary-container border-outline w-4 h-4" name="scenario" type="radio">
-<span class="font-body-md text-body-md text-on-surface group-hover:text-primary transition-colors">Extend Maintenance Duration</span>
-</label>
-<label class="flex items-center gap-sm cursor-pointer group">
-<input class="text-primary-container focus:ring-primary-container border-outline w-4 h-4" name="scenario" type="radio">
-<span class="font-body-md text-body-md text-on-surface group-hover:text-primary transition-colors">Block Unavailability</span>
-</label>
-<label class="flex items-center gap-sm cursor-pointer group">
-<input class="text-primary-container focus:ring-primary-container border-outline w-4 h-4" name="scenario" type="radio">
-<span class="font-body-md text-body-md text-on-surface group-hover:text-primary transition-colors">Add New Maintenance Job</span>
-</label>
+
+    <!-- Scenario Type -->
+    <div class="bg-surface-container-lowest rounded-xl border border-outline-variant p-lg shadow-sm">
+        <h2 class="font-headline-sm text-headline-sm text-on-surface border-b border-outline-variant pb-sm mb-md">Scenario Type</h2>
+        <div class="flex flex-col gap-xs">
+            <label class="font-label-md text-on-surface-variant block mb-1 text-[11px] uppercase">Select Disruption Type</label>
+            <div class="relative">
+                <select id="select-scenario-type" class="w-full border border-outline-variant rounded-md px-md py-sm font-body-md text-on-surface appearance-none focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary bg-white">
+                    <option value="TRAIN_DELAY">Train Delay / Late Running</option>
+                    <option value="BLOCK_UNAVAILABLE">Section / Block Unavailable</option>
+                    <option value="MAINTENANCE_OVERRUN">Maintenance Duration Overrun</option>
+                    <option value="EMERGENCY_JOB">Emergency Rail Fracture / Urgent Job</option>
+                </select>
+                <span class="material-symbols-outlined absolute right-sm top-1/2 -translate-y-1/2 text-on-surface-variant pointer-events-none text-[18px]">expand_more</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Dynamic Field Panels -->
+    <!-- Train Delay Fields -->
+    <div id="fields-train-delay" class="bg-surface-container-lowest rounded-xl border border-outline-variant p-lg shadow-sm">
+        <h2 class="font-headline-sm text-headline-sm text-on-surface border-b border-outline-variant pb-sm mb-md flex items-center gap-2">
+            <span class="material-symbols-outlined text-[20px] text-primary">train</span>
+            Train Delay Scenario
+        </h2>
+        <div class="flex flex-col gap-md">
+            <div class="flex flex-col gap-xs">
+                <label class="font-label-md text-label-md text-on-surface-variant">Affected Train</label>
+                <div class="relative">
+                    <select id="sim-train-number" class="w-full border border-outline-variant rounded-md px-md py-sm font-body-md text-on-surface appearance-none focus:outline-none focus:border-primary bg-white">
+                        <option value="">Loading trains...</option>
+                    </select>
+                    <span class="material-symbols-outlined absolute right-sm top-1/2 -translate-y-1/2 text-on-surface-variant pointer-events-none text-[18px]">expand_more</span>
+                </div>
+            </div>
+            <div class="flex flex-col gap-xs">
+                <label class="font-label-md text-label-md text-on-surface-variant">Delay Duration (minutes)</label>
+                <input id="sim-train-delay" class="w-full border border-outline-variant rounded-md px-md py-sm font-data-mono text-on-surface focus:outline-none focus:border-primary bg-white" type="number" value="30" min="5" max="240">
+            </div>
+        </div>
+    </div>
+
+    <!-- Block Unavailable Fields -->
+    <div id="fields-block-unavailable" class="hidden bg-surface-container-lowest rounded-xl border border-outline-variant p-lg shadow-sm">
+        <h2 class="font-headline-sm text-headline-sm text-on-surface border-b border-outline-variant pb-sm mb-md flex items-center gap-2">
+            <span class="material-symbols-outlined text-[20px] text-error">block</span>
+            Section Unavailable
+        </h2>
+        <div class="flex flex-col gap-md">
+            <div class="flex flex-col gap-xs">
+                <label class="font-label-md text-label-md text-on-surface-variant">Blocked Section</label>
+                <div class="relative">
+                    <select id="sim-blocked-section" class="w-full border border-outline-variant rounded-md px-md py-sm font-body-md text-on-surface appearance-none focus:outline-none focus:border-primary bg-white">
+                        <option value="NDLS-TKD">NDLSâ€“TKD (New Delhi â€“ Tuglakabad)</option>
+                        <option value="TKD-FDB">TKDâ€“FDB (Tuglakabad â€“ Faridabad)</option>
+                        <option value="FDB-PWL" selected>FDBâ€“PWL (Faridabad â€“ Palwal)</option>
+                        <option value="PWL-KDS">PWLâ€“KDS (Palwal â€“ Kosi Kalan)</option>
+                        <option value="KDS-MTJ">KDSâ€“MTJ (Kosi Kalan â€“ Mathura Jn)</option>
+                        <option value="MTJ-AGC">MTJâ€“AGC (Mathura Jn â€“ Agra Cantt)</option>
+                    </select>
+                    <span class="material-symbols-outlined absolute right-sm top-1/2 -translate-y-1/2 text-on-surface-variant pointer-events-none text-[18px]">expand_more</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Maintenance Overrun Fields -->
+    <div id="fields-maintenance-overrun" class="hidden bg-surface-container-lowest rounded-xl border border-outline-variant p-lg shadow-sm">
+        <h2 class="font-headline-sm text-headline-sm text-on-surface border-b border-outline-variant pb-sm mb-md flex items-center gap-2">
+            <span class="material-symbols-outlined text-[20px] text-amber-600">timer</span>
+            Maintenance Overrun
+        </h2>
+        <div class="flex flex-col gap-md">
+            <div class="flex flex-col gap-xs">
+                <label class="font-label-md text-label-md text-on-surface-variant">Job Code (optional)</label>
+                <input id="sim-job-code-overrun" class="w-full border border-outline-variant rounded-md px-md py-sm font-data-mono text-on-surface focus:outline-none focus:border-primary bg-white" type="text" placeholder="e.g. JOB-ENG-101">
+            </div>
+            <div class="flex flex-col gap-xs">
+                <label class="font-label-md text-label-md text-on-surface-variant">Extra Duration (minutes)</label>
+                <input id="sim-overrun-min" class="w-full border border-outline-variant rounded-md px-md py-sm font-data-mono text-on-surface focus:outline-none focus:border-primary bg-white" type="number" value="60" min="10" max="300">
+            </div>
+        </div>
+    </div>
+
+    <!-- Emergency Job Fields -->
+    <div id="fields-fracture-job" class="hidden bg-surface-container-lowest rounded-xl border border-outline-variant p-lg shadow-sm">
+        <h2 class="font-headline-sm text-headline-sm text-on-surface border-b border-outline-variant pb-sm mb-md flex items-center gap-2">
+            <span class="material-symbols-outlined text-[20px] text-error">warning</span>
+            Emergency / Urgent Job
+        </h2>
+        <div class="flex flex-col gap-md">
+            <div class="flex flex-col gap-xs">
+                <label class="font-label-md text-label-md text-on-surface-variant">Job Title</label>
+                <input id="sim-job-title" class="w-full border border-outline-variant rounded-md px-md py-sm font-body-md text-on-surface focus:outline-none focus:border-primary bg-white" type="text" value="Emergency Rail Fracture Repair">
+            </div>
+            <div class="grid grid-cols-2 gap-sm">
+                <div class="flex flex-col gap-xs">
+                    <label class="font-label-md text-label-md text-on-surface-variant">Section</label>
+                    <div class="relative">
+                        <select id="sim-section" class="w-full border border-outline-variant rounded-md px-md py-sm font-body-md text-on-surface appearance-none focus:outline-none focus:border-primary bg-white text-[12px]">
+                            <option value="NDLS-TKD">NDLS-TKD</option>
+                            <option value="TKD-FDB">TKD-FDB</option>
+                            <option value="FDB-PWL" selected>FDB-PWL</option>
+                            <option value="PWL-KDS">PWL-KDS</option>
+                            <option value="KDS-MTJ">KDS-MTJ</option>
+                            <option value="MTJ-AGC">MTJ-AGC</option>
+                        </select>
+                        <span class="material-symbols-outlined absolute right-1 top-1/2 -translate-y-1/2 text-on-surface-variant pointer-events-none text-[16px]">expand_more</span>
+                    </div>
+                </div>
+                <div class="flex flex-col gap-xs">
+                    <label class="font-label-md text-label-md text-on-surface-variant">Duration (min)</label>
+                    <input id="sim-duration" class="w-full border border-outline-variant rounded-md px-md py-sm font-data-mono text-on-surface focus:outline-none focus:border-primary bg-white" type="number" value="180" min="30" max="480">
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Actions Buttons -->
+    <div class="flex flex-col gap-2">
+        <button id="btn-run-simulation" class="w-full bg-primary-container hover:bg-primary text-on-primary font-label-md text-label-md py-sm rounded-xl transition-all flex items-center justify-center gap-sm shadow-sm font-bold active:scale-[0.98]">
+            <span class="material-symbols-outlined text-[18px]">play_arrow</span>
+            Run Scenario & Re-Optimize
+        </button>
+        <button id="btn-reset-simulation" class="w-full bg-surface-container hover:bg-surface-variant text-on-surface font-label-md text-label-md py-sm rounded-xl transition-colors flex items-center justify-center gap-sm font-semibold border border-outline-variant">
+            <span class="material-symbols-outlined text-[18px]">restart_alt</span>
+            Reset Inputs
+        </button>
+    </div>
+
 </div>
-</div>
-<div class="bg-surface-container-lowest rounded-xl border border-outline-variant p-lg shadow-sm">
-<h2 class="font-headline-sm text-headline-sm text-on-surface border-b border-outline-variant pb-sm mb-md">Train Delay Scenario</h2>
-<div class="flex flex-col gap-md">
-<div class="flex flex-col gap-xs">
-<label class="font-label-md text-label-md text-on-surface-variant">Select Train</label>
-<div class="relative">
-<select class="w-full border border-outline-variant rounded-md px-md py-sm font-body-md text-on-surface appearance-none focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary bg-white">
-<option>12302 - NDLS to GZB</option>
-<option>12426 - GZB to MTC</option>
-</select>
-<span class="material-symbols-outlined absolute right-sm top-1/2 -translate-y-1/2 text-on-surface-variant pointer-events-none" data-icon="arrow_drop_down">arrow_drop_down</span>
-</div>
-</div>
-<div class="flex flex-col gap-xs">
-<label class="font-label-md text-label-md text-on-surface-variant">Delay (minutes)</label>
-<input class="w-full border border-outline-variant rounded-md px-md py-sm font-data-mono text-on-surface focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary bg-white" type="number" value="30">
-</div>
-<button class="w-full bg-primary-container hover:bg-opacity-90 text-on-primary font-label-md text-label-md py-sm rounded-md transition-colors mt-sm flex items-center justify-center gap-sm">
-<span class="material-symbols-outlined text-[18px]" data-icon="play_arrow">play_arrow</span>
-                                Run Scenario
-                            </button>
-</div>
-</div>
-</div>
-<!-- Results Panel -->
+
+<!-- ========= Results Panel ========= -->
 <div class="col-span-12 xl:col-span-8 flex flex-col gap-lg">
-<div class="bg-surface-container-lowest rounded-xl border border-outline-variant p-lg shadow-sm">
-<div class="flex justify-between items-center border-b border-outline-variant pb-sm mb-md">
-<h2 class="font-headline-sm text-headline-sm text-on-surface">Re-optimized Plan Summary</h2>
-<span class="bg-green-100 text-green-800 font-label-md text-[11px] px-2 py-1 rounded-full border border-green-200">Feasible</span>
+
+    <!-- Active Scenario Summary Banner -->
+    <div id="whatif-scenario-summary-card" class="bg-surface-container-lowest rounded-xl border border-outline-variant p-md shadow-sm hidden">
+        <div class="flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-full bg-primary-container/10 flex items-center justify-center text-primary">
+                    <span class="material-symbols-outlined text-[24px]" id="whatif-scenario-icon">science</span>
+                </div>
+                <div>
+                    <h3 class="font-headline-sm text-[16px] font-bold text-on-surface" id="whatif-scenario-title">Scenario Simulation Result</h3>
+                    <p class="text-[12px] text-on-surface-variant" id="whatif-scenario-subtitle">Impact summary across corridor sections</p>
+                </div>
+            </div>
+            <span id="whatif-result-status" class="text-[11px] font-bold px-3 py-1 rounded-full bg-surface-container text-on-surface-variant border border-outline-variant">
+                OPTIMAL
+            </span>
+        </div>
+    </div>
+
+    <!-- KPI Delta Cards -->
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-md">
+        <div class="bg-surface-container-lowest border border-outline-variant rounded-xl p-md shadow-sm">
+            <div class="font-label-md text-on-surface-variant text-[11px] uppercase mb-1">Scheduled Jobs Δ</div>
+            <div id="delta-scheduled-jobs" class="font-headline-lg text-[26px] font-bold text-on-surface">—</div>
+            <div class="text-[10px] text-on-surface-variant mt-0.5">Scheduled block count</div>
+        </div>
+        <div class="bg-surface-container-lowest border border-outline-variant rounded-xl p-md shadow-sm">
+            <div class="font-label-md text-on-surface-variant text-[11px] uppercase mb-1">Train Delay Δ</div>
+            <div id="delta-train-delay" class="font-headline-lg text-[26px] font-bold text-on-surface">—</div>
+            <div class="text-[10px] text-on-surface-variant mt-0.5">Corridor regulation impact</div>
+        </div>
+        <div class="bg-surface-container-lowest border border-outline-variant rounded-xl p-md shadow-sm">
+            <div class="font-label-md text-on-surface-variant text-[11px] uppercase mb-1">Block Utilization Δ</div>
+            <div id="delta-utilization" class="font-headline-lg text-[26px] font-bold text-on-surface">—</div>
+            <div class="text-[10px] text-on-surface-variant mt-0.5">Net corridor possession %</div>
+        </div>
+        <div class="bg-surface-container-lowest border border-outline-variant rounded-xl p-md shadow-sm">
+            <div class="font-label-md text-on-surface-variant text-[11px] uppercase mb-1">Deferred Jobs Δ</div>
+            <div id="delta-deferred" class="font-headline-lg text-[26px] font-bold text-on-surface">—</div>
+            <div class="text-[10px] text-on-surface-variant mt-0.5">Deferred maintenance demand</div>
+        </div>
+    </div>
+
+    <!-- Visual Comparative Timeline -->
+    <div class="bg-surface-container-lowest rounded-xl border border-outline-variant p-lg shadow-sm">
+        <div class="flex justify-between items-center border-b border-outline-variant pb-sm mb-md">
+            <h2 class="font-headline-sm text-headline-sm text-on-surface flex items-center gap-2 font-bold">
+                <span class="material-symbols-outlined text-[20px] text-primary">view_timeline</span>
+                Comparative Schedule Timeline
+            </h2>
+            <span class="text-[11px] font-data-mono text-outline">Delhi–Agra Mainline (24h Window)</span>
+        </div>
+        <div id="comparative-timeline-container" class="space-y-md">
+            <div class="p-6 text-center text-on-surface-variant font-medium bg-surface-container-low rounded-lg">
+                Run a scenario to view side-by-side Baseline vs Re-Optimized corridor possession timelines.
+            </div>
+        </div>
+    </div>
+
+    <!-- Detailed Before / After Schedule Change Diff Table -->
+    <div class="bg-surface-container-lowest rounded-xl border border-outline-variant p-lg shadow-sm">
+        <div class="flex justify-between items-center border-b border-outline-variant pb-sm mb-md">
+            <h2 class="font-headline-sm text-headline-sm text-on-surface flex items-center gap-2 font-bold">
+                <span class="material-symbols-outlined text-[20px] text-primary">compare_arrows</span>
+                Before vs After Schedule Changes
+            </h2>
+            <div class="flex items-center gap-2">
+                <span class="text-[10px] font-bold px-2 py-0.5 bg-emerald-100 text-emerald-800 rounded border border-emerald-200">NEW</span>
+                <span class="text-[10px] font-bold px-2 py-0.5 bg-amber-100 text-amber-800 rounded border border-amber-200">MOVED</span>
+                <span class="text-[10px] font-bold px-2 py-0.5 bg-red-100 text-red-800 rounded border border-red-200">DEFERRED</span>
+            </div>
+        </div>
+        <div id="schedule-diff-table-container">
+            <div class="text-body-sm text-on-surface-variant italic p-6 bg-surface-container-low rounded-lg text-center font-medium">
+                Run a scenario to inspect specific job movements, start/end time shifts, and deconfliction actions.
+            </div>
+        </div>
+    </div>
+
+    <!-- Solver Alerts & Impact Summary -->
+    <div class="bg-surface-container-lowest rounded-xl border border-outline-variant p-lg shadow-sm">
+        <h2 class="font-headline-sm text-headline-sm text-on-surface border-b border-outline-variant pb-sm mb-md flex items-center gap-2 font-bold">
+            <span class="material-symbols-outlined text-[20px] text-amber-600">notifications_active</span>
+            Solver Alerts & Operational Explanations
+        </h2>
+        <div id="simulation-alerts" class="flex flex-col gap-2">
+            <div class="p-3 bg-surface-container-low rounded-lg text-on-surface-variant text-body-sm font-medium text-center">
+                Run a scenario to see automated solver warnings and conflict resolution notes.
+            </div>
+        </div>
+    </div>
+
+    <!-- View Full Plan Button -->
+    <div class="flex justify-end gap-sm">
+        <button onclick="window.location.href='/gantt-view'" class="bg-primary-container hover:bg-primary text-on-primary font-label-md text-label-md py-sm px-lg rounded-xl transition-colors flex items-center gap-sm font-bold shadow-sm">
+            <span class="material-symbols-outlined text-[18px]">view_timeline</span>
+            Open in Full Corridor Gantt
+        </button>
+    </div>
+
 </div>
-<div class="grid grid-cols-3 gap-md mb-md">
-<div class="flex flex-col">
-<span class="font-body-sm text-body-sm text-on-surface-variant mb-xs">Jobs Rescheduled</span>
-<div class="font-headline-lg text-headline-lg text-on-surface">2</div>
+
 </div>
-<div class="flex flex-col">
-<span class="font-body-sm text-body-sm text-on-surface-variant mb-xs">New Conflicts</span>
-<div class="font-headline-lg text-headline-lg text-on-surface">0</div>
-</div>
-<div class="flex flex-col">
-<span class="font-body-sm text-body-sm text-on-surface-variant mb-xs">Total Blocked Time</span>
-<div class="flex items-baseline gap-sm">
-<span class="font-headline-lg text-headline-lg text-on-surface">17.0 hrs</span>
-<span class="font-body-sm text-error font-medium flex items-center"><span class="material-symbols-outlined text-[14px]" data-icon="arrow_upward">arrow_upward</span> 3%</span>
-</div>
-</div>
-</div>
-<div class="bg-surface-container-low rounded-lg p-md flex items-start gap-md mb-md border border-outline-variant border-opacity-50">
-<span class="material-symbols-outlined text-primary-container mt-1" data-icon="info">info</span>
-<p class="font-body-sm text-body-sm text-on-surface">The plan has been automatically re-optimized considering the 30-minute delay for train 12302. All critical jobs remain scheduled, with minor adjustments to block J-01 and J-04 timings to resolve overlaps.</p>
-</div>
-<div class="flex justify-end">
-<button class="bg-primary-container hover:bg-opacity-90 text-on-primary font-label-md text-label-md py-sm px-lg rounded-md transition-colors flex items-center gap-sm">
-                                View Detailed Updated Plan
-                            </button>
-</div>
-</div>
-<!-- Simplified Timeline Comparison -->
-<div class="bg-surface-container-lowest rounded-xl border border-outline-variant p-lg shadow-sm flex-1 flex flex-col">
-<h2 class="font-headline-sm text-headline-sm text-on-surface border-b border-outline-variant pb-sm mb-md">Timeline Impact Preview (NDLS - GZB Section)</h2>
-<div class="flex-1 flex flex-col gap-lg">
-<!-- Original -->
-<div class="flex flex-col gap-sm">
-<span class="font-label-md text-label-md text-on-surface-variant uppercase">Original Plan</span>
-<div class="h-20 bg-surface-container rounded-md border border-outline-variant relative overflow-hidden">
-<!-- Time markers -->
-<div class="absolute top-0 w-full h-full border-l border-outline-variant border-opacity-20 left-[20%]"></div>
-<div class="absolute top-0 w-full h-full border-l border-outline-variant border-opacity-20 left-[40%]"></div>
-<div class="absolute top-0 w-full h-full border-l border-outline-variant border-opacity-20 left-[60%]"></div>
-<div class="absolute top-0 w-full h-full border-l border-outline-variant border-opacity-20 left-[80%]"></div>
-<!-- Blocks/Trains -->
-<div class="absolute top-2 left-[10%] w-[30%] h-6 bg-blue-600 rounded-sm flex items-center justify-center opacity-80">
-<span class="font-data-mono text-[10px] text-white">J-01 (Eng)</span>
-</div>
-<div class="absolute top-10 left-[45%] w-[15%] h-6 bg-gray-400 rounded-sm flex items-center justify-center opacity-70">
-<span class="font-data-mono text-[10px] text-white">Trn 12302</span>
-</div>
-<div class="absolute top-2 left-[65%] w-[25%] h-6 bg-blue-600 rounded-sm flex items-center justify-center opacity-80">
-<span class="font-data-mono text-[10px] text-white">J-04 (Eng)</span>
-</div>
-</div>
-</div>
-<!-- Simulated -->
-<div class="flex flex-col gap-sm">
-<span class="font-label-md text-label-md text-primary-container font-bold uppercase flex items-center gap-xs">Simulated Plan <span class="material-symbols-outlined text-[14px]" data-icon="science">science</span></span>
-<div class="h-20 bg-surface-container rounded-md border border-primary border-opacity-30 relative overflow-hidden bg-opacity-50">
-<!-- Time markers -->
-<div class="absolute top-0 w-full h-full border-l border-outline-variant border-opacity-20 left-[20%]"></div>
-<div class="absolute top-0 w-full h-full border-l border-outline-variant border-opacity-20 left-[40%]"></div>
-<div class="absolute top-0 w-full h-full border-l border-outline-variant border-opacity-20 left-[60%]"></div>
-<div class="absolute top-0 w-full h-full border-l border-outline-variant border-opacity-20 left-[80%]"></div>
-<!-- Blocks/Trains (Shifted) -->
-<div class="absolute top-2 left-[10%] w-[30%] h-6 bg-blue-600 rounded-sm flex items-center justify-center opacity-80">
-<span class="font-data-mono text-[10px] text-white">J-01 (Eng)</span>
-</div>
-<!-- Train delayed (shifted right) -->
-<div class="absolute top-10 left-[55%] w-[15%] h-6 bg-gray-400 rounded-sm flex items-center justify-center opacity-70 border border-dashed border-gray-600">
-<span class="font-data-mono text-[10px] text-white">Trn 12302 (Del)</span>
-</div>
-<!-- Block shifted right to avoid delayed train -->
-<div class="absolute top-2 left-[72%] w-[25%] h-6 bg-blue-600 rounded-sm flex items-center justify-center opacity-80 border-2 border-primary-container shadow-sm">
-<span class="font-data-mono text-[10px] text-white">J-04 (Shifted)</span>
-</div>
-</div>
-</div>
-</div>
-</div>
-</div>
-</div>
+
 </main>
 </div>
-
-
 
 <script type="module" src="/static/js/app.js"></script>
 </body></html>

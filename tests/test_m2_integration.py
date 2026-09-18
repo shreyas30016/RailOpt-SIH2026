@@ -156,7 +156,8 @@ def test_deferred_job_has_reason_code(client):
     assert "reason_code" in deferred
     assert deferred["reason_code"] in [
         "NO_FEASIBLE_WINDOW", "TRAIN_CONFLICT", "RESOURCE_CONFLICT",
-        "DEPENDENCY_UNMET", "CAPACITY_OVERFLOW"
+        "DEPENDENCY_UNMET", "CAPACITY_OVERFLOW", "NO_ACTIVE_BLOCK_WINDOW",
+        "NO_FEASIBLE_BLOCK_WINDOW"
     ]
 
 

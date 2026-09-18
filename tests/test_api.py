@@ -73,3 +73,57 @@ def test_reports_analytics_api():
     data = response.json()
     assert "kpis" in data
     assert "department_statistics" in data
+    assert "section_statistics" in data
+    assert "historical_optimization_runs" in data
+
+    kpis = data["kpis"]
+    assert "block_utilization_pct" in kpis
+    assert "job_completion_rate_pct" in kpis
+    assert "mean_delay_per_block_min" in kpis
+    assert "safety_compliance_pct" in kpis
+
+    # Validate department stats
+    dept_stats = data["department_statistics"]
+    assert len(dept_stats) > 0
+    assert "requested_hours" in dept_stats[0]
+    assert "approved_hours" in dept_stats[0]
+
+    # Validate section stats
+    sec_stats = data["section_statistics"]
+    assert len(sec_stats) > 0
+    assert "completion_rate" in sec_stats[0]
+
+    # Test filtered queries
+    res_dept = client.get("/api/reports/analytics?department=ENG")
+    assert res_dept.status_code == 200
+    assert "kpis" in res_dept.json()
+
+    res_sec = client.get("/api/reports/analytics?section=NDLS-TKD")
+    assert res_sec.status_code == 200
+    assert "kpis" in res_sec.json()
+
+
+def test_auth_login_roles_and_divisions():
+    # Test 1: Central Railway + Controller
+    res_cr = client.post("/api/auth/login", json={
+        "username": "Deshmukh",
+        "role": "CONTROLLER",
+        "division_code": "CR"
+    })
+    assert res_cr.status_code == 200
+    p_cr = res_cr.json()["user_profile"]
+    assert p_cr["division_name"] == "Central Railway — Mumbai CST Division"
+    assert p_cr["role"] == "CONTROLLER"
+    assert p_cr["initial"] == "C"
+
+    # Test 2: Western Railway + TRD Officer
+    res_wr = client.post("/api/auth/login", json={
+        "username": "Mehta",
+        "role": "TRD_OFFICER",
+        "division_code": "WR"
+    })
+    assert res_wr.status_code == 200
+    p_wr = res_wr.json()["user_profile"]
+    assert p_wr["division_name"] == "Western Railway — Mumbai Central Division"
+    assert p_wr["role"] == "TRD_OFFICER"
+    assert p_wr["initial"] == "T"

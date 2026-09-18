@@ -32,6 +32,14 @@ class Settings(BaseModel):
     TRAIN_DATA_PROVIDER: str = os.getenv("TRAIN_DATA_PROVIDER", "auto") # auto, live, mock
     LIVE_TRAIN_API_URL: str = os.getenv("LIVE_TRAIN_API_URL", "https://api.railwayapi.com/v2/")
     LIVE_TRAIN_API_KEY: str = os.getenv("LIVE_TRAIN_API_KEY", "")
-    TRAIN_CACHE_TTL_SECONDS: int = int(os.getenv("TRAIN_CACHE_TTL_SECONDS", "60"))
+    TRAIN_CACHE_TTL_SECONDS: int = int(os.getenv("TRAIN_CACHE_TTL_SECONDS", "15"))
+
+    # AI Copilot Settings (Sprint AI-FOUNDATION)
+    # Set AI_PROVIDER=nvidia to enable NVIDIA NIM live responses.
+    # Leave as 'mock' for offline / test operation — no API key required.
+    AI_PROVIDER: str = os.getenv("AI_PROVIDER", "mock")   # mock | nvidia | anthropic | openai | gemini
+    AI_API_KEY: str = os.getenv("AI_API_KEY", "")         # Never hardcode — set in .env only
+    AI_MODEL: str = os.getenv("AI_MODEL", "mock-model")    # e.g. meta/llama-3.1-70b-instruct
+    AI_BASE_URL: str = os.getenv("AI_BASE_URL", "")        # Override base URL (NVIDIA: https://integrate.api.nvidia.com/v1)
 
 settings = Settings()

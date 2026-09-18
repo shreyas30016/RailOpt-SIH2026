@@ -22,9 +22,11 @@ def get_dashboard_summary(db: Session = Depends(get_db)):
     
     total_active_blocks = db.query(BlockWindow).filter(BlockWindow.is_active == True).count()
     planned_blocks_today = 0
-    efficiency = 92.4
-    shadow_synergy = 68.5
-    punctuality_impact = 1.2
+    # Honest zero defaults: before any optimization run exists there are no computed
+    # efficiency / synergy / punctuality metrics to display. No fabricated values.
+    efficiency = 0.0
+    shadow_synergy = 0.0
+    punctuality_impact = 0.0
     latest_summary = None
     upcoming_blocks = []
     conflicts_list = []
@@ -33,7 +35,9 @@ def get_dashboard_summary(db: Session = Depends(get_db)):
         planned_blocks_today = latest_run.scheduled_jobs_count
         efficiency = round(latest_run.block_utilization_pct, 1)
         shadow_synergy = round(latest_run.shadow_block_synergy_pct, 1)
-        punctuality_impact = round(max(0.4, (latest_run.train_delay_total_min / 300.0) * 1.5), 1)
+        # Punctuality impact is a normalized derivative of the ACTUAL solver-computed
+        # train delay minutes: 0 min delay -> 0.0% impact, 300 min -> 1.5%.
+        punctuality_impact = round((latest_run.train_delay_total_min / 300.0) * 1.5, 1)
         latest_summary = {
             "run_id": latest_run.id,
             "status": latest_run.status,

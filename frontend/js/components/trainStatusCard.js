@@ -3,6 +3,8 @@
  * Strictly preserves Stitch design tokens and provides clear Data Honesty labels.
  */
 
+import { trainDataService } from "../services/trainDataService.js";
+
 export function createLiveTrainCard(train) {
     const isDelayed = train.delay_minutes > 0;
     const isFreight = train.train_type === "FREIGHT";
@@ -41,20 +43,34 @@ export function createLiveTrainCard(train) {
                     → ${train.next_location}
                 </div>
             </div>
+            ${train.phase === "RUNNING" || train.phase === "PRE_DEP" ? `
+            <div class="mt-2">
+                <div class="flex justify-between text-[10px] font-data-mono text-on-surface-variant mb-1">
+                    <span>${train.progress_km != null ? Number(train.progress_km).toFixed(1) : "—"} km of ${train.km_total != null ? Number(train.km_total).toFixed(0) : "—"} km</span>
+                    <span>${train.km_remaining != null ? Number(train.km_remaining).toFixed(0) : ""} km to go</span>
+                </div>
+                <div class="h-1 w-full bg-surface-variant/70 rounded-full overflow-hidden">
+                    <div class="h-full bg-primary rounded-full transition-all duration-1000" style="width:${Math.min(100, Number(train.progress_pct) || 0)}%"></div>
+                </div>
+            </div>` : ""}
         </div>
     `;
 }
 
 export function createLiveTrainFeedContainer(feedData) {
     const isLive = !feedData.isFallback;
+    const movements = feedData.movements || [];
+    const phaseRank = { RUNNING: 0, PRE_DEP: 1, ARRIVED: 2 };
+    const active = movements
+        .filter(m => m.phase && m.phase !== "IDLE")
+        .sort((x, y) => (phaseRank[x.phase] ?? 9) - (phaseRank[y.phase] ?? 9));
+    const cardsHtml = active.slice(0, 6).map(createLiveTrainCard).join("");
+
     const sourceBadge = isLive
-        ? `<span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800 flex items-center gap-1"><span class="w-1.5 h-1.5 rounded-full bg-emerald-600 animate-pulse"></span> Live/Public Data Adapter</span>`
-        : `<span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-800 flex items-center gap-1">Synthetic Demo Data (Fallback)</span>`;
+        ? `<span title="Receiving data from the configured live provider" class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800 flex items-center gap-1"><span class="w-1.5 h-1.5 rounded-full bg-emerald-600 animate-pulse"></span> Live Feed</span>`
+        : `<span title="Clock-driven replay of the synthetic Delhi–Agra timetable against the wall clock — NOT real Indian Railways tracking" class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-800 flex items-center gap-1"><span class="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse"></span> Simulated Live · Timetable Replay</span>`;
 
-    // Cache movements for modal lookup
-    window._currentTrainMovements = feedData.movements || [];
-
-    const cardsHtml = (feedData.movements || []).slice(0, 4).map(createLiveTrainCard).join("");
+    window._currentTrainMovements = active;
 
     return `
         <div class="bg-surface-container-lowest border border-outline-variant rounded-lg p-md shadow-[0_4px_6px_rgba(0,0,0,0.02)]">
@@ -68,9 +84,8 @@ export function createLiveTrainFeedContainer(feedData) {
                     <span class="text-[11px] text-on-surface-variant font-data-mono">Updated: ${feedData.lastUpdated}</span>
                 </div>
             </div>
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-2.5">
-                ${cardsHtml}
-            </div>
+            ${!isLive ? `<p class="text-[11px] text-on-surface-variant font-data-mono mb-2">Synthetic demo replay against the clock · ${active.length} trains currently in the corridor window · not real Indian Railways tracking</p>` : ""}
+            ${cardsHtml.length ? `<div class="grid grid-cols-1 md:grid-cols-2 gap-2.5">${cardsHtml}</div>` : `<div class="text-[12px] text-on-surface-variant italic">No trains in the active corridor window right now.</div>`}
         </div>
     `;
 }
@@ -150,6 +165,18 @@ export function renderTrainDetailModal(train) {
                     </div>
                 </div>
 
+                <!-- Simulate Live Delay (Controller/Planner only) -->
+                ${(() => { try { const u = JSON.parse(localStorage.getItem("railopt_user") || "{}"); return u && (u.can_optimize || u.role === "CONTROLLER" || u.role === "PLANNER"); } catch { return false; } })() ? `
+                <div class="p-md bg-amber-50 border border-amber-200 rounded-lg">
+                    <h4 class="font-label-md text-amber-900 font-bold uppercase text-[11px] mb-xs">Simulate Live Delay</h4>
+                    <p class="text-[11px] text-amber-900/80 mb-2">Push a delay now - it instantly updates the live feed, and the next optimization run plans around the shifted train window.</p>
+                    <div class="flex gap-2">
+                        <button onclick="window.pushSimulatedTrainDelay && window.pushSimulatedTrainDelay('${train.train_id}', 15)" class="px-3 py-1.5 rounded-lg bg-amber-600 text-white font-bold text-[12px] hover:bg-amber-700 transition-colors">+15 min</button>
+                        <button onclick="window.pushSimulatedTrainDelay && window.pushSimulatedTrainDelay('${train.train_id}', 30)" class="px-3 py-1.5 rounded-lg bg-amber-600 text-white font-bold text-[12px] hover:bg-amber-700 transition-colors">+30 min</button>
+                        <button onclick="window.pushSimulatedTrainDelay && window.pushSimulatedTrainDelay('${train.train_id}', 60)" class="px-3 py-1.5 rounded-lg bg-amber-700 text-white font-bold text-[12px] hover:bg-amber-800 transition-colors">+60 min</button>
+                    </div>
+                </div>` : ""}
+
                 <!-- Hard Constraint Notice -->
                 <div class="p-sm bg-blue-50 border border-blue-200 rounded text-[12px] text-blue-900 flex items-start gap-2">
                     <span class="material-symbols-outlined text-blue-700 text-[18px] shrink-0 mt-0.5">shield</span>
@@ -184,6 +211,18 @@ export function renderTrainDetailModal(train) {
     };
 }
 
+// Push a simulated live delay and refresh feed + modal
+window.pushSimulatedTrainDelay = async function(trainId, minutes) {
+    try {
+        const payload = await trainDataService.simulateDelay(trainId, minutes);
+        if (window.refreshTrainFeed) window.refreshTrainFeed();
+        const updated = (payload.movements || []).find(m => m.train_id === trainId);
+        if (updated) renderTrainDetailModal(updated);
+    } catch (err) {
+        alert("Failed to apply simulated delay: " + (err && err.message ? err.message : err));
+    }
+};
+
 // Global hook for train detail modal
 window.showTrainDetailModal = function(trainId) {
     const movements = window._currentTrainMovements || [];
@@ -191,22 +230,16 @@ window.showTrainDetailModal = function(trainId) {
     if (train) {
         renderTrainDetailModal(train);
     } else {
-        // Fallback placeholder object if not in cache
-        renderTrainDetailModal({
-            train_id: trainId,
-            train_name: `Train ${trainId}`,
-            train_type: "EXPRESS",
-            direction: "DN",
-            current_location: "Delhi Division Mainline",
-            next_location: "Agra Cantt (AGC)",
-            delay_minutes: 0,
-            scheduled_departure_str: "06:00",
-            scheduled_arrival_str: "08:00",
-            estimated_departure_str: "06:00",
-            estimated_arrival_str: "08:00",
-            priority_weight: 15,
-            track_line: "DN_MAIN"
-        });
+        // Honest handling: never fabricate train positions for unknown trains.
+        const toast = document.createElement("div");
+        toast.className = "fixed bottom-5 right-5 bg-red-700 text-white px-5 py-3.5 rounded-xl shadow-2xl z-50 flex items-center gap-3";
+        toast.innerHTML = `
+            <span class="material-symbols-outlined text-[20px]">error</span>
+            <span class="text-[13px] font-semibold">Train ${trainId} is not tracked in the current corridor feed — no position data exists.</span>
+            <button onclick="this.parentElement.remove()" class="ml-3 opacity-70 hover:opacity-100 font-bold">✕</button>
+        `;
+        document.body.appendChild(toast);
+        setTimeout(() => toast.remove(), 4500);
     }
 };
 

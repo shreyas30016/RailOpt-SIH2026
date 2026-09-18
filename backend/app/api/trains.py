@@ -1,6 +1,10 @@
-from fastapi import APIRouter, Query
+from fastapi import APIRouter, Depends, Query
+from .auth import require_permission
+from sqlalchemy.orm import Session
 from typing import Dict, Any, Optional
 from pydantic import BaseModel
+from ..database import get_db
+from ..models.models import TrainSchedule
 from ..services.train_adapter import train_adapter
 
 router = APIRouter(prefix="/trains", tags=["Live Train Data"])
@@ -8,6 +12,28 @@ router = APIRouter(prefix="/trains", tags=["Live Train Data"])
 class SimulateDelayRequest(BaseModel):
     train_id: str
     delay_minutes: int
+
+@router.get("/list")
+def get_train_list(db: Session = Depends(get_db)):
+    """
+    Return the corridor train timetable (real DB records) for the What-If
+    train selector and Gantt overlays.
+    """
+    trains = db.query(TrainSchedule).order_by(TrainSchedule.departure_minute.asc()).all()
+    return [
+        {
+            "train_number": t.train_number,
+            "train_name": t.train_name,
+            "train_type": t.train_type,
+            "direction": t.direction,
+            "priority_weight": t.priority_weight,
+            "origin_station": t.origin_station,
+            "destination_station": t.destination_station,
+            "departure_minute": t.departure_minute,
+            "arrival_minute": t.arrival_minute,
+        }
+        for t in trains
+    ]
 
 @router.get("/live")
 def get_live_train_movements(force_refresh: bool = Query(False, description="Bypass cache and force refresh")):
@@ -31,7 +57,10 @@ def get_train_status(train_id: str):
     }
 
 @router.post("/simulate-delay")
-def simulate_train_delay(req: SimulateDelayRequest):
+def simulate_train_delay(
+    req: SimulateDelayRequest,
+    current_user: dict = Depends(require_permission("can_optimize")),
+):
     """
     Simulates a live train delay event to feed the maintenance-block replanner.
     """

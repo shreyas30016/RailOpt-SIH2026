@@ -57,7 +57,14 @@ class LiveTrainProvider {
         const res = await fetch(`${this.apiBase}/live`, { signal: AbortSignal.timeout(4000) });
         if (!res.ok) throw new Error(`Live provider returned ${res.status}`);
         const json = await res.json();
-        return json.movements || [];
+        // Full payload incl. honesty metadata (source / is_simulated / mode)
+        return {
+            source: json.source || "Unknown",
+            isSimulated: json.is_simulated !== undefined ? json.is_simulated : String(json.source || "").includes("Synthetic"),
+            mode: json.mode || (json.source || "").includes("Synthetic") ? "timetable_replay" : "live",
+            asOf: json.as_of || null,
+            movements: json.movements || []
+        };
     }
 
     async getTrainStatus(trainId) {
@@ -68,8 +75,9 @@ class LiveTrainProvider {
     }
 
     async getStationBoard(stationId) {
-        const list = await this.getMovements();
-        return list.filter(t => t.current_location.includes(stationId) || t.next_location.includes(stationId));
+        const payload = await this.getMovements();
+        const list = payload.movements || [];
+        return list.filter(t => (t.current_location || "").includes(stationId) || (t.next_location || "").includes(stationId));
     }
 }
 
@@ -77,7 +85,7 @@ export class TrainDataService {
     constructor() {
         this.liveProvider = new LiveTrainProvider();
         this.mockProvider = new MockTrainProvider();
-        this.cacheTTL = 30000; // 30 seconds
+        this.cacheTTL = 10000; // 10 seconds
         this.lastFetchTime = 0;
         this.cachedData = null;
         this.currentSourceLabel = "Synthetic Demo Data";
@@ -90,31 +98,33 @@ export class TrainDataService {
             return {
                 source: this.currentSourceLabel,
                 isFallback: this.isFallback,
-                lastUpdated: new Date(this.lastFetchTime).toLocaleTimeString(),
+                lastUpdated: new Date(this.lastFetchTime).toLocaleTimeString("en-GB", { hour12: false }),
                 movements: this.cachedData
             };
         }
 
-        let data = null;
+        let payload = null;
         try {
-            data = await this.liveProvider.getMovements();
-            this.currentSourceLabel = "Live/Public Train Data";
-            this.isFallback = false;
+            payload = await this.liveProvider.getMovements();
+            this.currentSourceLabel = payload.source || "Synthetic Demo Data";
+            this.isFallback = Boolean(payload.isSimulated !== undefined ? payload.isSimulated : true);
         } catch (err) {
             console.warn("Live train provider unavailable, falling back to mockProvider.", err.message);
-            data = await this.mockProvider.getMovements();
-            this.currentSourceLabel = "Synthetic Demo Data (Fallback)";
+            payload = { source: "Synthetic Demo Data (Fallback)", isSimulated: true, mode: "timetable_replay", movements: await this.mockProvider.getMovements() };
+            this.currentSourceLabel = payload.source;
             this.isFallback = true;
         }
 
-        this.cachedData = data;
+        this.cachedData = payload.movements || [];
         this.lastFetchTime = now;
 
         return {
             source: this.currentSourceLabel,
             isFallback: this.isFallback,
-            lastUpdated: new Date(this.lastFetchTime).toLocaleTimeString(),
-            movements: data
+            mode: payload.mode,
+            asOf: payload.asOf,
+            lastUpdated: new Date(this.lastFetchTime).toLocaleTimeString("en-GB", { hour12: false }),
+            movements: this.cachedData
         };
     }
 
@@ -135,19 +145,21 @@ export class TrainDataService {
     }
 
     async simulateDelay(trainId, delayMinutes) {
-        try {
-            const res = await fetch("/api/trains/simulate-delay", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ train_id: trainId, delay_minutes: delayMinutes })
-            });
-            if (res.ok) {
-                this.cachedData = null; // bust cache
-                return await this.getLiveTrainMovements(true);
-            }
-        } catch (err) {
-            console.warn("Backend simulate delay failed:", err);
+        const headers = { "Content-Type": "application/json" };
+        const token = localStorage.getItem("railopt_token") || "";
+        if (token) headers["Authorization"] = `Bearer ${token}`;
+        const res = await fetch("/api/trains/simulate-delay", {
+            method: "POST",
+            headers,
+            body: JSON.stringify({ train_id: trainId, delay_minutes: delayMinutes })
+        });
+        if (!res.ok) {
+            const errPayload = await res.json().catch(() => ({}));
+            const err = new Error(errPayload.detail || `simulate-delay failed (${res.status})`);
+            err.status = res.status;
+            throw err;
         }
+        this.cachedData = null; // bust cache
         return await this.getLiveTrainMovements(true);
     }
 }

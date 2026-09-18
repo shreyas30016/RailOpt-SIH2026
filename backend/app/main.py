@@ -15,7 +15,7 @@ from backend.app.database import engine, Base, get_db, SessionLocal
 from backend.app.models.models import Department, OptimizationRun
 from backend.app.data.synthetic_seeder import seed_synthetic_data
 
-from backend.app.api import dashboard, maintenance, optimization, gantt, whatif, reports, trains
+from backend.app.api import dashboard, maintenance, optimization, gantt, whatif, reports, trains, auth, ai_chat
 
 # Thread-safe initialization state
 _init_lock = threading.Lock()
@@ -42,11 +42,20 @@ def initialize_application_data(force: bool = False):
 init_db = initialize_application_data
 
 def auto_open_browser():
-    time.sleep(1.2)
+    time.sleep(1.5)
+    url = "http://127.0.0.1:8000/login"
     try:
-        webbrowser.open("http://127.0.0.1:8000/dashboard")
-    except Exception as e:
-        print(f"[*] Open browser at http://127.0.0.1:8000/dashboard: {e}")
+        opened = webbrowser.open(url)
+        if not opened and os.name == "nt":
+            os.system(f'start "" "{url}"')
+    except Exception:
+        if os.name == "nt":
+            try:
+                os.system(f'start "" "{url}"')
+            except Exception as e:
+                print(f"[*] Open browser at {url}: {e}")
+        else:
+            print(f"[*] Open browser at {url}")
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -79,19 +88,35 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# 5. Include API Routers
-app.include_router(dashboard.router, prefix=settings.API_V1_STR)
-app.include_router(maintenance.router, prefix=settings.API_V1_STR)
-app.include_router(optimization.router, prefix=settings.API_V1_STR)
-app.include_router(gantt.router, prefix=settings.API_V1_STR)
-app.include_router(whatif.router, prefix=settings.API_V1_STR)
-app.include_router(reports.router, prefix=settings.API_V1_STR)
-app.include_router(trains.router, prefix=settings.API_V1_STR)
+# All responses must revalidate — otherwise browsers can serve stale HTML/JS/CSS
+# after a deploy (caused silent "old module" behaviour during QA). This is a
+# live-data dashboard, so no-cache is the correct default for every route.
+@app.middleware("http")
+async def no_cache_all_responses(request, call_next):
+    response = await call_next(request)
+    response.headers["Cache-Control"] = "no-cache"
+    return response
+
+# 5. Include API Routers (Mount on both settings.API_V1_STR = "/api" and "/api/v1")
+for prefix in (settings.API_V1_STR, "/api/v1"):
+    app.include_router(auth.router, prefix=prefix)
+    app.include_router(dashboard.router, prefix=prefix)
+    app.include_router(maintenance.router, prefix=prefix)
+    app.include_router(optimization.router, prefix=prefix)
+    app.include_router(gantt.router, prefix=prefix)
+    app.include_router(whatif.router, prefix=prefix)
+    app.include_router(reports.router, prefix=prefix)
+    app.include_router(trains.router, prefix=prefix)
+    app.include_router(ai_chat.router, prefix=prefix)  # AI Copilot — Sprint AI-FOUNDATION
 
 # Direct root aliases
 @app.post("/optimize")
-def direct_optimize(req: optimization.OptimizeRequest = optimization.OptimizeRequest(), db: Session = Depends(get_db)):
-    return optimization.optimize_block_plan(req, db)
+def direct_optimize(
+    req: optimization.OptimizeRequest = optimization.OptimizeRequest(),
+    current_user: dict = Depends(auth.require_permission("can_optimize")),
+    db: Session = Depends(get_db)
+):
+    return optimization.optimize_block_plan(req, current_user, db)
 
 # 6. Static files and Frontend routing (Safe read-only resolution)
 FRONTEND_DIR = Path(__file__).resolve().parent.parent.parent / "frontend"
@@ -110,7 +135,11 @@ def _serve_frontend_page(filename: str):
 
 @app.get("/")
 def read_root():
-    return _serve_frontend_page("dashboard.html")
+    return _serve_frontend_page("login.html")
+
+@app.get("/login")
+def get_login_page():
+    return _serve_frontend_page("login.html")
 
 @app.get("/dashboard")
 def get_dashboard_page():

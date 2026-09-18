@@ -106,10 +106,32 @@ def get_gantt_timeline_data(
             "window_type": w.window_type
         })
 
+    # Available runs for run switcher
+    runs = db.query(OptimizationRun).order_by(OptimizationRun.id.desc()).limit(15).all()
+    available_runs = [{
+        "run_id": r.id,
+        "status": r.status or "OPTIMAL",
+        "timestamp": r.run_timestamp.strftime("%d %b %H:%M") if r.run_timestamp else f"Run #{r.id}",
+        "scheduled_jobs_count": r.scheduled_jobs_count or 0
+    } for r in runs]
+
+    last_updated = None
+    for tr in live_data.get("movements", []):
+        if tr.get("last_updated"):
+            last_updated = tr.get("last_updated")
+            break
+
     return {
+        "run_id": run.id if run else None,
+        "status": run.status if run else "NO_RUNS",
+        "available_runs": available_runs,
+        "data_source": live_data.get("source", "Synthetic Demo Data"),
+        "is_fallback": live_data.get("is_fallback", True),
+        "last_updated": last_updated,
         "timeline_start_minute": 0,
         "timeline_end_minute": 1440,
         "tracks": timeline_tracks,
         "trains": train_paths,
         "windows": window_data
     }
+
