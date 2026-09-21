@@ -1,4 +1,4 @@
-# Ignore backend, solver, and build files from Vercel static deployment
+# Ignore backend, serverless artifacts, and dev dependencies from Vercel static deployment
 backend/
 api/
 requirements.txt
