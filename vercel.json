@@ -16,9 +16,9 @@
     { "source": "/what-if", "destination": "/frontend/what-if.html" },
     { "source": "/constraints-logic", "destination": "/frontend/constraints-logic.html" },
     { "source": "/reports", "destination": "/frontend/reports.html" },
-    { "source": "/health", "destination": "/api/index.py" },
-    { "source": "/docs", "destination": "/api/index.py" },
-    { "source": "/openapi.json", "destination": "/api/index.py" },
-    { "source": "/api/:path*", "destination": "/api/index.py" }
+    { "source": "/health", "destination": "https://railopt-sih2026.onrender.com/api/health" },
+    { "source": "/docs", "destination": "https://railopt-sih2026.onrender.com/api/docs" },
+    { "source": "/openapi.json", "destination": "https://railopt-sih2026.onrender.com/api/openapi.json" },
+    { "source": "/api/:path*", "destination": "https://railopt-sih2026.onrender.com/api/:path*" }
   ]
 }
