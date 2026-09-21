@@ -19,6 +19,3 @@ dependencies = [
 dev = [
     "pytest>=8.0.0",
 ]
-
-[tool.vercel]
-entrypoint = "backend.app.main:app"
