@@ -34,3 +34,6 @@ Thumbs.db
 *.err
 err.txt
 test_output.txt
+
+# Scratch / Temporary working directories
+scratch/

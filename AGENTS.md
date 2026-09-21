@@ -10,11 +10,11 @@ Repository:
 Before changing code, read these files in order:
 
 1. `AGENTS.md`
-2. `PROJECT_RULES.md`
-3. `ROLE_AND_ACCESS_SPEC.md`
-4. `UI_NAVIGATION_SPEC.md`
-5. `API_RBAC_CONTRACT.md`
-6. `DEMO_SCENARIO.md`
+2. `docs/architecture/project-rules.md`
+3. `docs/architecture/role-and-access-spec.md`
+4. `docs/architecture/ui-navigation-spec.md`
+5. `docs/architecture/api-rbac-contract.md`
+6. `docs/development/demo-scenario.md`
 7. `PROJECT_MEMORY.md`
 
 Then inspect the actual source code and existing tests.
