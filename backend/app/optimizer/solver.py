@@ -102,21 +102,21 @@ class RailwayBlockOptimizer:
                 job_dur = pred_res["predictedDuration"]
 
             job_metas.append(JobConstraintMeta(
-                job_id=j.id,
-                job_code=j.job_code,
+                job_id=int(j.id),
+                job_code=str(j.job_code),
                 department_code=dept_code,
-                section_code=sec.code if sec else "UNKNOWN",
-                track_line_code=tl.line_code if tl else f"{sec.code if sec else 'SEC'}_UP",
-                duration_min=job_dur,
-                priority=j.priority,
-                urgency=j.urgency,
-                requires_power_block=j.requires_power_block,
-                requires_traffic_block=j.requires_traffic_block,
-                requires_speed_restriction=j.requires_speed_restriction,
-                speed_restriction_kmh=j.speed_restriction_kmh or 30,
-                required_resource_code=res.code if res else "",
-                earliest_start_min=max(time_window_start, j.earliest_start_minute),
-                latest_end_min=min(time_window_end, j.latest_end_minute)
+                section_code=str(sec.code) if sec else "UNKNOWN",
+                track_line_code=str(tl.line_code) if tl else f"{str(sec.code) if sec else 'SEC'}_UP",
+                duration_min=int(job_dur),
+                priority=int(j.priority),
+                urgency=str(j.urgency),
+                requires_power_block=bool(j.requires_power_block),
+                requires_traffic_block=bool(j.requires_traffic_block),
+                requires_speed_restriction=bool(j.requires_speed_restriction),
+                speed_restriction_kmh=int(j.speed_restriction_kmh) if j.speed_restriction_kmh else 30,
+                required_resource_code=str(res.code) if res else "",
+                earliest_start_min=int(max(time_window_start, j.earliest_start_minute)),
+                latest_end_min=int(min(time_window_end, j.latest_end_minute))
             ))
 
         # Resolve the feasible persisted windows for every demand before model
@@ -127,10 +127,13 @@ class RailwayBlockOptimizer:
         window_analysis_by_job: Dict[int, Dict[str, Any]] = {}
         for j in job_metas:
             job_db = job_db_by_id[j.job_id]
-            configured_windows = [
+            section_windows = [
                 window for window in persisted_block_windows
                 if window.section_id == job_db.section_id
-                and (window.track_line_id is None or window.track_line_id == job_db.track_line_id)
+            ]
+            configured_windows = [
+                window for window in section_windows
+                if window.track_line_id is None or window.track_line_id == job_db.track_line_id
             ]
             matching_windows = [window for window in configured_windows if window.is_active]
             feasible_windows = []
@@ -145,11 +148,11 @@ class RailwayBlockOptimizer:
                     })
             window_analysis_by_job[j.job_id] = {
                 # Older imported datasets and focused solver fixtures may not
-                # have modelled a possession calendar for a track at all. Keep
+                # have modelled a possession calendar for a section at all. Keep
                 # their existing request-window behaviour until a BlockWindow
-                # is configured. Once a matching record exists, however, the
-                # persisted active-window state is authoritative.
-                "enforce_window": bool(configured_windows),
+                # is configured for the section. If configured, active-window state is authoritative
+                # for any job requiring a traffic block.
+                "enforce_window": bool(section_windows) and bool(j.requires_traffic_block),
                 "matching_count": len(matching_windows),
                 "feasible_windows": feasible_windows,
             }
@@ -165,7 +168,7 @@ class RailwayBlockOptimizer:
 
         for j in job_metas:
             # Is scheduled boolean
-            is_sched = model.NewBoolVar(f"sched_{j.job_code}")
+            is_sched = model.new_bool_var(f"sched_{j.job_code}")
             job_scheduled_vars[j.job_id] = is_sched
 
             earliest = j.earliest_start_min
@@ -173,14 +176,14 @@ class RailwayBlockOptimizer:
 
             # If job duration exceeds allowable window, it cannot be scheduled
             if earliest + j.duration_min > latest:
-                model.Add(is_sched == 0)
-                start_var = model.NewIntVar(earliest, earliest, f"start_{j.job_code}")
-                end_var = model.NewIntVar(earliest + j.duration_min, earliest + j.duration_min, f"end_{j.job_code}")
+                model.add(is_sched == 0)
+                start_var = model.new_int_var(earliest, earliest, f"start_{j.job_code}")
+                end_var = model.new_int_var(earliest + j.duration_min, earliest + j.duration_min, f"end_{j.job_code}")
             else:
-                start_var = model.NewIntVar(earliest, latest - j.duration_min, f"start_{j.job_code}")
-                end_var = model.NewIntVar(earliest + j.duration_min, latest, f"end_{j.job_code}")
+                start_var = model.new_int_var(earliest, latest - j.duration_min, f"start_{j.job_code}")
+                end_var = model.new_int_var(earliest + j.duration_min, latest, f"end_{j.job_code}")
             
-            interval_var = model.NewOptionalIntervalVar(
+            interval_var = model.new_optional_interval_var(
                 start_var, j.duration_min, end_var, is_sched, f"interval_{j.job_code}"
             )
 
@@ -189,15 +192,15 @@ class RailwayBlockOptimizer:
             # allowing a job to choose among several approved windows.
             feasible_windows = window_analysis_by_job[j.job_id]["feasible_windows"]
             if window_analysis_by_job[j.job_id]["enforce_window"] and not feasible_windows:
-                model.Add(is_sched == 0)
+                model.add(is_sched == 0)
             elif window_analysis_by_job[j.job_id]["enforce_window"]:
                 window_selection_vars = []
                 for index, window in enumerate(feasible_windows):
-                    selected = model.NewBoolVar(f"window_{j.job_code}_{index}")
+                    selected = model.new_bool_var(f"window_{j.job_code}_{index}")
                     window_selection_vars.append(selected)
-                    model.Add(start_var >= window["start_minute"]).OnlyEnforceIf(selected)
-                    model.Add(end_var <= window["end_minute"]).OnlyEnforceIf(selected)
-                model.Add(sum(window_selection_vars) == is_sched)
+                    model.add(start_var >= window["start_minute"]).OnlyEnforceIf(selected)
+                    model.add(end_var <= window["end_minute"]).OnlyEnforceIf(selected)
+                model.add(sum(window_selection_vars) == is_sched)
 
             job_start_vars[j.job_id] = start_var
             job_end_vars[j.job_id] = end_var
@@ -212,7 +215,7 @@ class RailwayBlockOptimizer:
             
             for m_code, intervals in machine_groups.items():
                 if len(intervals) > 1:
-                    model.AddNoOverlap(intervals)
+                    model.add_no_overlap(intervals)
 
         # 4b. Constraint: Job Precedence Dependency (Job B cannot start before Job A finishes)
         if self.constraint_mgr.enable_job_precedence:
@@ -221,9 +224,9 @@ class RailwayBlockOptimizer:
                 if j.preceding_job_code and j.preceding_job_code in job_code_map:
                     pred = job_code_map[j.preceding_job_code]
                     # If dependent job is scheduled, predecessor must be scheduled
-                    model.AddImplication(job_scheduled_vars[j.job_id], job_scheduled_vars[pred.job_id])
+                    model.add_implication(job_scheduled_vars[j.job_id], job_scheduled_vars[pred.job_id])
                     # Dependent job cannot start before predecessor finishes
-                    model.Add(job_end_vars[pred.job_id] <= job_start_vars[j.job_id]).OnlyEnforceIf([
+                    model.add(job_end_vars[pred.job_id] <= job_start_vars[j.job_id]).OnlyEnforceIf([
                         job_scheduled_vars[j.job_id],
                         job_scheduled_vars[pred.job_id]
                     ])
@@ -245,31 +248,31 @@ class RailwayBlockOptimizer:
                     can_shadow = self.constraint_mgr.can_form_shadow_block(j1, j2)
 
                     if can_shadow and maximize_shadow_blocks:
-                        is_shadow = model.NewBoolVar(f"shadow_{j1.job_code}_{j2.job_code}")
+                        is_shadow = model.new_bool_var(f"shadow_{j1.job_code}_{j2.job_code}")
                         shadow_pairs_vars.append((j1, j2, is_shadow))
 
                         # If shadow block active, both start at the same time and run concurrently
-                        model.Add(job_start_vars[j1.job_id] == job_start_vars[j2.job_id]).OnlyEnforceIf(is_shadow)
-                        model.AddImplication(is_shadow, job_scheduled_vars[j1.job_id])
-                        model.AddImplication(is_shadow, job_scheduled_vars[j2.job_id])
+                        model.add(job_start_vars[j1.job_id] == job_start_vars[j2.job_id]).OnlyEnforceIf(is_shadow)
+                        model.add_implication(is_shadow, job_scheduled_vars[j1.job_id])
+                        model.add_implication(is_shadow, job_scheduled_vars[j2.job_id])
 
                         # If not a shadow block, they cannot overlap in time
-                        j1_before_j2 = model.NewBoolVar(f"{j1.job_code}_before_{j2.job_code}")
-                        j2_before_j1 = model.NewBoolVar(f"{j2.job_code}_before_{j1.job_code}")
+                        j1_before_j2 = model.new_bool_var(f"{j1.job_code}_before_{j2.job_code}")
+                        j2_before_j1 = model.new_bool_var(f"{j2.job_code}_before_{j1.job_code}")
 
-                        model.Add(job_end_vars[j1.job_id] <= job_start_vars[j2.job_id]).OnlyEnforceIf(j1_before_j2)
-                        model.Add(job_end_vars[j2.job_id] <= job_start_vars[j1.job_id]).OnlyEnforceIf(j2_before_j1)
+                        model.add(job_end_vars[j1.job_id] <= job_start_vars[j2.job_id]).OnlyEnforceIf(j1_before_j2)
+                        model.add(job_end_vars[j2.job_id] <= job_start_vars[j1.job_id]).OnlyEnforceIf(j2_before_j1)
 
-                        model.AddBoolOr([j1_before_j2, j2_before_j1, is_shadow, job_scheduled_vars[j1.job_id].Not(), job_scheduled_vars[j2.job_id].Not()])
+                        model.add_bool_or([j1_before_j2, j2_before_j1, is_shadow, job_scheduled_vars[j1.job_id].Not(), job_scheduled_vars[j2.job_id].Not()])
                     else:
                         # Strict No-Overlap between non-shadowable jobs on same track line
-                        j1_before_j2 = model.NewBoolVar(f"{j1.job_code}_before_{j2.job_code}")
-                        j2_before_j1 = model.NewBoolVar(f"{j2.job_code}_before_{j1.job_code}")
+                        j1_before_j2 = model.new_bool_var(f"{j1.job_code}_before_{j2.job_code}")
+                        j2_before_j1 = model.new_bool_var(f"{j2.job_code}_before_{j1.job_code}")
 
-                        model.Add(job_end_vars[j1.job_id] <= job_start_vars[j2.job_id]).OnlyEnforceIf(j1_before_j2)
-                        model.Add(job_end_vars[j2.job_id] <= job_start_vars[j1.job_id]).OnlyEnforceIf(j2_before_j1)
+                        model.add(job_end_vars[j1.job_id] <= job_start_vars[j2.job_id]).OnlyEnforceIf(j1_before_j2)
+                        model.add(job_end_vars[j2.job_id] <= job_start_vars[j1.job_id]).OnlyEnforceIf(j2_before_j1)
 
-                        model.AddBoolOr([j1_before_j2, j2_before_j1, job_scheduled_vars[j1.job_id].Not(), job_scheduled_vars[j2.job_id].Not()])
+                        model.add_bool_or([j1_before_j2, j2_before_j1, job_scheduled_vars[j1.job_id].Not(), job_scheduled_vars[j2.job_id].Not()])
 
         # 6. Train Timetable Deconfliction & Delay Modeling
         sec_order = {sec: i for i, sec in enumerate(self.constraint_mgr.section_order)}
@@ -286,8 +289,8 @@ class RailwayBlockOptimizer:
             else:
                 max_delay = self.constraint_mgr.max_freight_holding
 
-            delay_var = model.NewIntVar(0, max_delay, f"delay_{tr.train_number}")
-            train_delay_vars[tr.train_number] = delay_var
+            delay_var = model.new_int_var(0, max_delay, f"delay_{tr.train_number}")
+            train_delay_vars[str(tr.train_number)] = delay_var # type: ignore
 
             # For each job on a specific section
             for j in job_metas:
@@ -310,16 +313,16 @@ class RailwayBlockOptimizer:
                                         (tr.direction == "DN" and "DN" in j.track_line_code)
 
                     if is_same_direction:
-                        tr_before = model.NewBoolVar(f"tr_{tr.train_number}_before_{j.job_code}")
-                        tr_after = model.NewBoolVar(f"tr_{tr.train_number}_after_{j.job_code}")
+                        tr_before = model.new_bool_var(f"tr_{tr.train_number}_before_{j.job_code}")
+                        tr_after = model.new_bool_var(f"tr_{tr.train_number}_after_{j.job_code}")
 
                         # Train passes before block with safety buffer
-                        model.Add(exit_m + headway_buf <= job_start_vars[j.job_id]).OnlyEnforceIf(tr_before)
+                        model.add(exit_m + headway_buf <= job_start_vars[j.job_id]).OnlyEnforceIf(tr_before)
 
                         # Train passes after block with safety buffer (with possible delay)
-                        model.Add(job_end_vars[j.job_id] + headway_buf <= entry_m + delay_var).OnlyEnforceIf(tr_after)
+                        model.add(job_end_vars[j.job_id] + headway_buf <= entry_m + delay_var).OnlyEnforceIf(tr_after)
 
-                        model.AddBoolOr([tr_before, tr_after, job_scheduled_vars[j.job_id].Not()])
+                        model.add_bool_or([tr_before, tr_after, job_scheduled_vars[j.job_id].Not()])
 
         # 7. Objective Function Formulation
         objective_terms = []
@@ -345,22 +348,24 @@ class RailwayBlockOptimizer:
         # (c) Minimize Train Delays (scaled by train priority: Passenger express high penalty, freight nominal)
         if minimize_passenger_delays:
             for tr in trains_db:
-                if tr.priority_weight >= 30:
+                pw = int(tr.priority_weight) if tr.priority_weight is not None else 0
+                if pw >= 30:
                     weight_factor = self.constraint_mgr.penalty_premium_delay
-                elif tr.priority_weight >= 15:
+                elif pw >= 15:
                     weight_factor = self.constraint_mgr.penalty_mail_delay
                 else:
                     weight_factor = self.constraint_mgr.penalty_freight_delay
                 scaled_penalty = int(weight_factor * train_delay_weight)
-                objective_terms.append(train_delay_vars[tr.train_number] * (-scaled_penalty))
+                delay_var = train_delay_vars[str(tr.train_number)]
+                objective_terms.append(delay_var * (-scaled_penalty))
 
-        model.Maximize(sum(objective_terms))
+        model.maximize(sum(objective_terms))
 
         # 8. Solve with CP-SAT
         solver = cp_model.CpSolver()
         solver.parameters.max_time_in_seconds = max_solver_time_sec
         solver.parameters.num_workers = 4
-        status = solver.Solve(model)
+        status = solver.solve(model)
         solve_duration = time.time() - start_exec_time
 
         # 9. Process Solution Results
@@ -417,7 +422,8 @@ class RailwayBlockOptimizer:
                     paired = shadow_map.get(j.job_id, [])
                     is_sh = len(paired) > 0
 
-                    dept_obj = self.db.query(MaintenanceJob).filter(MaintenanceJob.id == j.job_id).first().department
+                    first_job = self.db.query(MaintenanceJob).filter(MaintenanceJob.id == j.job_id).first()
+                    dept_obj = first_job.department if first_job else None
 
                     reason = f"Scheduled from {self._minute_to_time_str(s_min)} to {self._minute_to_time_str(e_min)} on {j.section_code} ({j.track_line_code})."
                     if is_sh:
@@ -448,8 +454,8 @@ class RailwayBlockOptimizer:
                     sb_record = ScheduledBlock(
                         run_id=run_record.id,
                         job_id=j.job_id,
-                        section_id=self.db.query(MaintenanceJob).filter(MaintenanceJob.id == j.job_id).first().section_id,
-                        track_line_id=self.db.query(MaintenanceJob).filter(MaintenanceJob.id == j.job_id).first().track_line_id,
+                        section_id=self.db.query(MaintenanceJob).filter(MaintenanceJob.id == j.job_id).first().section_id, # type: ignore
+                        track_line_id=self.db.query(MaintenanceJob).filter(MaintenanceJob.id == j.job_id).first().track_line_id, # type: ignore
                         start_minute=s_min,
                         end_minute=e_min,
                         duration_minutes=dur,
@@ -528,8 +534,8 @@ class RailwayBlockOptimizer:
                     while probe + j.duration_min <= j.latest_end_min and len(failed_windows) < 3:
                         probe_end = probe + j.duration_min
                         conflict_trains = [
-                            tr.train_number for tr in trains_db
-                            if not (tr.arrival_minute + headway_buf <= probe or probe_end + headway_buf <= tr.departure_minute)
+                            str(tr.train_number) for tr in trains_db
+                            if not (tr.arrival_minute + headway_buf <= probe or probe_end + headway_buf <= tr.departure_minute) # type: ignore
                         ]
                         fail_reason = (
                             f"Train conflict: {', '.join(conflict_trains[:3])}"
@@ -552,7 +558,7 @@ class RailwayBlockOptimizer:
                         nw_end = nw_probe + j.duration_min
                         nw_conflicts = [
                             tr for tr in trains_db
-                            if not (tr.arrival_minute + headway_buf <= nw_probe or nw_end + headway_buf <= tr.departure_minute)
+                            if not (tr.arrival_minute + headway_buf <= nw_probe or nw_end + headway_buf <= tr.departure_minute) # type: ignore
                         ]
                         if not nw_conflicts:
                             next_window = {
@@ -590,7 +596,7 @@ class RailwayBlockOptimizer:
 
             # Compute Train Delays
             for tr in trains_db:
-                d_val = int(solver.Value(train_delay_vars[tr.train_number]))
+                d_val = int(solver.value(train_delay_vars[tr.train_number])) # type: ignore
                 total_train_delay_min += d_val
                 if d_val > 0:
                     conflicts_list.append({
@@ -646,12 +652,12 @@ class RailwayBlockOptimizer:
                 }
             }
 
-            run_record.scheduled_jobs_count = len(scheduled_blocks_list)
-            run_record.unscheduled_jobs_count = len(unscheduled_jobs_list)
-            run_record.train_delay_total_min = total_train_delay_min
-            run_record.block_utilization_pct = round(utilization_pct, 1)
-            run_record.shadow_block_synergy_pct = round(shadow_synergy_pct, 1)
-            run_record.objective_score = round(solver.ObjectiveValue(), 2)
+            run_record.scheduled_jobs_count = len(scheduled_blocks_list) # type: ignore
+            run_record.unscheduled_jobs_count = len(unscheduled_jobs_list) # type: ignore
+            run_record.train_delay_total_min = total_train_delay_min # type: ignore
+            run_record.block_utilization_pct = round(utilization_pct, 1) # type: ignore
+            run_record.shadow_block_synergy_pct = round(shadow_synergy_pct, 1) # type: ignore
+            run_record.objective_score = round(solver.objective_value, 2) # type: ignore
 
             self.db.commit()
 
@@ -676,7 +682,7 @@ class RailwayBlockOptimizer:
                 "applied_objectives": params_dict
             }
         else:
-            run_record.status = "INFEASIBLE"
+            run_record.status = "INFEASIBLE" # type: ignore
             self.db.commit()
             return {
                 "run_id": run_record.id,

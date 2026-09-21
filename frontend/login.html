@@ -7,6 +7,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet">
 <link rel="icon" type="image/png" href="/assets/railopt_logo.png">
+<script type="module" src="/static/js/config.js"></script>
 <style>
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -545,8 +546,12 @@ document.getElementById('login-form').addEventListener('submit', async (e) => {
   const selectedCard = document.querySelector('.role-card.selected');
   const role = checkedRadio?.value || selectedCard?.dataset?.role || 'CONTROLLER';
 
+  const apiBase = (typeof window.getRailOptApiBaseUrl === 'function')
+    ? window.getRailOptApiBaseUrl()
+    : (window.__RAILOPT_CONFIG__?.API_BASE_URL || localStorage.getItem('railopt_api_base_url') || '');
+
   try {
-    const res = await fetch('/api/auth/login', {
+    const res = await fetch(`${apiBase}/api/auth/login`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ username, role, division_code: divisionCode })

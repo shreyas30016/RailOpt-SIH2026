@@ -251,6 +251,7 @@ def test_get_dashboard_summary_tool_delegates_to_db(db_session=None):
     try:
         registry = RailOptToolRegistry()
         spec = registry.get("get_dashboard_summary")
+        assert spec is not None
         result = spec.execute({}, db)
         assert result.success is True
         assert result.data is not None
@@ -268,8 +269,10 @@ def test_get_maintenance_requests_tool_delegates_to_db():
     try:
         registry = RailOptToolRegistry()
         spec = registry.get("get_maintenance_requests")
+        assert spec is not None
         result = spec.execute({}, db)
         assert result.success is True
+        assert result.data is not None
         assert "jobs" in result.data
         assert isinstance(result.data["jobs"], list)
     finally:

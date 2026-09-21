@@ -249,7 +249,7 @@ class LiveTrainDataProvider(BaseTrainDataProvider):
     Normalizes arbitrary external responses into NormalizedTrainMovement.
     """
 
-    def __init__(self, api_url: str = None, api_key: str = None):
+    def __init__(self, api_url: Optional[str] = None, api_key: Optional[str] = None):
         self.api_url = api_url or settings.LIVE_TRAIN_API_URL
         self.api_key = api_key or settings.LIVE_TRAIN_API_KEY
         self.client = httpx.Client(timeout=4.0)

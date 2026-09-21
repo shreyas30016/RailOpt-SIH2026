@@ -1,8 +1,21 @@
 {
+  "version": 2,
+  "cleanUrls": true,
+  "trailingSlash": false,
   "rewrites": [
-    {
-      "source": "/(.*)",
-      "destination": "/api/index.py"
-    }
+    { "source": "/static/(.*)", "destination": "/frontend/$1" },
+    { "source": "/assets/(.*)", "destination": "/frontend/assets/$1" },
+    { "source": "/js/(.*)", "destination": "/frontend/js/$1" },
+    { "source": "/", "destination": "/frontend/login.html" },
+    { "source": "/login", "destination": "/frontend/login.html" },
+    { "source": "/dashboard", "destination": "/frontend/dashboard.html" },
+    { "source": "/maintenance-requests", "destination": "/frontend/maintenance-requests.html" },
+    { "source": "/block-planning", "destination": "/frontend/block-planning.html" },
+    { "source": "/planning", "destination": "/frontend/block-planning.html" },
+    { "source": "/gantt-view", "destination": "/frontend/gantt-view.html" },
+    { "source": "/gantt", "destination": "/frontend/gantt-view.html" },
+    { "source": "/what-if", "destination": "/frontend/what-if.html" },
+    { "source": "/constraints-logic", "destination": "/frontend/constraints-logic.html" },
+    { "source": "/reports", "destination": "/frontend/reports.html" }
   ]
 }

@@ -53,13 +53,32 @@ Independent evidence audit re-verified every PROJECT_REPORT.md claim against cod
 - Full suite: **131 collected / 131 passed** (15 modules, 338 s). Earlier "121" counts were def-test greps that missed parametrized tests.
 - NEW BUG FIXED: `solver.py` wrote `paired_job_codes_json=str(paired)` (single quotes) → all `json.loads` consumers failed → Reports shadow savings permanently 0.0h + Gantt/latest lost paired overlays. Fixed to `json.dumps`; verified 0.0 → 10.2h.
 - NEW BUG FIXED: Reports `date_range` param was accepted but never applied. Now parsed (DD Mon YYYY / ISO) and filters trends history + active-run scope.
-- Test-suite caveat: `test_dashboard_interactions.py` is NOT DB-isolated — pollutes shared `railopt.db` with JOB-ENG-TEST rows; clean after full runs.
+- Test-suite caveat: `test_dashboard_interactions.py` leaves `railopt.db` with 2 extra synthetic test jobs (`JOB-ENG-TEST-01`, `JOB-ENG-TEST-02`).
+- To reset database cleanly: re-run `python -m backend.app.data.synthetic_seeder` or restore from clean template.
+
+## BLOCKWINDOW-CP-SAT-FIX (2026-09-21)
+- Fixed BlockWindow domain building and enforcement in `backend/app/optimizer/solver.py`:
+  - Determines if the entire section has any configured BlockWindows (`section_windows`).
+  - Enforces BlockWindows strictly when the section has at least one configured BlockWindow AND the maintenance job requires a traffic block (`j.requires_traffic_block`).
+  - Constrains the job strictly to active windows belonging to its track line (or section-wide `track_line_id=None`).
+  - Added focused regression test `test_block_window_enforcement_scenarios` in `tests/test_optimizer.py` covering scenarios A, B, C, D, E.
+  - Verified that `test_whatif_section_unavailable_simulation` now passes cleanly (section blockage deactivation eliminates all blocks in the deactivated section).
 - `safety_compliance_pct` = constant 100.0 (no violation log exists) — documented, not derived.
 - AI with `AI_PROVIDER=nvidia` in .env: attempts NVIDIA first; slow/unreachable → deterministic tool-grounded fallback; possible 30-45 s cold latency.
 - Files changed: `backend/app/optimizer/solver.py`, `backend/app/api/reports.py`, `tests/test_hardening_sprint.py` (+2), `docs/PROJECT_REPORT.md`, `docs/FINAL_FULL_SYSTEM_HARDENING.md`, `docs/FINAL_EVIDENCE_AUDIT.md`.
 
 ## Next sprint
-Awaiting next user instruction.
+- Vercel Frontend + External FastAPI Backend Deployment.
+
+## VERCEL-DEPLOYMENT-PREPARATION (2026-09-21)
+- Decoupled static frontend (`frontend/`) from heavy Python OR-Tools backend to prevent serverless binary/timeout failure.
+- Implemented runtime API Base URL resolver `frontend/js/config.js` (`window.__RAILOPT_CONFIG__`, meta tag, localStorage, relative fallback).
+- Updated `dataService.js`, `trainDataService.js`, and `login.html` to route through runtime API configuration.
+- Configured `vercel.json` with explicit rewrite rules for all verified static HTML routes (`/`, `/login`, `/dashboard`, `/maintenance-requests`, `/block-planning`, `/planning`, `/gantt-view`, `/gantt`, `/what-if`, `/constraints-logic`, `/reports`) and asset mappings.
+- Environment-driven CORS implemented in `backend/app/config.py` and `backend/app/main.py` (`CORS_ORIGINS`), supporting localhost and custom production Vercel domains with safe credential handling.
+- Configured PostgreSQL-compatible `DATABASE_URL` fallback while preserving SQLite for local/demo mode.
+- Sanitized `.env.example` with variable names only; hardened `.gitignore` against database files, caches, and secret keys.
+- Preserved CP-SAT BlockWindow domain constraint enforcement and regression tests.
 
 
 ## Solver Controls & Plan Quality Implementation Summary (P2.1)

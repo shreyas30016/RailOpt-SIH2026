@@ -15,9 +15,10 @@ htmlcov/
 
 # Environment and Secrets
 .env
+.env.*
 !.env.example
 
-# Database
+# Database (local SQLite files)
 *.sqlite3
 *.db
 
@@ -26,9 +27,10 @@ htmlcov/
 .idea/
 .DS_Store
 Thumbs.db
+.freebuff/
 
-# Logs
+# Logs & Error Dumps
 *.log
-
-# Local secrets
-.env
+*.err
+err.txt
+test_output.txt

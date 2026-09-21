@@ -4,6 +4,7 @@
  */
 
 import { mockTrainMovements } from "../mockData.js";
+import { getApiBaseUrl } from "../config.js";
 
 class MockTrainProvider {
     constructor() {
@@ -50,7 +51,10 @@ class MockTrainProvider {
 class LiveTrainProvider {
     constructor() {
         this.name = "Live/Public Train Data";
-        this.apiBase = "/api/trains";
+    }
+
+    get apiBase() {
+        return `${getApiBaseUrl()}/api/trains`;
     }
 
     async getMovements() {
@@ -148,7 +152,7 @@ export class TrainDataService {
         const headers = { "Content-Type": "application/json" };
         const token = localStorage.getItem("railopt_token") || "";
         if (token) headers["Authorization"] = `Bearer ${token}`;
-        const res = await fetch("/api/trains/simulate-delay", {
+        const res = await fetch(`${this.liveProvider.apiBase}/simulate-delay`, {
             method: "POST",
             headers,
             body: JSON.stringify({ train_id: trainId, delay_minutes: delayMinutes })

@@ -173,7 +173,7 @@ def get_analytics_report(
         grant_ratio = 100.0 if total_jobs_scheduled > 0 else 0.0
 
     # Total maintenance hours in active plan
-    total_maint_minutes = sum(b.duration_minutes for b in all_filtered_blocks)
+    total_maint_minutes = sum(int(b.duration_minutes) for b in all_filtered_blocks)
     total_maint_hours = round(total_maint_minutes / 60.0, 1)
 
     # Active sections count in scope
@@ -189,7 +189,7 @@ def get_analytics_report(
     block_utilization = round(min(100.0, (total_maint_minutes / max(1, corridor_capacity_minutes)) * 100.0), 1)
 
     # Train delay: delay minutes attributed to these scheduled blocks
-    train_delay_avg = round(latest_run.train_delay_total_min / max(1, latest_run.scheduled_jobs_count), 1) if (latest_run and latest_run.scheduled_jobs_count) else 0.0
+    train_delay_avg = round(float(latest_run.train_delay_total_min) / max(1, int(latest_run.scheduled_jobs_count)), 1) if (latest_run and latest_run.scheduled_jobs_count) else 0.0
 
     # Shadow block synergy
     shadow_count = sum(1 for b in all_filtered_blocks if b.is_shadow_block)
@@ -206,7 +206,7 @@ def get_analytics_report(
         b_code = b.job.job_code if b.job else f"JOB-{b.job_id}"
         paired_codes = []
         try:
-            paired_codes = json.loads(b.paired_job_codes_json) if b.paired_job_codes_json else []
+            paired_codes = json.loads(str(b.paired_job_codes_json)) if b.paired_job_codes_json else []
         except Exception:
             paired_codes = []
         for p_code in paired_codes:
@@ -219,7 +219,7 @@ def get_analytics_report(
             )
             if partner is not None:
                 shadow_pairs_seen.add(key)
-                shadow_savings_minutes += min(b.duration_minutes, partner.duration_minutes)
+                shadow_savings_minutes += min(int(b.duration_minutes), int(partner.duration_minutes))
     shadow_savings_hours = round(shadow_savings_minutes / 60.0, 1)
 
     # 5. Departmental distribution
@@ -245,8 +245,8 @@ def get_analytics_report(
 
         req_count = len(dept_jobs)
         sched_count = len(dept_blocks)
-        req_hrs = round(sum(j.duration_minutes for j in dept_jobs) / 60.0, 1)
-        app_hrs = round(sum(b.duration_minutes for b in dept_blocks) / 60.0, 1)
+        req_hrs = round(sum(int(j.duration_minutes) for j in dept_jobs) / 60.0, 1)
+        app_hrs = round(sum(int(b.duration_minutes) for b in dept_blocks) / 60.0, 1)
         dept_grant_rate = round(min(100.0, (sched_count / max(1, req_count)) * 100.0), 1) if req_count > 0 else (100.0 if sched_count > 0 else 0.0)
 
         dept_stats.append({
@@ -292,8 +292,8 @@ def get_analytics_report(
     for b in all_filtered_blocks:
         job = b.job
         sec = b.section
-        start_h, start_m = divmod(b.start_minute, 60)
-        end_h, end_m = divmod(b.end_minute, 60)
+        start_h, start_m = divmod(int(b.start_minute), 60)
+        end_h, end_m = divmod(int(b.end_minute), 60)
         time_str = f"{start_h:02d}:{start_m:02d} - {end_h:02d}:{end_m:02d}"
         raw_records.append({
             "block_id": b.id,
@@ -319,8 +319,8 @@ def get_analytics_report(
             "status": r.status or "OPTIMAL",
             "scheduled": r.scheduled_jobs_count,
             "train_delay_min": r.train_delay_total_min,
-            "utilization": round(min(100.0, r.block_utilization_pct), 1),
-            "synergy": round(min(100.0, r.shadow_block_synergy_pct), 1),
+            "utilization": round(min(100.0, float(r.block_utilization_pct)), 1),
+            "synergy": round(min(100.0, float(r.shadow_block_synergy_pct)), 1),
             "solver_time_sec": r.solver_time_seconds
         })
 

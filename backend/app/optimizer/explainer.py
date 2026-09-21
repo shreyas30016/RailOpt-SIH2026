@@ -56,7 +56,7 @@ class DecisionExplainer:
         if run_id is None:
             return {"error": "No optimization run found. Generate a plan first."}
 
-        return self.get_job_explanation_tree(run_id, job.id)
+        return self.get_job_explanation_tree(int(run_id), int(job.id))
 
     # -------------------------------------------------------------------------
     # Scheduled job explanation
@@ -153,7 +153,7 @@ class DecisionExplainer:
         run = self.db.query(OptimizationRun).filter(OptimizationRun.id == sb.run_id).first()
         if run and run.parameters_json:
             try:
-                params = json.loads(run.parameters_json)
+                params = json.loads(str(run.parameters_json))
                 delay_w = params.get("train_delay_weight", 1.0)
                 shadow_w = params.get("shadow_block_weight", 1.0)
                 urg_w = params.get("urgency_weight", 1.0)
@@ -287,7 +287,7 @@ class DecisionExplainer:
                 if not (t.arrival_minute + 3 <= probe_start or probe_end + 3 <= t.departure_minute)
             ]
             if conflicting:
-                fail_reason = f"Train conflict: {', '.join(conflicting[:3])} transiting section during {s_str}–{e_str}."
+                fail_reason = f"Train conflict: {', '.join(str(c) for c in conflicting[:3])} transiting section during {s_str}–{e_str}."
             else:
                 fail_reason = f"Track line capacity: section {job.section.code if job.section else 'corridor'} fully booked by higher-priority jobs."
             results.append({

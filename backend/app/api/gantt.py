@@ -10,7 +10,7 @@ router = APIRouter(prefix="/gantt", tags=["Gantt Timeline"])
 
 @router.get("/timeline")
 def get_gantt_timeline_data(
-    run_id: int = None,
+    run_id: int | None = None,
     db: Session = Depends(get_db)
 ):
     """
@@ -44,7 +44,7 @@ def get_gantt_timeline_data(
                     paired_codes = []
                     if sb.paired_job_codes_json:
                         try:
-                            paired_codes = json.loads(sb.paired_job_codes_json)
+                            paired_codes = json.loads(str(sb.paired_job_codes_json))
                         except Exception:
                             paired_codes = []
 
@@ -55,14 +55,14 @@ def get_gantt_timeline_data(
                         "title": j.title if j else "Track Block",
                         "department": sb.department_code,
                         "color": j.department.color if j and j.department else "#003366",
-                        "start_minute": sb.start_minute,
-                        "end_minute": sb.end_minute,
-                        "start_time_str": f"{(sb.start_minute // 60) % 24:02d}:{sb.start_minute % 60:02d}",
-                        "end_time_str": f"{(sb.end_minute // 60) % 24:02d}:{sb.end_minute % 60:02d}",
+                        "start_minute": int(sb.start_minute),
+                        "end_minute": int(sb.end_minute),
+                        "start_time_str": f"{(int(sb.start_minute) // 60) % 24:02d}:{int(sb.start_minute) % 60:02d}",
+                        "end_time_str": f"{(int(sb.end_minute) // 60) % 24:02d}:{int(sb.end_minute) % 60:02d}",
                         "is_shadow": sb.is_shadow_block,
                         "paired_jobs": paired_codes,
                         "resource": sb.resource_assigned,
-                        "explanation": f"Scheduled {(sb.start_minute // 60) % 24:02d}:{sb.start_minute % 60:02d}–{(sb.end_minute // 60) % 24:02d}:{sb.end_minute % 60:02d} on {sec.code}."
+                        "explanation": f"Scheduled {(int(sb.start_minute) // 60) % 24:02d}:{int(sb.start_minute) % 60:02d}–{(int(sb.end_minute) // 60) % 24:02d}:{int(sb.end_minute) % 60:02d} on {sec.code}."
                     })
 
             timeline_tracks.append({

@@ -42,4 +42,20 @@ class Settings(BaseModel):
     AI_MODEL: str = os.getenv("AI_MODEL", "mock-model")    # e.g. meta/llama-3.1-70b-instruct
     AI_BASE_URL: str = os.getenv("AI_BASE_URL", "")        # Override base URL (NVIDIA: https://integrate.api.nvidia.com/v1)
 
+    # Security & CORS
+    CORS_ORIGINS: str = os.getenv("CORS_ORIGINS", "")
+
+    @property
+    def cors_origins_list(self) -> list[str]:
+        if self.CORS_ORIGINS.strip():
+            return [origin.strip() for origin in self.CORS_ORIGINS.split(",") if origin.strip()]
+        return [
+            "http://localhost:3000",
+            "http://localhost:5173",
+            "http://localhost:8000",
+            "http://127.0.0.1:3000",
+            "http://127.0.0.1:5173",
+            "http://127.0.0.1:8000",
+        ]
+
 settings = Settings()

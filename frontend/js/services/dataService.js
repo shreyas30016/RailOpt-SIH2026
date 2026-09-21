@@ -8,11 +8,16 @@
 // All live screens now hydrate strictly from the backend; offline fallbacks
 // carry ZERO fabricated business values.
 
+import { getApiBaseUrl } from "../config.js";
+
 class DataService {
     constructor() {
-        this.apiBase = "";
         this.useMockOnly = false; // Toggle or auto-fallback
         this.lastFallback = null; // { endpoint, status, error } when an offline fallback was used
+    }
+
+    get apiBase() {
+        return getApiBaseUrl();
     }
 
     // Tag fallback payloads so the UI can honestly display "offline fallback" state.

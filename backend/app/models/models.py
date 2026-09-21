@@ -1,6 +1,6 @@
 from sqlalchemy import Column, Integer, String, Float, Boolean, Text, ForeignKey, DateTime
 from sqlalchemy.orm import relationship
-from datetime import datetime
+from datetime import datetime, timezone
 from ..database import Base
 
 class Department(Base):
@@ -76,7 +76,7 @@ class MaintenanceJob(Base):
     earliest_start_minute = Column(Integer, default=0) # minute offset from 00:00 (0 to 1440)
     latest_end_minute = Column(Integer, default=1440)
     
-    created_at = Column(DateTime, default=datetime.utcnow)
+    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
     description = Column(Text, nullable=True)
 
     department = relationship("Department", back_populates="jobs")
@@ -118,7 +118,7 @@ class OptimizationRun(Base):
     __tablename__ = "optimization_runs"
 
     id = Column(Integer, primary_key=True, index=True)
-    run_timestamp = Column(DateTime, default=datetime.utcnow)
+    run_timestamp = Column(DateTime, default=lambda: datetime.now(timezone.utc))
     status = Column(String(30), default="OPTIMAL") # OPTIMAL, FEASIBLE, INFEASIBLE
     total_jobs = Column(Integer, default=0)
     scheduled_jobs_count = Column(Integer, default=0)

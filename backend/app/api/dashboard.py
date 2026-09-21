@@ -32,12 +32,12 @@ def get_dashboard_summary(db: Session = Depends(get_db)):
     conflicts_list = []
 
     if latest_run:
-        planned_blocks_today = latest_run.scheduled_jobs_count
-        efficiency = round(latest_run.block_utilization_pct, 1)
-        shadow_synergy = round(latest_run.shadow_block_synergy_pct, 1)
+        planned_blocks_today = int(latest_run.scheduled_jobs_count)
+        efficiency = round(float(latest_run.block_utilization_pct), 1)
+        shadow_synergy = round(float(latest_run.shadow_block_synergy_pct), 1)
         # Punctuality impact is a normalized derivative of the ACTUAL solver-computed
         # train delay minutes: 0 min delay -> 0.0% impact, 300 min -> 1.5%.
-        punctuality_impact = round((latest_run.train_delay_total_min / 300.0) * 1.5, 1)
+        punctuality_impact = round((float(latest_run.train_delay_total_min) / 300.0) * 1.5, 1)
         latest_summary = {
             "run_id": latest_run.id,
             "status": latest_run.status,
@@ -59,8 +59,8 @@ def get_dashboard_summary(db: Session = Depends(get_db)):
                 "department_code": sb.department_code,
                 "section_code": sb.section.code if sb.section else "CORRIDOR",
                 "track_line": sb.track_line.line_code if sb.track_line else "MAIN",
-                "start_time_str": _min_to_str(sb.start_minute),
-                "end_time_str": _min_to_str(sb.end_minute),
+                "start_time_str": _min_to_str(int(sb.start_minute)),
+                "end_time_str": _min_to_str(int(sb.end_minute)),
                 "duration_minutes": sb.duration_minutes,
                 "is_shadow_block": sb.is_shadow_block,
                 "status": "APPROVED" if j and j.status == "APPROVED" else "SCHEDULED"
@@ -86,8 +86,8 @@ def get_dashboard_summary(db: Session = Depends(get_db)):
                 "department_code": j.department.code if j.department else "ENG",
                 "section_code": j.section.code if j.section else "CORRIDOR",
                 "track_line": j.track_line.line_code if j.track_line else "MAIN",
-                "start_time_str": _min_to_str(j.earliest_start_minute),
-                "end_time_str": _min_to_str(j.latest_end_minute),
+                "start_time_str": _min_to_str(int(j.earliest_start_minute)),
+                "end_time_str": _min_to_str(int(j.latest_end_minute)),
                 "duration_minutes": j.duration_minutes,
                 "is_shadow_block": False,
                 "status": j.status
@@ -101,25 +101,25 @@ def get_dashboard_summary(db: Session = Depends(get_db)):
     urgent_queue = []
     for j in urgent_jobs_db:
         urgent_queue.append(MaintenanceJobResponse(
-            id=j.id,
-            job_code=j.job_code,
-            title=j.title,
-            department_code=j.department.code if j.department else "ENG",
-            department_name=j.department.name if j.department else "Civil Engineering",
-            section_code=j.section.code if j.section else "UNKNOWN",
-            track_line=j.track_line.line_code if j.track_line else "UP_MAIN",
-            duration_minutes=j.duration_minutes,
-            priority=j.priority,
-            urgency=j.urgency,
-            requires_power_block=j.requires_power_block,
-            requires_traffic_block=j.requires_traffic_block,
-            requires_speed_restriction=j.requires_speed_restriction,
-            speed_restriction_kmh=j.speed_restriction_kmh,
-            status=j.status,
-            requested_date=j.requested_date,
-            earliest_start_minute=j.earliest_start_minute,
-            latest_end_minute=j.latest_end_minute,
-            description=j.description
+            id=int(j.id),
+            job_code=str(j.job_code),
+            title=str(j.title),
+            department_code=str(j.department.code) if j.department else "ENG",
+            department_name=str(j.department.name) if j.department else "Civil Engineering",
+            section_code=str(j.section.code) if j.section else "UNKNOWN",
+            track_line=str(j.track_line.line_code) if j.track_line else "UP_MAIN",
+            duration_minutes=int(j.duration_minutes),
+            priority=int(j.priority),
+            urgency=str(j.urgency),
+            requires_power_block=bool(j.requires_power_block),
+            requires_traffic_block=bool(j.requires_traffic_block),
+            requires_speed_restriction=bool(j.requires_speed_restriction),
+            speed_restriction_kmh=int(j.speed_restriction_kmh) if j.speed_restriction_kmh is not None else None,
+            status=str(j.status),
+            requested_date=str(j.requested_date),
+            earliest_start_minute=int(j.earliest_start_minute),
+            latest_end_minute=int(j.latest_end_minute),
+            description=str(j.description) if j.description else None
         ))
 
     # Department breakdown

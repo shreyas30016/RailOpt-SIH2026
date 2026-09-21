@@ -1,4 +1,4 @@
-﻿"""
+"""
 What-If Simulation Engine - SIH26027 Railway Block Planning
 Supports 3 disruption types: TRAIN_DELAY, MAINTENANCE_OVERRUN, BLOCK_UNAVAILABLE
 Returns full before/after comparison with affected job/block lists.
@@ -62,7 +62,7 @@ class WhatIfSimulator:
                 )
                 self.db.add(new_job)
                 self.db.commit()
-                injected_jobs.append(new_job.id)
+                injected_jobs.append(int(new_job.id)) # type: ignore
 
         # 2b. Train delay injection - shift departure/arrival for delayed train
         delay_min = getattr(request, "simulated_train_delay_min", 0) or 0
@@ -78,14 +78,14 @@ class WhatIfSimulator:
         elif delay_min > 0:
             # Pick the first express-class train
             delayed_train_obj = self.db.query(TrainSchedule).filter(
-                TrainSchedule.priority_weight >= 15
+                TrainSchedule.priority_weight >= 15 # type: ignore
             ).order_by(TrainSchedule.departure_minute).first()
 
         if delayed_train_obj and delay_min > 0:
-            original_dep = delayed_train_obj.departure_minute
-            original_arr = delayed_train_obj.arrival_minute
-            delayed_train_obj.departure_minute = original_dep + delay_min
-            delayed_train_obj.arrival_minute = original_arr + delay_min
+            original_dep = int(delayed_train_obj.departure_minute) if delayed_train_obj.departure_minute is not None else 0 # type: ignore
+            original_arr = int(delayed_train_obj.arrival_minute) if delayed_train_obj.arrival_minute is not None else 0 # type: ignore
+            delayed_train_obj.departure_minute = original_dep + delay_min # type: ignore
+            delayed_train_obj.arrival_minute = original_arr + delay_min # type: ignore
             self.db.commit()
             modified_trains.append({
                 "train_number": delayed_train_obj.train_number,
@@ -111,8 +111,8 @@ class WhatIfSimulator:
                         MaintenanceJob.section_id == overrun_sec.id
                     ).first()
             if overrun_job_obj:
-                original_duration = overrun_job_obj.duration_minutes
-                overrun_job_obj.duration_minutes = original_duration + overrun_min
+                original_duration = int(overrun_job_obj.duration_minutes) # type: ignore
+                overrun_job_obj.duration_minutes = original_duration + overrun_min # type: ignore
                 self.db.commit()
 
         # 2d. Block section unavailable - shrink its block windows to zero
@@ -131,7 +131,7 @@ class WhatIfSimulator:
                         "orig_start": w.start_minute,
                         "orig_end": w.end_minute
                     })
-                    w.is_active = False
+                    w.is_active = False # type: ignore
                 self.db.commit()
                 modified_windows.extend([{
                     "section": unavail_section_code,
@@ -151,17 +151,17 @@ class WhatIfSimulator:
                 self.db.delete(tmp)
 
         if delayed_train_obj and original_dep is not None:
-            delayed_train_obj.departure_minute = original_dep
-            delayed_train_obj.arrival_minute = original_arr
+            delayed_train_obj.departure_minute = original_dep # type: ignore
+            delayed_train_obj.arrival_minute = original_arr # type: ignore
 
         if overrun_job_obj and original_duration is not None:
-            overrun_job_obj.duration_minutes = original_duration
+            overrun_job_obj.duration_minutes = original_duration # type: ignore
 
         if unavail_windows_data:
             for w_data in unavail_windows_data:
                 w_obj = self.db.query(BlockWindow).filter(BlockWindow.id == w_data["id"]).first()
                 if w_obj:
-                    w_obj.is_active = True
+                    w_obj.is_active = True # type: ignore
 
         self.db.commit()
 

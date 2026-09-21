@@ -135,25 +135,25 @@ def get_maintenance_requests(
     results = []
     for j in jobs:
         results.append(MaintenanceJobResponse(
-            id=j.id,
-            job_code=j.job_code,
-            title=j.title,
-            department_code=j.department.code if j.department else "ENG",
-            department_name=j.department.name if j.department else "Civil Engineering",
-            section_code=j.section.code if j.section else "UNKNOWN",
-            track_line=j.track_line.line_code if j.track_line else "UP_MAIN",
-            duration_minutes=j.duration_minutes,
-            priority=j.priority,
-            urgency=j.urgency,
-            requires_power_block=j.requires_power_block,
-            requires_traffic_block=j.requires_traffic_block,
-            requires_speed_restriction=j.requires_speed_restriction,
-            speed_restriction_kmh=j.speed_restriction_kmh,
-            status=j.status,
-            requested_date=j.requested_date,
-            earliest_start_minute=j.earliest_start_minute,
-            latest_end_minute=j.latest_end_minute,
-            description=j.description
+            id=int(j.id),
+            job_code=str(j.job_code),
+            title=str(j.title),
+            department_code=str(j.department.code) if j.department else "ENG",
+            department_name=str(j.department.name) if j.department else "Civil Engineering",
+            section_code=str(j.section.code) if j.section else "UNKNOWN",
+            track_line=str(j.track_line.line_code) if j.track_line else "UP_MAIN",
+            duration_minutes=int(j.duration_minutes),
+            priority=int(j.priority),
+            urgency=str(j.urgency),
+            requires_power_block=bool(j.requires_power_block),
+            requires_traffic_block=bool(j.requires_traffic_block),
+            requires_speed_restriction=bool(j.requires_speed_restriction),
+            speed_restriction_kmh=int(j.speed_restriction_kmh) if j.speed_restriction_kmh is not None else None,
+            status=str(j.status),
+            requested_date=str(j.requested_date),
+            earliest_start_minute=int(j.earliest_start_minute),
+            latest_end_minute=int(j.latest_end_minute),
+            description=str(j.description) if j.description else None
         ))
     return results
 
@@ -213,25 +213,25 @@ def create_maintenance_request(
     db.refresh(new_job)
 
     return MaintenanceJobResponse(
-        id=new_job.id,
-        job_code=new_job.job_code,
-        title=new_job.title,
-        department_code=dept.code,
-        department_name=dept.name,
-        section_code=sec.code,
-        track_line=track_line.line_code if track_line else "UP_MAIN",
-        duration_minutes=new_job.duration_minutes,
-        priority=new_job.priority,
-        urgency=new_job.urgency,
-        requires_power_block=new_job.requires_power_block,
-        requires_traffic_block=new_job.requires_traffic_block,
-        requires_speed_restriction=new_job.requires_speed_restriction,
-        speed_restriction_kmh=new_job.speed_restriction_kmh,
-        status=new_job.status,
-        requested_date=new_job.requested_date,
-        earliest_start_minute=new_job.earliest_start_minute,
-        latest_end_minute=new_job.latest_end_minute,
-        description=new_job.description
+        id=int(new_job.id),
+        job_code=str(new_job.job_code),
+        title=str(new_job.title),
+        department_code=str(dept.code),
+        department_name=str(dept.name),
+        section_code=str(sec.code),
+        track_line=str(track_line.line_code) if track_line else "UP_MAIN",
+        duration_minutes=int(new_job.duration_minutes),
+        priority=int(new_job.priority),
+        urgency=str(new_job.urgency),
+        requires_power_block=bool(new_job.requires_power_block),
+        requires_traffic_block=bool(new_job.requires_traffic_block),
+        requires_speed_restriction=bool(new_job.requires_speed_restriction),
+        speed_restriction_kmh=int(new_job.speed_restriction_kmh) if new_job.speed_restriction_kmh is not None else None,
+        status=str(new_job.status),
+        requested_date=str(new_job.requested_date),
+        earliest_start_minute=int(new_job.earliest_start_minute),
+        latest_end_minute=int(new_job.latest_end_minute),
+        description=str(new_job.description) if new_job.description else None
     )
 
 
@@ -255,7 +255,7 @@ def update_maintenance_request(
     except (ValueError, TypeError):
         pass
     if not job:
-        job = db.query(MaintenanceJob).filter(MaintenanceJob.job_code == str(job_id)).first()
+        job = db.query(MaintenanceJob).filter(MaintenanceJob.job_code == job_id).first()
 
     if not job:
         raise HTTPException(status_code=404, detail=f"Maintenance job '{job_id}' not found.")
@@ -281,53 +281,53 @@ def update_maintenance_request(
         valid_statuses = {"PENDING", "APPROVED", "DEFERRED", "SCHEDULED", "CANCELLED"}
         if update_data.status not in valid_statuses:
             raise HTTPException(status_code=400, detail=f"Invalid status '{update_data.status}'.")
-        job.status = update_data.status
+        job.status = update_data.status  # type: ignore
 
     if update_data.urgency is not None:
         valid_urgency = {"CRITICAL", "HIGH", "MEDIUM", "ROUTINE"}
         if update_data.urgency not in valid_urgency:
             raise HTTPException(status_code=400, detail=f"Invalid urgency '{update_data.urgency}'.")
-        job.urgency = update_data.urgency
+        job.urgency = update_data.urgency  # type: ignore
 
     if update_data.priority is not None:
         if not (1 <= update_data.priority <= 5):
             raise HTTPException(status_code=400, detail="Priority must be between 1 and 5.")
-        job.priority = update_data.priority
+        job.priority = update_data.priority  # type: ignore
 
     if update_data.duration_minutes is not None:
         if update_data.duration_minutes < 15:
             raise HTTPException(status_code=400, detail="Duration must be at least 15 minutes.")
-        job.duration_minutes = update_data.duration_minutes
+        job.duration_minutes = update_data.duration_minutes  # type: ignore
 
     if update_data.description is not None:
-        job.description = update_data.description
+        job.description = update_data.description  # type: ignore
 
     if update_data.requested_date is not None:
-        job.requested_date = update_data.requested_date
+        job.requested_date = update_data.requested_date  # type: ignore
 
     db.commit()
     db.refresh(job)
 
     return MaintenanceJobResponse(
-        id=job.id,
-        job_code=job.job_code,
-        title=job.title,
-        department_code=job.department.code if job.department else "ENG",
-        department_name=job.department.name if job.department else "Civil Engineering",
-        section_code=job.section.code if job.section else "UNKNOWN",
-        track_line=job.track_line.line_code if job.track_line else "UP_MAIN",
-        duration_minutes=job.duration_minutes,
-        priority=job.priority,
-        urgency=job.urgency,
-        requires_power_block=job.requires_power_block,
-        requires_traffic_block=job.requires_traffic_block,
-        requires_speed_restriction=job.requires_speed_restriction,
-        speed_restriction_kmh=job.speed_restriction_kmh,
-        status=job.status,
-        requested_date=job.requested_date,
-        earliest_start_minute=job.earliest_start_minute,
-        latest_end_minute=job.latest_end_minute,
-        description=job.description
+        id=int(job.id),
+        job_code=str(job.job_code),
+        title=str(job.title),
+        department_code=str(job.department.code) if job.department else "ENG",
+        department_name=str(job.department.name) if job.department else "Civil Engineering",
+        section_code=str(job.section.code) if job.section else "UNKNOWN",
+        track_line=str(job.track_line.line_code) if job.track_line else "UP_MAIN",
+        duration_minutes=int(job.duration_minutes),
+        priority=int(job.priority),
+        urgency=str(job.urgency),
+        requires_power_block=bool(job.requires_power_block),
+        requires_traffic_block=bool(job.requires_traffic_block),
+        requires_speed_restriction=bool(job.requires_speed_restriction),
+        speed_restriction_kmh=int(job.speed_restriction_kmh) if job.speed_restriction_kmh is not None else None,
+        status=str(job.status),
+        requested_date=str(job.requested_date),
+        earliest_start_minute=int(job.earliest_start_minute),
+        latest_end_minute=int(job.latest_end_minute),
+        description=str(job.description) if job.description else None
     )
 
 
@@ -349,7 +349,7 @@ def delete_maintenance_request(
     except (ValueError, TypeError):
         pass
     if not job:
-        job = db.query(MaintenanceJob).filter(MaintenanceJob.job_code == str(job_id)).first()
+        job = db.query(MaintenanceJob).filter(MaintenanceJob.job_code == job_id).first()
 
     if not job:
         raise HTTPException(status_code=404, detail=f"Maintenance job '{job_id}' not found.")

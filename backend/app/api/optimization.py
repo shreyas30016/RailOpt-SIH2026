@@ -211,7 +211,7 @@ def get_latest_optimization(db: Session = Depends(get_db)):
         paired_codes = []
         if sb.paired_job_codes_json:
             try:
-                paired_codes = json.loads(sb.paired_job_codes_json)
+                paired_codes = json.loads(str(sb.paired_job_codes_json))
             except Exception:
                 paired_codes = []
 
@@ -281,12 +281,12 @@ def get_latest_optimization(db: Session = Depends(get_db)):
         "total_jobs_considered": len(all_jobs),
         "scheduled_jobs_count": latest_run.scheduled_jobs_count,
         "unscheduled_jobs_count": latest_run.unscheduled_jobs_count,
-        "total_maintenance_hours": round(total_maint_hours, 1),
+        "total_maintenance_hours": round(float(total_maint_hours), 1),
         "total_train_delay_minutes": latest_run.train_delay_total_min,
-        "block_utilization_pct": round(latest_run.block_utilization_pct, 1),
-        "shadow_block_synergy_pct": round(latest_run.shadow_block_synergy_pct, 1),
+        "block_utilization_pct": round(float(latest_run.block_utilization_pct), 1),
+        "shadow_block_synergy_pct": round(float(latest_run.shadow_block_synergy_pct), 1),
         "objective_score": latest_run.objective_score or 0.0,
-        "solver_time_seconds": round(latest_run.solver_time_seconds, 2),
+        "solver_time_seconds": round(float(latest_run.solver_time_seconds), 2),
         "critical_jobs_total": crit_jobs_total,
         "critical_jobs_scheduled": crit_jobs_scheduled
     }
@@ -314,12 +314,12 @@ def get_latest_optimization(db: Session = Depends(get_db)):
         "total_jobs": len(all_jobs),
         "scheduled_jobs_count": latest_run.scheduled_jobs_count,
         "unscheduled_jobs_count": latest_run.unscheduled_jobs_count,
-        "total_maintenance_hours": round(total_maint_hours, 1),
+        "total_maintenance_hours": round(float(total_maint_hours), 1),
         "train_delay_total_min": latest_run.train_delay_total_min,
-        "block_utilization_pct": round(latest_run.block_utilization_pct, 1),
-        "shadow_block_synergy_pct": round(latest_run.shadow_block_synergy_pct, 1),
+        "block_utilization_pct": round(float(latest_run.block_utilization_pct), 1),
+        "shadow_block_synergy_pct": round(float(latest_run.shadow_block_synergy_pct), 1),
         "objective_score": latest_run.objective_score or 0.0,
-        "solver_time_seconds": round(latest_run.solver_time_seconds, 2),
+        "solver_time_seconds": round(float(latest_run.solver_time_seconds), 2),
         "conflicts_resolved": conflicts,
         "explanations": explanations
     }
@@ -351,7 +351,7 @@ def get_optimization_run_by_id(run_id: int, db: Session = Depends(get_db)):
     for sb in scheduled_blocks_db:
         j = sb.job
         try:
-            paired_codes = _json.loads(sb.paired_job_codes_json) if sb.paired_job_codes_json else []
+            paired_codes = _json.loads(str(sb.paired_job_codes_json)) if sb.paired_job_codes_json else []
         except Exception:
             paired_codes = []
         scheduled_blocks.append({
