@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, Query
+from fastapi import APIRouter, Depends, Query, Response
 from .auth import require_permission
 from sqlalchemy.orm import Session
 from typing import Dict, Any, Optional
@@ -36,11 +36,18 @@ def get_train_list(db: Session = Depends(get_db)):
     ]
 
 @router.get("/live")
-def get_live_train_movements(force_refresh: bool = Query(False, description="Bypass cache and force refresh")):
+def get_live_train_movements(response: Response, force_refresh: bool = Query(False, description="Bypass cache and force refresh")):
     """
     Returns normalized train movements from live/public feed with automatic mock fallback.
     """
-    return train_adapter.get_movements(force_refresh=force_refresh)
+    data = train_adapter.get_movements(force_refresh=force_refresh)
+    
+    # Filter out IDLE trains to reduce payload bloat
+    if "movements" in data:
+        data["movements"] = [m for m in data["movements"] if m.get("phase") != "IDLE"]
+        
+    response.headers["Cache-Control"] = "public, max-age=10"
+    return data
 
 @router.get("/status/{train_id}")
 def get_train_status(train_id: str):
