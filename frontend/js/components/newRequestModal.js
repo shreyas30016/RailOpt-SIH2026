@@ -182,6 +182,27 @@ export function renderNewRequestModal({ onSuccess } = {}) {
         };
     }
 
+    // Dynamic Track Line options based on Section
+    const sectionSelect = document.getElementById("req-section-code");
+    const trackLineSelect = document.getElementById("req-track-line");
+    
+    if (sectionSelect && trackLineSelect) {
+        sectionSelect.addEventListener("change", () => {
+            const section = sectionSelect.value;
+            // NDLS-TKD, PWL-KDS, KDS-MTJ, MTJ-AGC have 2 tracks. TKD-FDB, FDB-PWL have 3 tracks.
+            const has3rdLine = (section === "TKD-FDB" || section === "FDB-PWL");
+            
+            trackLineSelect.innerHTML = `
+                <option value="UP_MAIN" selected>UP Main Line</option>
+                <option value="DN_MAIN">DN Main Line</option>
+                ${has3rdLine ? '<option value="3RD_LINE">3rd Line (Freight Loop)</option>' : ''}
+            `;
+        });
+        
+        // Trigger once on load
+        sectionSelect.dispatchEvent(new Event("change"));
+    }
+
     // Close modal handlers
     const closeModal = () => {
         if (modal) modal.remove();
