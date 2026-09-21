@@ -2,8 +2,8 @@ import json
 import time
 from copy import copy
 from typing import List, Dict, Any, Tuple, Optional
-from ortools.sat.python import cp_model
 from sqlalchemy.orm import Session
+
 
 from ..models.models import (
     MaintenanceJob, TrainSchedule, Section, TrackLine,
@@ -158,6 +158,7 @@ class RailwayBlockOptimizer:
             }
 
         # 3. Build CP-SAT Model
+        from ortools.sat.python import cp_model
         model = cp_model.CpModel()
 
         # Decision Variables
