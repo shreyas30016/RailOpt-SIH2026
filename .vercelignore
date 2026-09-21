@@ -1,14 +1,13 @@
-# Ignore backend, serverless artifacts, and dev dependencies from Vercel static deployment
-backend/
-api/
-requirements.txt
-pyproject.toml
-pytest.ini
+# Local development, test, and build artifacts to ignore on Vercel
 tests/
-scripts/
 docs/
+scripts/
 stitch_export/
 .venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
 railopt.db
 *.db
 *.sqlite3
+scratch/

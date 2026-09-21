@@ -173,9 +173,20 @@ def get_reports_page():
     return _serve_frontend_page("reports.html")
 
 @app.get("/health")
+@app.get("/api/health")
 def health_check():
     return {
         "status": "healthy",
         "service": settings.PROJECT_NAME,
         "version": settings.VERSION
     }
+
+@app.get("/api/docs", include_in_schema=False)
+def api_docs():
+    from fastapi.openapi.docs import get_swagger_ui_html
+    return get_swagger_ui_html(openapi_url="/api/openapi.json", title=f"{settings.PROJECT_NAME} - API Docs")
+
+@app.get("/api/openapi.json", include_in_schema=False)
+def api_openapi():
+    return app.openapi()
+

@@ -3,7 +3,7 @@ name = "railopt"
 version = "1.0.0"
 description = "Deterministic Railway Block Planning and Optimization Engine for Indian Railways"
 readme = "README.md"
-requires-python = ">=3.10"
+requires-python = ">=3.12"
 dependencies = [
     "fastapi>=0.110.0",
     "uvicorn>=0.28.0",
@@ -19,3 +19,6 @@ dependencies = [
 dev = [
     "pytest>=8.0.0",
 ]
+
+[tool.vercel]
+entrypoint = "backend.app.main:app"
